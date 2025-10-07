@@ -20,13 +20,13 @@
                                    @if($addition_settings->verify_mode == 1)
                                    <li><a href="{{ URL::to('/verify') }}">{{ __('Verify Purchase') }}</a></li>
                                    @endif
-                                   @if(Auth::guest())
+                                   {{-- @if(Auth::guest())
                                    <li><a href="{{ URL::to('/start-selling') }}">{{ __('Start Selling') }}</a></li>
                                     @else
                                     @if(Auth::user()->user_type == 'vendor')
                                     <li><a href="{{ URL::to('/manage-item') }}">{{ __('Start Selling') }}</a></li>
                                     @endif
-                                    @endif
+                                    @endif --}}
                                     @if($allsettings->site_blog_display == 1)
                                     <li>
                                         <a href="{{ URL::to('/blog') }}">{{ __('Blog') }}</a>
@@ -153,11 +153,11 @@
                                   @if($addition_settings->verify_mode == 1)
                                    <li><a href="{{ URL::to('/verify') }}">{{ __('Verify Purchase') }}</a></li>
                                    @endif 
-                                  @if(Auth::user()->user_type == 'vendor')
+                                  {{-- @if(Auth::user()->user_type == 'vendor')
                                   <li>
                                        <a href="{{ URL::to('/manage-item') }}">{{ __('Start Selling') }}</a>
                                     </li>
-                                    @endif
+                                    @endif --}}
                                     @if($allsettings->site_blog_display == 1)
                                     <li>
                                         <a href="{{ URL::to('/blog') }}">{{ __('Blog') }}</a>

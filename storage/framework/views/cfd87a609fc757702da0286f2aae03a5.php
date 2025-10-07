@@ -30,13 +30,7 @@
               <?php if($addition_settings->verify_mode == 1): ?> 
               <li><a class="dropdown-item" href="<?php echo e(URL::to('/verify')); ?>"><i class="dwg-check text-muted mr-2"></i><?php echo e(__('Verify Purchase')); ?></a></li>
               <?php endif; ?>
-              <?php if(Auth::guest()): ?>
-              <li><a class="dropdown-item" href="<?php echo e(URL::to('/start-selling')); ?>"><i class="dwg-cart text-muted mr-2"></i><?php echo e(__('Start Selling')); ?></a></li>
-              <?php else: ?>
-              <?php if(Auth::user()->user_type == 'vendor'): ?>
-              <li><a class="dropdown-item" href="<?php echo e(URL::to('/manage-item')); ?>"><i class="dwg-cart text-muted mr-2"></i><?php echo e(__('Start Selling')); ?></a></li>
-              <?php endif; ?>
-              <?php endif; ?>
+              
               <?php if($addition_settings->subscription_mode == 1): ?>
               <li><a class="dropdown-item" href="<?php echo e(url('/subscription')); ?>"><i class="dwg-book text-muted mr-2"></i><?php echo e(__('Subscription')); ?></a></li>
               <?php endif; ?>
@@ -50,15 +44,7 @@
           <?php if($addition_settings->verify_mode == 1): ?>
           <a class="topbar-link ml-3 pl-3 d-none d-md-inline-block" href="<?php echo e(URL::to('/verify')); ?>"><i class="dwg-check mt-n1"></i><?php echo e(__('Verify Purchase')); ?></a>
           <?php endif; ?>
-          <?php if($allsettings->site_selling_display == 1): ?>
-          <?php if(Auth::guest()): ?>
-          <a class="topbar-link ml-3 pl-3 border-left border-light d-none d-md-inline-block" href="<?php echo e(URL::to('/start-selling')); ?>"><i class="dwg-cart mt-n1"></i><?php echo e(__('Start Selling')); ?></a>
-          <?php else: ?>
-          <?php if(Auth::user()->user_type == 'vendor'): ?>
-          <a class="topbar-link ml-3 pl-3 border-left border-light d-none d-md-inline-block" href="<?php echo e(URL::to('/manage-item')); ?>"><i class="dwg-cart mt-n1"></i><?php echo e(__('Start Selling')); ?></a>
-          <?php endif; ?>
-          <?php endif; ?>
-          <?php endif; ?>
+          
           <?php if($addition_settings->subscription_mode == 1): ?>
           <a class="topbar-link ml-3 border-left border-light pl-3 d-none d-md-inline-block" href="<?php echo e(url('/subscription')); ?>"><i class="dwg-book mt-n1"></i><?php echo e(__('Subscription')); ?></a>
           <?php endif; ?>

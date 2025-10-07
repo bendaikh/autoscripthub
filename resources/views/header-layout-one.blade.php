@@ -30,13 +30,13 @@
               @if($addition_settings->verify_mode == 1) 
               <li><a class="dropdown-item" href="{{ URL::to('/verify') }}"><i class="dwg-check text-muted mr-2"></i>{{ __('Verify Purchase') }}</a></li>
               @endif
-              @if(Auth::guest())
+              {{-- @if(Auth::guest())
               <li><a class="dropdown-item" href="{{ URL::to('/start-selling') }}"><i class="dwg-cart text-muted mr-2"></i>{{ __('Start Selling') }}</a></li>
               @else
               @if(Auth::user()->user_type == 'vendor')
               <li><a class="dropdown-item" href="{{ URL::to('/manage-item') }}"><i class="dwg-cart text-muted mr-2"></i>{{ __('Start Selling') }}</a></li>
               @endif
-              @endif
+              @endif --}}
               @if($addition_settings->subscription_mode == 1)
               <li><a class="dropdown-item" href="{{ url('/subscription') }}"><i class="dwg-book text-muted mr-2"></i>{{ __('Subscription') }}</a></li>
               @endif
@@ -50,7 +50,7 @@
           @if($addition_settings->verify_mode == 1)
           <a class="topbar-link ml-3 pl-3 d-none d-md-inline-block" href="{{ URL::to('/verify') }}"><i class="dwg-check mt-n1"></i>{{ __('Verify Purchase') }}</a>
           @endif
-          @if($allsettings->site_selling_display == 1)
+          {{-- @if($allsettings->site_selling_display == 1)
           @if(Auth::guest())
           <a class="topbar-link ml-3 pl-3 border-left border-light d-none d-md-inline-block" href="{{ URL::to('/start-selling') }}"><i class="dwg-cart mt-n1"></i>{{ __('Start Selling') }}</a>
           @else
@@ -58,7 +58,7 @@
           <a class="topbar-link ml-3 pl-3 border-left border-light d-none d-md-inline-block" href="{{ URL::to('/manage-item') }}"><i class="dwg-cart mt-n1"></i>{{ __('Start Selling') }}</a>
           @endif
           @endif
-          @endif
+          @endif --}}
           @if($addition_settings->subscription_mode == 1)
           <a class="topbar-link ml-3 border-left border-light pl-3 d-none d-md-inline-block" href="{{ url('/subscription') }}"><i class="dwg-book mt-n1"></i>{{ __('Subscription') }}</a>
           @endif
