@@ -1,0 +1,62 @@
+#fvpp-blackout {
+  display: none;
+  z-index: 499;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background: #000;
+  opacity: 0.5;
+}
+@media (min-width: 1280px){
+#my-welcome-message {
+width: 25%;
+}
+}
+#my-welcome-message {
+  display: none;
+  z-index: 500;
+  position: fixed;
+  
+  right: 5%;
+  
+  bottom: 10%;
+  border-radius:10px;
+  text-align:center;
+  
+}
+#my-welcome-message .header {
+border-top-right-radius: 10px;
+border-top-left-radius: 10px;
+padding: 20px 2%;
+}
+#my-welcome-message .bodies {
+
+background:#FFFFFF;
+border-bottom-right-radius: 10px;
+border-bottom-left-radius: 10px;
+}
+.textboxrow
+{
+padding: 30px 2%;
+}
+
+#fvpp-close {
+  position: absolute;
+  top: 0px;
+  right: 5px;
+  cursor: pointer;
+  
+}
+
+#fvpp-dialog h2 {
+  font-size: 2em;
+  margin: 0;
+}
+
+#fvpp-dialog p { margin: 0; }
+.saledate
+{
+color:#000000;
+}

@@ -1,0 +1,54 @@
+{
+    "name": "andkab/laravel-joypixels",
+    "type": "library",
+    "description": "Laravel helper for Joypixels, EmojiOne",
+    "keywords": [
+        "laravel",
+        "emoji",
+        "emojione",
+        "joypixels",
+        "LaravelJoyPixels"
+    ],
+    "homepage": "https://github.com/andkab/laravel-joypixels",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Andrew Frost",
+            "email": "andkab2012@gmail.com",
+            "homepage": "https://github.com/andkab",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.0",
+        "joypixels/emoji-toolkit": "^8",
+        "illuminate/support": "^9|^10|^11"
+    },
+    "suggest": {
+        "joypixels/assets": "If you want to serve the emojione assets yourself"
+    },
+    "autoload": {
+        "psr-4": {
+            "andkab\\LaravelJoyPixels\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "andkab\\LaravelJoyPixels\\": "tests"
+        }
+    },
+    "scripts": {},
+    "extra": {
+        "laravel": {
+            "providers": [
+                "andkab\\LaravelJoyPixels\\LaravelJoyPixelsServiceProvider"
+            ],
+            "aliases": {
+                "LaravelJoyPixels": "andkab\\LaravelJoyPixels\\LaravelJoyPixelsFacade"
+            }
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
