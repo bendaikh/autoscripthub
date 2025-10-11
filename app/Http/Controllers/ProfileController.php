@@ -1855,6 +1855,73 @@ class ProfileController extends Controller
 	
 	/* coinbase */
 	
+	/* dodopayments */
+	
+	public function dodopayments_success($ordtoken, Request $request)
+	{
+	    $multicurrency = $this->multicurrency();
+	    $encrypter = app('Illuminate\Contracts\Encryption\Encrypter');
+	    $ord_token   = $encrypter->decrypt($ordtoken);
+		$payment_token = $request->input('payment_id', '');
+		$purchased_token = $ord_token;
+		$subscr_id = Auth::user()->user_subscr_id;
+		$subscr['view'] = Subscription::editsubData($subscr_id);
+		$subscri_date = $subscr['view']->subscr_duration;
+		$user_subscr_item_level = $subscr['view']->subscr_item_level;
+		$user_subscr_item = $subscr['view']->subscr_item;
+		$user_subscr_download_item = $subscr['view']->subscr_download_item;
+		$user_subscr_space_level = $subscr['view']->subscr_space_level;
+		$user_subscr_space = $subscr['view']->subscr_space;
+		$user_subscr_space_type = $subscr['view']->subscr_space_type;
+		$user_subscr_type = $subscr['view']->subscr_name;
+		$subscr_value = "+".$subscri_date;
+		$subscr_date = date('Y-m-d', strtotime($subscr_value));
+		$user_id = Auth::user()->id;
+		$payment_status = 'completed';
+		if(Auth::user()->user_type == 'customer')
+		{
+		  $user_type = 'vendor';
+		}
+		else
+		{
+		  $user_type = Auth::user()->user_type;
+		}
+		$checkoutdata = array('user_subscr_type' => $user_subscr_type, 'user_subscr_date' => $subscr_date, 'user_subscr_item_level' => $user_subscr_item_level, 'user_subscr_item' => $user_subscr_item, 'user_subscr_download_item' => $user_subscr_download_item,  'user_subscr_space_level' => $user_subscr_space_level, 'user_subscr_space' => $user_subscr_space, 'user_subscr_space_type' => $user_subscr_space_type, 'user_type' => $user_type, 'user_subscr_payment_status' => $payment_status);
+		Subscription::confirmsubscriData($user_id,$checkoutdata);
+		/* subscription email */
+		$sid = 1;
+		$setting['setting'] = Settings::editGeneral($sid);
+		$currency = $multicurrency;
+		$subscr_price = $subscr['view']->subscr_price;
+		$admin_name = $setting['setting']->sender_name;
+		$admin_email = $setting['setting']->sender_email;
+		$buyer_name = Auth::user()->name;
+		$buyer_email = Auth::user()->email;
+		$buyer_data = array('user_subscr_type' => $user_subscr_type, 'user_subscr_date' => $subscr_date, 'subscr_duration' =>  $subscri_date, 'subscr_price' => $subscr_price, 'currency' => $currency); 
+		/* email template code */
+		$checktemp = EmailTemplate::checkTemplate(20);
+		if($checktemp != 0)
+		{
+			$template_view['mind'] = EmailTemplate::viewTemplate(20);
+			$template_subject = $template_view['mind']->et_subject;
+		}
+		else
+		{
+			$template_subject = "Subscription Upgrade";
+		}
+		/* email template code */
+		Mail::send('subscription_mail', $buyer_data , function($message) use ($admin_name, $admin_email, $buyer_name, $buyer_email, $template_subject) {
+			$message->to($buyer_email, $buyer_name)
+			->subject($template_subject);
+			$message->from($admin_email,$admin_name);
+		});
+		/* subscription email */
+		$result_data = array('payment_token' => $payment_token);
+		return view('success')->with($result_data);
+	}
+	
+	/* dodopayments */
+	
 	/* cashfree */
 	public function cashfree_success(Request $request)
 	{
@@ -2054,6 +2121,47 @@ class ProfileController extends Controller
             }
         }
     }
+	
+	
+	/* dodopayments webhook */
+	
+	public function dodopayments_subscription(Request $request)
+    {   
+	    $encrypter = app('Illuminate\Contracts\Encryption\Encrypter');
+	    $additional['setting'] = Settings::editAdditional();
+        $postdata = file_get_contents("php://input");
+        $res = json_decode($postdata, true);
+        
+        // Get webhook signing key from settings (you'll need to add this field)
+        $dodopayments_webhook_secret = $additional['setting']->dodopayments_webhook_secret ?? '';
+        
+        // Verify webhook signature if secret is configured
+        if (!empty($dodopayments_webhook_secret)) {
+            $headers = apache_request_headers();
+            $sentSign = $headers['X-Dodo-Signature'] ?? $headers['x-dodo-signature'] ?? '';
+            
+            $dodoService = new \Fickrr\Services\DodoPaymentsService('', 'test');
+            if (!$dodoService->verifyWebhookSignature($postdata, $sentSign, $dodopayments_webhook_secret)) {
+                return response()->json(['error' => 'Invalid signature'], 401);
+            }
+        }
+        
+        // Handle different event types
+        if (isset($res['event']) && isset($res['event']['type'])) {
+            $eventType = $res['event']['type'];
+            
+            if ($eventType == 'payment.completed' || $eventType == 'payment.succeeded') {
+                if (isset($res['event']['data']['metadata']['purchase_token'])) {
+                    $ord_token = $res['event']['data']['metadata']['purchase_token'];
+                    return redirect('/subscription-dodopayments/'.$encrypter->encrypt($ord_token));
+                }
+            }
+        }
+        
+        return response()->json(['status' => 'ok']);
+    }
+    
+    /* dodopayments webhook */
 	
 	
 	public function update_subscription(Request $request)
@@ -2293,6 +2401,10 @@ class ProfileController extends Controller
 	   $nowpayments_success = $website_url.'/subscription-nowpayments/'.$encrypter->encrypt($purchase_token);
 	   /* nowpayments */
 	   
+	   /* dodopayments */
+	   $dodopayments_success = $website_url.'/subscription-dodopayments/'.$encrypter->encrypt($purchase_token);
+	   /* dodopayments */
+	   
 		
 		/* settings */
 	   Subscription::upsubscribeData($user_id,$updatedata);
@@ -2389,6 +2501,65 @@ class ProfileController extends Controller
 		       
 				//return view('payment-success', ['paymentLink' => $paymentLink]);
 						
+		  }
+		  else if($payment_method == 'dodopayments')
+		  {
+		      // Dodo Payments Integration
+		      $dodopayments_mode = $additional['setting']->dodopayments_mode;
+		      $dodopayments_api_key = $additional['setting']->dodopayments_api_key;
+		      $dodopayments_business_id = $additional['setting']->dodopayments_business_id ?? null;
+		      
+		      // Initialize Dodo Payments Service
+		      $dodoService = new \Fickrr\Services\DodoPaymentsService(
+		          $dodopayments_api_key,
+		          $dodopayments_mode,
+		          $dodopayments_business_id
+		      );
+		      
+      // Build Dodo Checkout Session request using product_cart as per docs
+      $defaultProductId = config('services.dodopayments.product_id');
+      if (empty($defaultProductId)) {
+          return redirect()->back()->with('unsuccess', __('Dodo Payments product_id is not configured. Please set DODO_DEFAULT_PRODUCT_ID in .env'));
+      }
+
+      $checkoutData = [
+          'product_cart' => [
+              [
+                  'product_id' => $defaultProductId,
+                  'quantity' => 1,
+              ]
+          ],
+          'customer' => [
+              'email' => $order_email,
+              'name' => $user_name,
+          ],
+          'return_url' => $dodopayments_success,
+          'metadata' => [
+              'purchase_token' => $purchase_token,
+              'subscription_type' => $user_subscr_type,
+              'user_id' => $user_id,
+              'payment_type' => 'subscription'
+          ]
+      ];
+		      
+		      // Add business_id if provided
+		      if (!empty($dodopayments_business_id)) {
+		          $checkoutData['business_id'] = $dodopayments_business_id;
+		      }
+		      
+		      // Create checkout session
+		      $response = $dodoService->createCheckoutSession($checkoutData);
+		      
+      if ($response && (isset($response['checkout_url']) || isset($response['url']))) {
+		          // Update subscription data
+		          Subscription::savesubscriData($updatedata);
+		          
+		          // Redirect to Dodo Payments checkout
+          $redirectUrl = $response['checkout_url'] ?? $response['url'];
+          return redirect($redirectUrl);
+		      } else {
+		          return redirect()->back()->with('unsuccess', __('Payment initialization failed. Please try again.'));
+		      }
 		  }
 		  else if($payment_method == 'cashfree')
 		  {

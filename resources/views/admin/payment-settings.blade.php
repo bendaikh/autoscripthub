@@ -1617,6 +1617,76 @@
                             </div>
                             
                             
+                            <div class="col-md-12"><div class="card-body"><h4>{{ __('Dodo Payments Settings') }}</h4></div></div>
+                            <div class="col-md-6">
+                           
+                            <div class="card-body">
+                                <!-- Credit Card -->
+                                <div id="pay-invoice">
+                                    <div class="card-body">
+                                    
+                                    <div class="form-group">
+                                                <label for="site_title" class="control-label mb-1">{{ __('Dodo Payments Mode') }}</label><br/>
+                                               
+                                                <select name="dodopayments_mode" class="form-control">
+                                                <option value="live" @if($additional['setting']->dodopayments_mode == 'live') selected @endif>{{ __('Live') }}</option>
+                                                <option value="test" @if($additional['setting']->dodopayments_mode == 'test') selected @endif>{{ __('Test') }}</option>
+                                                </select>
+                                                
+                                             </div>
+                                    
+                                    <div class="form-group">
+                                                <label for="site_title" class="control-label mb-1">{{ __('Dodo Payments API Key') }}</label><br/>
+                                               <input id="dodopayments_api_key" name="dodopayments_api_key" type="text" class="form-control noscroll_textarea" value="{{ $additional['setting']->dodopayments_api_key }}">
+                                                
+                                                
+                                             </div>
+                                           
+                                           
+                                            
+                                         
+                                        
+                                    </div>
+                                </div>
+
+                            </div>
+                            </div>
+                            <div class="col-md-6">
+                           
+                            <div class="card-body">
+                                <!-- Credit Card -->
+                                <div id="pay-invoice">
+                                    <div class="card-body">
+                                    
+                                    
+                                    <div class="form-group">
+                                                <label for="site_title" class="control-label mb-1">{{ __('Dodo Business ID') }} ({{ __('Optional') }})</label><br/>
+                                               <input id="dodopayments_business_id" name="dodopayments_business_id" type="text" class="form-control noscroll_textarea" value="{{ $additional['setting']->dodopayments_business_id ?? '' }}">
+                                                <small>{{ __('Leave empty to use default business') }}</small>
+                                                
+                                             </div>
+                                         
+                                    </div>
+                                </div>
+
+                            </div>
+                            </div>
+                            
+                            <div class="col-md-12">
+                            <div class="card-body">
+                            <div id="pay-invoice">
+                            <div class="card-body">
+                            <div class="form-group">
+                            <p>{{ __('Dodo Payments Checkout Webhook URL') }} : <code>{{ url('/') }}/webhooks/dodopayments-checkout</code></p>
+                            <p>{{ __('Dodo Payments Subscription Webhook URL') }} : <code>{{ url('/') }}/webhooks/dodopayments-subscription</code></p>
+                            <p>{{ __('Dodo Payments Deposit Webhook URL') }} : <code>{{ url('/') }}/webhooks/dodopayments-deposit</code></p>
+                            <p><a href="https://docs.dodopayments.com/api-reference/webhooks/create-webhook" target="_blank" class="blue-color">{{ __('How to configure webhooks') }}?</a></p>
+                             </div>
+                            </div>
+                            </div>                
+                            </div>            
+                            </div>
+                            
                             
                             
                             <div class="col-md-12"><div class="card-body"><h4>{{ __('Stripe Settings') }}</h4></div></div>

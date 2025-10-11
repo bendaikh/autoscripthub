@@ -563,6 +563,7 @@ Route::get('/subscription-coinbase/{ord_token}', 'ProfileController@coinbase_suc
 Route::post('/paytm/status', 'ProfileController@paymentCallback');
 Route::get('/subscription-cashfree/', 'ProfileController@cashfree_success');
 Route::get('/subscription-nowpayments/{ord_token}', 'ProfileController@nowpayments_success');
+Route::get('/subscription-dodopayments/{ord_token}', 'ProfileController@dodopayments_success');
 /* subscription */
 
 
@@ -581,6 +582,12 @@ Route::post('/webhooks/coinbase-checkout', 'CommonController@coinbase_checkout')
 Route::post('/webhooks/coinbase-deposit', 'ItemController@coinbase_deposit');
 Route::post('/webhooks/coinbase-subscription', 'ProfileController@coinbase_subscription');
 /* coinbase webhook */
+
+/* dodopayments webhook */
+Route::post('/webhooks/dodopayments-checkout', 'CommonController@dodopayments_checkout');
+Route::post('/webhooks/dodopayments-deposit', 'ItemController@dodopayments_deposit');
+Route::post('/webhooks/dodopayments-subscription', 'ProfileController@dodopayments_subscription');
+/* dodopayments webhook */
 
 
 /* deposit */
@@ -803,6 +810,7 @@ Route::post('/aamarpay/{ord_token}', 'ItemController@aamarpay_success');
 Route::get('/mollie', 'ItemController@mollie_success');
 Route::get('/coinbase/{ord_token}', 'ItemController@coinbase_success');
 Route::get('/nowpayments/{ord_token}', 'ItemController@nowpayments_success');
+Route::get('/checkout-dodopayments/{ord_token}', 'ItemController@dodopayments_success');
 /* success */
 
 

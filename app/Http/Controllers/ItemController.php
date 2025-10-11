@@ -12696,6 +12696,93 @@ class ItemController extends Controller
 	}
 	
 	
+	/* dodopayments checkout success */
+	
+	public function dodopayments_success($ordtoken, Request $request)
+	{
+	$encrypter = app('Illuminate\Contracts\Encryption\Encrypter');
+	$ord_token   = $encrypter->decrypt($ordtoken);
+	$sid = 1;
+	$setting['setting'] = Settings::editGeneral($sid);
+	$payment_token = $request->input('payment_id', '');
+	$payment_status = 'completed';
+	$purchased_token = $ord_token;
+	$orderdata = array('payment_token' => $payment_token, 'order_status' => $payment_status);
+	$checkoutdata = array('payment_token' => $payment_token, 'payment_status' => $payment_status);
+	Items::singleordupdateData($purchased_token,$orderdata);
+	Items::singlecheckoutData($purchased_token,$checkoutdata);
+	
+	$token = $purchased_token;
+	$check['display'] = Items::getcheckoutData($token);
+	/* customer email */
+					$currency = $this->site_currency();
+					$admin_name = $setting['setting']->sender_name;
+					$admin_email = $setting['setting']->sender_email;
+					$customer['info'] = Members::singlevendorData($check['display']->user_id);
+					$buyer_name = $customer['info']->name;
+					$buyer_email = $customer['info']->email;
+					$amount = $check['display']->total;
+					$order_id = $check['display']->purchase_token;
+					$payment_type = $check['display']->payment_type;
+					$payment_date = $check['display']->payment_date;
+					$payment_status = $check['display']->payment_status;
+					$record_customer = array('buyer_name' => $buyer_name, 'buyer_email' => $buyer_email, 'amount' => $amount, 'total_price' => $amount, 'order_id' => $order_id, 'currency' => $currency, 'payment_type' => $payment_type, 'payment_date' => $payment_date, 'payment_status' => $payment_status);
+							
+														  $checktemp = EmailTemplate::checkTemplate(21);
+														  if($checktemp != 0)
+														  {
+														  $template_view['mind'] = EmailTemplate::viewTemplate(21);
+														  $template_subject = $template_view['mind']->et_subject;
+														  }
+														  else
+														  {
+														  $template_subject = "Purchase details";
+														  }
+														  Mail::send('admin.buyer_payment_mail', $record_customer , function($message) use ($admin_name, $admin_email, $buyer_name, $buyer_email, $template_subject) {
+														  $message->to($buyer_email, $buyer_name)
+														  ->subject($template_subject);
+														  $message->from($admin_email,$admin_name);
+														  });
+														  
+	/* customer email */
+	
+	/* vendor email */
+	
+	  
+	  $result['view'] = Items::singleorderToken($purchased_token);
+	  if($result['view']->item_user_id != 0)
+	  {
+		 $vendor['view'] = Members::singlevendorData($result['view']->item_user_id);
+		 $vendor_name = $vendor['view']->name;
+		 $vendor_email = $vendor['view']->email;
+		 $vendor_amount = $result['view']->vendor_amount;
+		 $order_id = $result['view']->purchase_token;
+		 $record_vendor = array('vendor_name' => $vendor_name, 'vendor_email' => $vendor_email, 'vendor_amount' => $vendor_amount, 'order_id' => $order_id, 'currency' => $currency, 'payment_type' => $payment_type, 'payment_date' => $payment_date, 'payment_status' => $payment_status);
+		 $checktemp_vendor = EmailTemplate::checkTemplate(14);
+		 if($checktemp_vendor != 0)
+		 {
+		 $template_view_vendor['mind'] = EmailTemplate::viewTemplate(14);
+		 $template_subject_vendor = $template_view_vendor['mind']->et_subject;
+		 }
+		 else
+		 {
+		 $template_subject_vendor = "Vendor sale Notification";
+		 }
+		 Mail::send('admin.vendor_payment_mail', $record_vendor , function($message) use ($admin_name, $admin_email, $vendor_name, $vendor_email, $template_subject_vendor) {
+		 $message->to($vendor_email, $vendor_name)
+		 ->subject($template_subject_vendor);
+		 $message->from($admin_email,$admin_name);
+		 });
+	  }
+	  
+	/* vendor email */
+	
+	$result_data = array('payment_token' => $payment_token);
+	return view('success')->with($result_data);
+	}
+	
+	/* dodopayments checkout success */
+	
 	public function deposit_nowpayments_success($ordtoken, Request $request)
 	{
 	    $encrypter = app('Illuminate\Contracts\Encryption\Encrypter');

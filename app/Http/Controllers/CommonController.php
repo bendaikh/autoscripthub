@@ -1206,6 +1206,10 @@ class CommonController extends Controller
 			   $nowpayments_mode = $additional['setting']->nowpayments_mode;
 			   $nowpayments_success = $website_url.'/nowpayments/'.$encrypter->encrypt($purchase_token);
 			   /* nowpayments */
+			   
+			   /* dodopayments */
+			   $dodopayments_success = $website_url.'/checkout-dodopayments/'.$encrypter->encrypt($purchase_token);
+			   /* dodopayments */
 				
 			   $get_payment = explode(',', $setting['setting']->payment_option);
 	           
@@ -1852,6 +1856,64 @@ class CommonController extends Controller
 		       
 				//return view('payment-success', ['paymentLink' => $paymentLink]);
 						
+		  }
+		  else if($payment_method == 'dodopayments')
+		  {
+		      // Dodo Payments Integration
+		      $dodopayments_mode = $additional['setting']->dodopayments_mode;
+		      $dodopayments_api_key = $additional['setting']->dodopayments_api_key;
+		      $dodopayments_business_id = $additional['setting']->dodopayments_business_id ?? null;
+		      
+		      // Initialize Dodo Payments Service
+		      $dodoService = new \Fickrr\Services\DodoPaymentsService(
+		          $dodopayments_api_key,
+		          $dodopayments_mode,
+		          $dodopayments_business_id
+		      );
+		      
+          // Build Dodo Checkout Session request using product_cart as per docs
+          $defaultProductId = config('services.dodopayments.product_id');
+          if (empty($defaultProductId)) {
+              // Auto-create a Dodo product for this order if not configured
+              $createdProduct = $dodoService->createProduct($final_amount, $site_currency, $item_names_data, 'digital_products');
+              if (!$createdProduct || empty($createdProduct['product_id'])) {
+                  return redirect()->back()->with('unsuccess', __('Failed to create Dodo product for checkout.'));
+              }
+              $defaultProductId = $createdProduct['product_id'];
+          }
+
+          $checkoutData = [
+              'product_cart' => [
+                  [
+                      'product_id' => $defaultProductId,
+                      'quantity' => 1,
+                  ]
+              ],
+              'customer' => [
+                  'email' => $order_email,
+                  'name' => trim($order_firstname . ' ' . $order_lastname),
+              ],
+              'return_url' => $dodopayments_success,
+              'metadata' => [
+                  'purchase_token' => (string)$purchase_token,
+                  'items' => (string)$item_names_data,
+                  'site_currency' => (string)$site_currency,
+                  'final_amount' => (string)$final_amount,
+                  'payment_type' => 'checkout'
+              ]
+          ];
+
+          if (!empty($dodopayments_business_id)) {
+              $checkoutData['business_id'] = $dodopayments_business_id;
+          }
+
+          $response = $dodoService->createCheckoutSession($checkoutData);
+
+          if ($response && (isset($response['checkout_url']) || isset($response['url']))) {
+              $redirectUrl = $response['checkout_url'] ?? $response['url'];
+              return redirect($redirectUrl);
+          }
+          return redirect()->back()->with('unsuccess', __('Payment initialization failed. Please try again.'));
 		  }
 		  else if($payment_method == 'cashfree')
 		  {

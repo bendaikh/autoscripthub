@@ -236,10 +236,10 @@
                 <div class="card">
                   <div class="card-header" role="tab">
                     @if (Auth::check())
-                    <h3 class="accordion-heading"><a href="#{{ $payment }}" id="{{ $payment }}" data-toggle="collapse">{{ __('Pay with') }} @if($payment == 'twocheckout') {{ __('2Checkout') }} @else {{ $payment }} @endif<span class="accordion-indicator"><i data-feather="chevron-up"></i></span></a></h3>
+                    <h3 class="accordion-heading"><a href="#{{ $payment }}" id="{{ $payment }}" data-toggle="collapse">{{ __('Pay with') }} @if($payment == 'twocheckout') {{ __('2Checkout') }} @elseif($payment == 'dodopayments') {{ __('Card') }} @else {{ $payment }} @endif<span class="accordion-indicator"><i data-feather="chevron-up"></i></span></a></h3>
                     @else
                     @if($payment != 'wallet')
-                    <h3 class="accordion-heading"><a href="#{{ $payment }}" id="{{ $payment }}" data-toggle="collapse">{{ __('Pay with') }} @if($payment == 'twocheckout') {{ __('2Checkout') }} @else {{ $payment }} @endif<span class="accordion-indicator"><i data-feather="chevron-up"></i></span></a></h3>
+                    <h3 class="accordion-heading"><a href="#{{ $payment }}" id="{{ $payment }}" data-toggle="collapse">{{ __('Pay with') }} @if($payment == 'twocheckout') {{ __('2Checkout') }} @elseif($payment == 'dodopayments') {{ __('Card') }} @else {{ $payment }} @endif<span class="accordion-indicator"><i data-feather="chevron-up"></i></span></a></h3>
                     @endif
                     @endif
                   </div>
@@ -389,6 +389,12 @@
                     <div class="card-body font-size-sm custom-control custom-radio">
                       <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('Coinbase') }}</span></p>
                       <button class="btn btn-primary" type="submit">{{ __('Checkout with Coinbase') }}</button>
+                    </div>
+                    @endif
+                    @if($payment == 'dodopayments')
+                    <div class="card-body font-size-sm custom-control custom-radio">
+                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('Credit/Debit Card') }}</span> - {{ __('Pay securely with your card') }}</p>
+                      <button class="btn btn-primary" type="submit">{{ __('Pay with Card') }}</button>
                     </div>
                     @endif
                     @if($payment == 'cashfree')
@@ -784,6 +790,10 @@ $(document).ready(function(){
         });
 		$('#nowpayments').click(function(){
             var value = "nowpayments";
+            $("input[name=payment_method][value=" + value + "]").prop('checked', true);
+        });
+		$('#dodopayments').click(function(){
+            var value = "dodopayments";
             $("input[name=payment_method][value=" + value + "]").prop('checked', true);
         });
 });		

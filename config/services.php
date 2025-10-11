@@ -53,6 +53,11 @@ return [
         'client_secret' => config('services.google.client_secret'),
         'redirect'      => config('services.google.redirect'),
     ],
+
+	// Dodo Payments configuration via env (no DB columns required)
+	'dodopayments' => [
+		'product_id' => env('DODO_DEFAULT_PRODUCT_ID'), // default product to use in checkout sessions
+	],
 	'paytm-wallet' => [
         'env' => config('services.paytm-wallet.env'), // values : (local | production)
         'merchant_id' => config('services.paytm-wallet.merchant_id'),
