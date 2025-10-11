@@ -13,10 +13,11 @@ class AddDodopaymentsFieldsToSettings extends Migration
      */
     public function up()
     {
-        Schema::table('additional_settings', function (Blueprint $table) {
-            $table->string('dodopayments_mode', 10)->nullable()->after('nowpayments_ipn_secret');
-            $table->string('dodopayments_api_key', 100)->nullable()->after('dodopayments_mode');
-        });
+        // DodoPayments settings are now stored in .env file instead of database
+        // This migration is kept for tracking purposes but doesn't modify the database
+        // The additional_settings table was at MySQL row size limit
+        
+        // Nothing to do here - settings are in config/services.php and .env
     }
 
     /**
@@ -26,9 +27,7 @@ class AddDodopaymentsFieldsToSettings extends Migration
      */
     public function down()
     {
-        Schema::table('additional_settings', function (Blueprint $table) {
-            $table->dropColumn(['dodopayments_mode', 'dodopayments_api_key']);
-        });
+        // Nothing to revert - no database changes were made
     }
 }
 

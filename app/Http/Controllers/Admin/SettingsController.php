@@ -2729,8 +2729,12 @@ class SettingsController extends Controller
 	   $nowpayments_ipn_secret = $request->input('nowpayments_ipn_secret');
 	   $affiliate_referral = $request->input('affiliate_referral');
 	   
-	   $dodopayments_mode = $request->input('dodopayments_mode');
+	   $dodopayments_mode = $request->input('dodopayments_mode', 'test');
 	   $dodopayments_api_key = $request->input('dodopayments_api_key');
+	   
+	   // Update .env file for DodoPayments settings
+	   $this->updateEnvFile('DODOPAYMENTS_MODE', $dodopayments_mode);
+	   $this->updateEnvFile('DODOPAYMENTS_API_KEY', $dodopayments_api_key);
 	   
 	   $flutterwave_default_currency = $request->input('flutterwave_default_currency');
 	   
@@ -2777,7 +2781,7 @@ class SettingsController extends Controller
             
             
 			Settings::updatemailData($sid, $data);
-			$addition_data = array('razorpay_key' => $razorpay_key, 'razorpay_secret' => $razorpay_secret, 'per_sale_referral_commission' => $per_sale_referral_commission, 'payhere_mode' => $payhere_mode, 'payhere_merchant_id' => $payhere_merchant_id, 'payumoney_mode' => $payumoney_mode, 'payu_merchant_key' => $payu_merchant_key, 'payu_salt_key' => $payu_salt_key, 'iyzico_mode' => $iyzico_mode, 'iyzico_api_key' => $iyzico_api_key, 'iyzico_secret_key' => $iyzico_secret_key, 'flutterwave_public_key' => $flutterwave_public_key, 'flutterwave_secret_key' => $flutterwave_secret_key, 'coingate_mode' => $coingate_mode, 'coingate_auth_token' => $coingate_auth_token, 'ipay_mode' => $ipay_mode, 'ipay_vendor_id' => $ipay_vendor_id, 'ipay_hash_key' => $ipay_hash_key, 'site_extra_fee_type' => $site_extra_fee_type, 'per_sale_referral_commission_type' => $per_sale_referral_commission_type, 'payfast_merchant_id' => $payfast_merchant_id, 'payfast_merchant_key' => $payfast_merchant_key, 'payfast_mode' => $payfast_mode, 'coinpayments_merchant_id' => $coinpayments_merchant_id, 'mercadopago_client_id' => $mercadopago_client_id, 'mercadopago_client_secret' => $mercadopago_client_secret, 'mercadopago_mode' => $mercadopago_mode, 'sslcommerz_store_id' => $sslcommerz_store_id, 'sslcommerz_store_password' => $sslcommerz_store_password, 'sslcommerz_mode' => $sslcommerz_mode, 'instamojo_api_key' => $instamojo_api_key, 'instamojo_auth_token' => $instamojo_auth_token, 'instamojo_mode' => $instamojo_mode, 'aamarpay_mode' => $aamarpay_mode, 'aamarpay_store_id' => $aamarpay_store_id, 'aamarpay_signature_key' => $aamarpay_signature_key, 'mollie_api_key' => $mollie_api_key, 'flash_sale_value' => $flash_sale_value, 'shop_identifier' => $shop_identifier, 'robokassa_password_1' => $robokassa_password_1, 'midtrans_mode' => $midtrans_mode, 'midtrans_server_key' => $midtrans_server_key, 'coinbase_api_key' => $coinbase_api_key, 'coinbase_secret_key' => $coinbase_secret_key, 'paytm_mode' => $paytm_mode, 'paytm_merchant_id' => $paytm_merchant_id, 'paytm_merchant_key' => $paytm_merchant_key, 'paytm_merchant_website' => $paytm_merchant_website, 'paytm_channel' => $paytm_channel, 'paytm_industry_type' => $paytm_industry_type, 'cashfree_mode' => $cashfree_mode, 'cashfree_api_key' => $cashfree_api_key, 'cashfree_api_secret' => $cashfree_api_secret, 'nowpayments_mode' => $nowpayments_mode, 'nowpayments_api_key' => $nowpayments_api_key, 'nowpayments_ipn_secret' => $nowpayments_ipn_secret, 'dodopayments_mode' => $dodopayments_mode, 'dodopayments_api_key' => $dodopayments_api_key, 'affiliate_referral' => $affiliate_referral);
+			$addition_data = array('razorpay_key' => $razorpay_key, 'razorpay_secret' => $razorpay_secret, 'per_sale_referral_commission' => $per_sale_referral_commission, 'payhere_mode' => $payhere_mode, 'payhere_merchant_id' => $payhere_merchant_id, 'payumoney_mode' => $payumoney_mode, 'payu_merchant_key' => $payu_merchant_key, 'payu_salt_key' => $payu_salt_key, 'iyzico_mode' => $iyzico_mode, 'iyzico_api_key' => $iyzico_api_key, 'iyzico_secret_key' => $iyzico_secret_key, 'flutterwave_public_key' => $flutterwave_public_key, 'flutterwave_secret_key' => $flutterwave_secret_key, 'coingate_mode' => $coingate_mode, 'coingate_auth_token' => $coingate_auth_token, 'ipay_mode' => $ipay_mode, 'ipay_vendor_id' => $ipay_vendor_id, 'ipay_hash_key' => $ipay_hash_key, 'site_extra_fee_type' => $site_extra_fee_type, 'per_sale_referral_commission_type' => $per_sale_referral_commission_type, 'payfast_merchant_id' => $payfast_merchant_id, 'payfast_merchant_key' => $payfast_merchant_key, 'payfast_mode' => $payfast_mode, 'coinpayments_merchant_id' => $coinpayments_merchant_id, 'mercadopago_client_id' => $mercadopago_client_id, 'mercadopago_client_secret' => $mercadopago_client_secret, 'mercadopago_mode' => $mercadopago_mode, 'sslcommerz_store_id' => $sslcommerz_store_id, 'sslcommerz_store_password' => $sslcommerz_store_password, 'sslcommerz_mode' => $sslcommerz_mode, 'instamojo_api_key' => $instamojo_api_key, 'instamojo_auth_token' => $instamojo_auth_token, 'instamojo_mode' => $instamojo_mode, 'aamarpay_mode' => $aamarpay_mode, 'aamarpay_store_id' => $aamarpay_store_id, 'aamarpay_signature_key' => $aamarpay_signature_key, 'mollie_api_key' => $mollie_api_key, 'flash_sale_value' => $flash_sale_value, 'shop_identifier' => $shop_identifier, 'robokassa_password_1' => $robokassa_password_1, 'midtrans_mode' => $midtrans_mode, 'midtrans_server_key' => $midtrans_server_key, 'coinbase_api_key' => $coinbase_api_key, 'coinbase_secret_key' => $coinbase_secret_key, 'paytm_mode' => $paytm_mode, 'paytm_merchant_id' => $paytm_merchant_id, 'paytm_merchant_key' => $paytm_merchant_key, 'paytm_merchant_website' => $paytm_merchant_website, 'paytm_channel' => $paytm_channel, 'paytm_industry_type' => $paytm_industry_type, 'cashfree_mode' => $cashfree_mode, 'cashfree_api_key' => $cashfree_api_key, 'cashfree_api_secret' => $cashfree_api_secret, 'nowpayments_mode' => $nowpayments_mode, 'nowpayments_api_key' => $nowpayments_api_key, 'nowpayments_ipn_secret' => $nowpayments_ipn_secret, 'affiliate_referral' => $affiliate_referral);
 			Settings::updateAdditionData($addition_data);
             
             
@@ -2791,6 +2795,39 @@ class SettingsController extends Controller
 	
 	/* payment settings */
 	
+	/**
+	 * Update .env file with new values
+	 */
+	private function updateEnvFile($key, $value)
+	{
+	    $path = base_path('.env');
+	    
+	    if (!file_exists($path)) {
+	        return false;
+	    }
+	    
+	    $content = file_get_contents($path);
+	    
+	    // Escape special characters in value
+	    $value = str_replace('"', '\"', $value);
+	    
+	    // Check if key exists
+	    if (preg_match("/^{$key}=.*/m", $content)) {
+	        // Update existing key
+	        $content = preg_replace(
+	            "/^{$key}=.*/m",
+	            "{$key}=\"{$value}\"",
+	            $content
+	        );
+	    } else {
+	        // Add new key at the end
+	        $content .= "\n{$key}=\"{$value}\"\n";
+	    }
+	    
+	    file_put_contents($path, $content);
+	    
+	    return true;
+	}
 	
 	/* start selling */
 	

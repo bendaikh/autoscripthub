@@ -56,6 +56,8 @@ return [
 
 	// Dodo Payments configuration via env (no DB columns required)
 	'dodopayments' => [
+		'mode' => env('DODOPAYMENTS_MODE', 'test'), // test or live
+		'api_key' => env('DODOPAYMENTS_API_KEY'), // API key from DodoPayments dashboard
 		'product_id' => env('DODO_DEFAULT_PRODUCT_ID'), // default product to use in checkout sessions
 	],
 	'paytm-wallet' => [

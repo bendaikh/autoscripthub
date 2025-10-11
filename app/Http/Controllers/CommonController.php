@@ -1860,8 +1860,12 @@ class CommonController extends Controller
 		  else if($payment_method == 'dodopayments')
 		  {
 	      // Dodo Payments Integration
-	      $dodopayments_mode = $additional['setting']->dodopayments_mode;
-	      $dodopayments_api_key = $additional['setting']->dodopayments_api_key;
+	      $dodopayments_mode = config('services.dodopayments.mode', 'test');
+	      $dodopayments_api_key = config('services.dodopayments.api_key');
+	      
+	      if (empty($dodopayments_api_key)) {
+	          return redirect()->back()->with('unsuccess', __('DodoPayments API key is not configured. Please check your settings.'));
+	      }
 	      
 	      // Initialize Dodo Payments Service
 	      $dodoService = new \Fickrr\Services\DodoPaymentsService(

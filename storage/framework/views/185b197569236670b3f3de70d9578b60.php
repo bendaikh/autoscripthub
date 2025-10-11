@@ -1630,16 +1630,16 @@
                                                 <label for="site_title" class="control-label mb-1"><?php echo e(__('Dodo Payments Mode')); ?></label><br/>
                                                
                                                 <select name="dodopayments_mode" class="form-control">
-                                                <option value="live" <?php if($additional['setting']->dodopayments_mode == 'live'): ?> selected <?php endif; ?>><?php echo e(__('Live')); ?></option>
-                                                <option value="test" <?php if($additional['setting']->dodopayments_mode == 'test'): ?> selected <?php endif; ?>><?php echo e(__('Test')); ?></option>
+                                                <option value="live" <?php if(config('services.dodopayments.mode', 'test') == 'live'): ?> selected <?php endif; ?>><?php echo e(__('Live')); ?></option>
+                                                <option value="test" <?php if(config('services.dodopayments.mode', 'test') == 'test'): ?> selected <?php endif; ?>><?php echo e(__('Test')); ?></option>
                                                 </select>
                                                 
                                              </div>
                                     
                                     <div class="form-group">
                                                 <label for="site_title" class="control-label mb-1"><?php echo e(__('Dodo Payments API Key')); ?></label><br/>
-                                               <input id="dodopayments_api_key" name="dodopayments_api_key" type="text" class="form-control noscroll_textarea" value="<?php echo e($additional['setting']->dodopayments_api_key); ?>">
-                                                
+                                               <input id="dodopayments_api_key" name="dodopayments_api_key" type="text" class="form-control noscroll_textarea" value="<?php echo e(config('services.dodopayments.api_key', '')); ?>">
+                                                <small class="form-text text-muted"><?php echo e(__('Stored in .env file (DODOPAYMENTS_API_KEY)')); ?></small>
                                                 
                                              </div>
                                            
@@ -1659,14 +1659,6 @@
                                 <div id="pay-invoice">
                                     <div class="card-body">
                                     
-                                    
-                                    <div class="form-group">
-                                                <label for="site_title" class="control-label mb-1"><?php echo e(__('Dodo Business ID')); ?> (<?php echo e(__('Optional')); ?>)</label><br/>
-                                               <input id="dodopayments_business_id" name="dodopayments_business_id" type="text" class="form-control noscroll_textarea" value="<?php echo e($additional['setting']->dodopayments_business_id ?? ''); ?>">
-                                                <small><?php echo e(__('Leave empty to use default business')); ?></small>
-                                                
-                                             </div>
-                                         
                                     </div>
                                 </div>
 

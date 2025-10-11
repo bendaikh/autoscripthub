@@ -1629,16 +1629,16 @@
                                                 <label for="site_title" class="control-label mb-1">{{ __('Dodo Payments Mode') }}</label><br/>
                                                
                                                 <select name="dodopayments_mode" class="form-control">
-                                                <option value="live" @if($additional['setting']->dodopayments_mode == 'live') selected @endif>{{ __('Live') }}</option>
-                                                <option value="test" @if($additional['setting']->dodopayments_mode == 'test') selected @endif>{{ __('Test') }}</option>
+                                                <option value="live" @if(config('services.dodopayments.mode', 'test') == 'live') selected @endif>{{ __('Live') }}</option>
+                                                <option value="test" @if(config('services.dodopayments.mode', 'test') == 'test') selected @endif>{{ __('Test') }}</option>
                                                 </select>
                                                 
                                              </div>
                                     
                                     <div class="form-group">
                                                 <label for="site_title" class="control-label mb-1">{{ __('Dodo Payments API Key') }}</label><br/>
-                                               <input id="dodopayments_api_key" name="dodopayments_api_key" type="text" class="form-control noscroll_textarea" value="{{ $additional['setting']->dodopayments_api_key }}">
-                                                
+                                               <input id="dodopayments_api_key" name="dodopayments_api_key" type="text" class="form-control noscroll_textarea" value="{{ config('services.dodopayments.api_key', '') }}">
+                                                <small class="form-text text-muted">{{ __('Stored in .env file (DODOPAYMENTS_API_KEY)') }}</small>
                                                 
                                              </div>
                                            
