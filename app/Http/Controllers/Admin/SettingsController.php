@@ -2731,7 +2731,6 @@ class SettingsController extends Controller
 	   
 	   $dodopayments_mode = $request->input('dodopayments_mode');
 	   $dodopayments_api_key = $request->input('dodopayments_api_key');
-	   $dodopayments_business_id = $request->input('dodopayments_business_id', '');
 	   
 	   $flutterwave_default_currency = $request->input('flutterwave_default_currency');
 	   

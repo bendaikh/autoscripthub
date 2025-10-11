@@ -15,8 +15,7 @@ class AddDodopaymentsFieldsToSettings extends Migration
     {
         Schema::table('additional_settings', function (Blueprint $table) {
             $table->string('dodopayments_mode', 10)->nullable()->after('nowpayments_ipn_secret');
-            $table->string('dodopayments_api_key', 255)->nullable()->after('dodopayments_mode');
-            $table->string('dodopayments_business_id', 255)->nullable()->after('dodopayments_api_key');
+            $table->string('dodopayments_api_key', 100)->nullable()->after('dodopayments_mode');
         });
     }
 
@@ -28,7 +27,7 @@ class AddDodopaymentsFieldsToSettings extends Migration
     public function down()
     {
         Schema::table('additional_settings', function (Blueprint $table) {
-            $table->dropColumn(['dodopayments_mode', 'dodopayments_api_key', 'dodopayments_business_id']);
+            $table->dropColumn(['dodopayments_mode', 'dodopayments_api_key']);
         });
     }
 }

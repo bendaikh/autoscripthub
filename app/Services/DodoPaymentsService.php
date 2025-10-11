@@ -10,12 +10,10 @@ class DodoPaymentsService
 {
     protected $apiKey;
     protected $baseUrl;
-    protected $businessId;
     
-    public function __construct($apiKey, $mode = 'test', $businessId = null)
+    public function __construct($apiKey, $mode = 'test')
     {
         $this->apiKey = $apiKey;
-        $this->businessId = $businessId;
         
         // Set base URL based on mode
         // Handle both string ('test'/'live') and numeric (0/1) mode values

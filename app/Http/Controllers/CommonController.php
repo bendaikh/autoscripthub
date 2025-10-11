@@ -1859,17 +1859,15 @@ class CommonController extends Controller
 		  }
 		  else if($payment_method == 'dodopayments')
 		  {
-		      // Dodo Payments Integration
-		      $dodopayments_mode = $additional['setting']->dodopayments_mode;
-		      $dodopayments_api_key = $additional['setting']->dodopayments_api_key;
-		      $dodopayments_business_id = $additional['setting']->dodopayments_business_id ?? null;
-		      
-		      // Initialize Dodo Payments Service
-		      $dodoService = new \Fickrr\Services\DodoPaymentsService(
-		          $dodopayments_api_key,
-		          $dodopayments_mode,
-		          $dodopayments_business_id
-		      );
+	      // Dodo Payments Integration
+	      $dodopayments_mode = $additional['setting']->dodopayments_mode;
+	      $dodopayments_api_key = $additional['setting']->dodopayments_api_key;
+	      
+	      // Initialize Dodo Payments Service
+	      $dodoService = new \Fickrr\Services\DodoPaymentsService(
+	          $dodopayments_api_key,
+	          $dodopayments_mode
+	      );
 		      
           // Build Dodo Checkout Session request using product_cart as per docs
           $defaultProductId = config('services.dodopayments.product_id');
@@ -1902,10 +1900,6 @@ class CommonController extends Controller
                   'payment_type' => 'checkout'
               ]
           ];
-
-          if (!empty($dodopayments_business_id)) {
-              $checkoutData['business_id'] = $dodopayments_business_id;
-          }
 
           $response = $dodoService->createCheckoutSession($checkoutData);
 

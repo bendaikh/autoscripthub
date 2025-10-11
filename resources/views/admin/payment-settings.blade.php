@@ -1658,14 +1658,6 @@
                                 <div id="pay-invoice">
                                     <div class="card-body">
                                     
-                                    
-                                    <div class="form-group">
-                                                <label for="site_title" class="control-label mb-1">{{ __('Dodo Business ID') }} ({{ __('Optional') }})</label><br/>
-                                               <input id="dodopayments_business_id" name="dodopayments_business_id" type="text" class="form-control noscroll_textarea" value="{{ $additional['setting']->dodopayments_business_id ?? '' }}">
-                                                <small>{{ __('Leave empty to use default business') }}</small>
-                                                
-                                             </div>
-                                         
                                     </div>
                                 </div>
 
