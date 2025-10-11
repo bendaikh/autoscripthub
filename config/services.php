@@ -44,14 +44,14 @@ return [
         ],
     ],
 	'facebook' => [
-        'client_id'     => config('services.facebook.client_id'),
-        'client_secret' => config('services.facebook.client_secret'),
-        'redirect'      => config('services.facebook.redirect'),
+        'client_id'     => env('FACEBOOK_CLIENT_ID'),
+        'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
+        'redirect'      => env('FACEBOOK_REDIRECT_URL'),
     ],
     'google' => [
-        'client_id'     => config('services.google.client_id'),
-        'client_secret' => config('services.google.client_secret'),
-        'redirect'      => config('services.google.redirect'),
+        'client_id'     => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect'      => env('GOOGLE_REDIRECT_URL'),
     ],
 
 	// Dodo Payments configuration via env (no DB columns required)
@@ -61,12 +61,12 @@ return [
 		'product_id' => env('DODO_DEFAULT_PRODUCT_ID'), // default product to use in checkout sessions
 	],
 	'paytm-wallet' => [
-        'env' => config('services.paytm-wallet.env'), // values : (local | production)
-        'merchant_id' => config('services.paytm-wallet.merchant_id'),
-        'merchant_key' => config('services.paytm-wallet.merchant_key'),
-        'merchant_website' => config('services.paytm-wallet.merchant_website'),
-        'channel' => config('services.paytm-wallet.channel'),
-        'industry_type' => config('services.paytm-wallet.industry_type'),
+        'env' => env('PAYTM_ENVIRONMENT', 'local'), // values : (local | production)
+        'merchant_id' => env('PAYTM_MERCHANT_ID'),
+        'merchant_key' => env('PAYTM_MERCHANT_KEY'),
+        'merchant_website' => env('PAYTM_MERCHANT_WEBSITE'),
+        'channel' => env('PAYTM_CHANNEL'),
+        'industry_type' => env('PAYTM_INDUSTRY_TYPE'),
     ],
 	
 	
