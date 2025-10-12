@@ -12704,7 +12704,75 @@ class ItemController extends Controller
 	$ord_token   = $encrypter->decrypt($ordtoken);
 	$sid = 1;
 	$setting['setting'] = Settings::editGeneral($sid);
+	
+	// Get payment_id from DodoPayments redirect
 	$payment_token = $request->input('payment_id', '');
+	
+	// Verify payment status with DodoPayments API
+	$dodopayments_mode = config('services.dodopayments.mode', 'test');
+	$dodopayments_api_key = config('services.dodopayments.api_key');
+	
+	// If payment_id is missing, treat as failed payment
+	if (empty($payment_token)) {
+		\Log::warning('DodoPayments: No payment_id in callback', ['order_token' => $ord_token]);
+		return redirect('/failure')->with('unsuccess', __('Payment verification failed. No payment ID received.'));
+	}
+	
+	// Initialize Dodo Payments Service to verify payment
+	try {
+		$dodoService = new \Fickrr\Services\DodoPaymentsService(
+			$dodopayments_api_key,
+			$dodopayments_mode
+		);
+		
+		// Get payment details from DodoPayments API
+		$paymentDetails = $dodoService->getPayment($payment_token);
+		
+		if (!$paymentDetails || !isset($paymentDetails['status'])) {
+			\Log::error('DodoPayments: Failed to retrieve payment details', [
+				'payment_id' => $payment_token,
+				'order_token' => $ord_token
+			]);
+			return redirect('/failure')->with('unsuccess', __('Payment verification failed. Please contact support.'));
+		}
+		
+		// Check payment status - DodoPayments uses: 'succeeded', 'failed', 'pending', 'processing'
+		$dodoStatus = strtolower($paymentDetails['status'] ?? '');
+		
+		// Only process order if payment succeeded
+		if ($dodoStatus !== 'succeeded' && $dodoStatus !== 'successful') {
+			\Log::warning('DodoPayments: Payment not successful', [
+				'payment_id' => $payment_token,
+				'status' => $dodoStatus,
+				'order_token' => $ord_token
+			]);
+			
+			// Mark order as failed
+			$purchased_token = $ord_token;
+			$orderdata = array('payment_token' => $payment_token, 'order_status' => 'failed');
+			$checkoutdata = array('payment_token' => $payment_token, 'payment_status' => 'failed');
+			Items::singleordupdateData($purchased_token,$orderdata);
+			Items::singlecheckoutData($purchased_token,$checkoutdata);
+			
+			// Redirect based on status
+			if ($dodoStatus === 'failed') {
+				return redirect('/failure')->with('unsuccess', __('Payment failed. Please try again with a different payment method.'));
+			} else {
+				// Pending or processing
+				return redirect('/pending')->with('unsuccess', __('Payment is pending. Please wait for confirmation.'));
+			}
+		}
+		
+	} catch (\Exception $e) {
+		\Log::error('DodoPayments: Exception during payment verification', [
+			'payment_id' => $payment_token,
+			'error' => $e->getMessage(),
+			'order_token' => $ord_token
+		]);
+		return redirect('/failure')->with('unsuccess', __('Payment verification error. Please contact support.'));
+	}
+	
+	// Payment verified as successful - proceed with order completion
 	$payment_status = 'completed';
 	$purchased_token = $ord_token;
 	$orderdata = array('payment_token' => $payment_token, 'order_status' => $payment_status);

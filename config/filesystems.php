@@ -41,7 +41,7 @@ return [
     |
     */
 
-    'disks' => [
+    'disks' => array_filter([
 
         'local' => [
             'driver' => 'local',
@@ -66,29 +66,31 @@ return [
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
         ],
 		
-		'dropbox' => [
+		'dropbox' => !empty(env('DROPBOX_TOKEN')) ? [
 			  'driver' => 'dropbox',
 			  'token' => env('DROPBOX_TOKEN'),
-		],
+		] : null,
 		
-		'google' => [
+		'google' => !empty(env('GOOGLE_DRIVE_CLIENT_ID')) ? [
         'driver' => 'google',
         'clientId' => env('GOOGLE_DRIVE_CLIENT_ID'),
         'clientSecret' => env('GOOGLE_DRIVE_CLIENT_SECRET'),
         'refreshToken' => env('GOOGLE_DRIVE_REFRESH_TOKEN'),
         'folderId' => env('GOOGLE_DRIVE_FOLDER_ID'),
         'teamDriveId' => env('GOOGLE_DRIVE_TEAM_DRIVE_ID'),
-        ],	
+        ] : null,	
 		
-		'b2' => [
+		'b2' => !empty(env('B2_BUCKET_ID')) ? [
             'driver'         => 'b2',
-            'accountId'      => '0fe2f29a5fef',
-            'applicationKey' => '00557b65a1163a62d5b86c2d98f043ed6015450295',
-            'bucketName'     => 'Demogg',
-            'bucketId'       => env('B2_BUCKET_ID', 'c07f2e224f42f9fa856f0e1f'),
-        ],
+            'accountId'      => env('B2_ACCOUNT_ID', '0fe2f29a5fef'),
+            'applicationKey' => env('B2_APPLICATION_KEY', '00557b65a1163a62d5b86c2d98f043ed6015450295'),
+            'bucketName'     => env('B2_BUCKET_NAME', 'Demogg'),
+            'bucketId'       => env('B2_BUCKET_ID'),
+        ] : null,
 		
 		
-    ],
+    ], function($disk) {
+        return is_array($disk) && isset($disk['driver']);
+    }),
 
 ];

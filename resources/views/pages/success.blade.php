@@ -29,6 +29,15 @@
         <div class="col-lg-12" data-aos="fade-up" data-aos-delay="200" align="center">
           <h4>{{ __('Your payment transaction was successful. Thank You!') }}</h4><br/>
           @if(!empty($payment_token))<h4> {{ __('Transaction ID') }} : {{ $payment_token }}</h4>@endif
+          <br/>
+          <div class="alert alert-success d-inline-block" role="alert" style="max-width: 600px;">
+            <i class="dwg-download" style="font-size: 1.2em;"></i>
+            <strong>{{ __('Next Step:') }}</strong> {{ __('Visit the') }} <strong>{{ __('Purchase') }}</strong> {{ __('section in your account to download the items you purchased.') }}
+          </div>
+          <br/>
+          <a href="{{ URL::to('/purchases') }}" class="btn btn-primary btn-lg">
+            <i class="dwg-download"></i> {{ __('Go to My Purchases') }}
+          </a>
          </div>
       </div>
     </div>
