@@ -373,16 +373,16 @@
                                             <input type="hidden" name="item_support" value="0" />
                                             @endif
                                             <div class="form-group" id="pricebox_left">
-                                                <label for="name" class="control-label mb-1">{{ __('Regular License') }} ({{ $addition_settings->regular_license }} {{ __('Support') }}) <span class="require">*</span></label>
-                                                <input type="text" id="regular_price" name="regular_price"  class="form-control" data-bvalidator="required,min[1]">
+                                                <label for="name" class="control-label mb-1">{{ __('Regular License') }} ({{ $addition_settings->regular_license }} {{ __('Support') }})</label>
+                                                <input type="text" id="regular_price" name="regular_price"  class="form-control" data-bvalidator="min[1]">
                                                 ({{ $allsettings->site_currency }})
                                             </div>  
                                             
                                             @if($addition_settings->show_extended_license == 1)
                                             <div class="form-group" id="pricebox_right">
-                                                <label for="name" class="control-label mb-1">{{ __('Extended License') }} ({{ $addition_settings->extended_license }} {{ __('Support') }})</label>
+                                                <label for="name" class="control-label mb-1">{{ __('Extended License') }} ({{ $addition_settings->extended_license }} {{ __('Support') }}) <span class="require">*</span></label>
                                                 
-                                                <input type="text" id="extended_price" name="extended_price" class="form-control" data-bvalidator="min[1]">
+                                                <input type="text" id="extended_price" name="extended_price" class="form-control" data-bvalidator="required,min[1]">
                                                 ({{ $allsettings->site_currency }})
                                             </div>
                                             @else
@@ -551,6 +551,19 @@
 	  }
 	  
 	 });
+	 
+	 // Handle license display based on item type (for scripts, show only Extended License)
+	 var itemType = $('input[name="item_type"]').val();
+	 if (itemType === 'scripts' || itemType === 'script') {
+	     // Hide Regular License field
+	     $('#pricebox_left').hide();
+	     // Make Extended License required and visible
+	     $('#pricebox_right').show();
+	     $('#extended_price').attr('data-bvalidator', 'required,min[1]');
+	     // Set regular price to 0 since it's hidden for scripts
+	     $('#regular_price').val('0');
+	     $('#regular_price').removeAttr('data-bvalidator');
+	 }
 });
 </script>
 </body>

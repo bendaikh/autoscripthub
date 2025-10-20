@@ -21,6 +21,6 @@
 <link rel="stylesheet" href="{{ asset('admin/assets/css/style.css') }}">
 <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600,700,800' rel='stylesheet' type='text/css'>
 <link rel="stylesheet" href="{{ asset('admin/datepicker/picker.css') }}"> 
-<link href="{{ asset('admin/template/dragdrop/css/jquery.filer.css') }}" rel="stylesheet">
+<link href="{{ asset('admin/dragdrop/css/jquery.filer.css') }}" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="{{ asset('admin/dropzone/min/dropzone.min.css')}}">
 <link rel="stylesheet" type="text/css" href="{{ asset('admin/font-select/fontselect-alternate.css') }}" />

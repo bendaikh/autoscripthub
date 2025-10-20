@@ -448,18 +448,18 @@
               <h4 class="mt-4">{{ __('Price') }}</h4>
               </div>
               <div class="col-sm-6 mb-1" id="pricebox_left">
-                    <label class="font-weight-medium" for="unp-standard-price">{{ __('Regular License') }} ({{ $addition_settings->regular_license }} {{ __('Support') }}) <span class="require">*</span></label>
+                    <label class="font-weight-medium" for="unp-standard-price">{{ __('Regular License') }} ({{ $addition_settings->regular_license }} {{ __('Support') }})</label>
                     <div class="input-group">
                       <div class="input-group-prepend"><span class="input-group-text">{{ $allsettings->site_currency }}</span></div>
-                      <input type="text" id="regular_price" name="regular_price" class="form-control" data-bvalidator="required,min[1]">
+                      <input type="text" id="regular_price" name="regular_price" class="form-control" data-bvalidator="min[1]">
                     </div>
               </div>
               @if($addition_settings->show_extended_license == 1)
               <div class="col-sm-6 mb-1" id="pricebox_right">
-                    <label class="font-weight-medium" for="unp-standard-price">{{ __('Extended License') }} ({{ $addition_settings->extended_license }} {{ __('Support') }})</label>
+                    <label class="font-weight-medium" for="unp-standard-price">{{ __('Extended License') }} ({{ $addition_settings->extended_license }} {{ __('Support') }}) <span class="require">*</span></label>
                     <div class="input-group">
                       <div class="input-group-prepend"><span class="input-group-text">{{ $allsettings->site_currency }}</span></div>
-                      <input type="text" id="extended_price" name="extended_price" class="form-control" data-bvalidator="min[1]">
+                      <input type="text" id="extended_price" name="extended_price" class="form-control" data-bvalidator="required,min[1]">
                     </div>
               </div>
               @else
@@ -491,3 +491,20 @@
         </div>
       </div>
     </div>
+<script type="text/javascript">
+	$(document).ready(function(){
+	'use strict';
+	// Handle license display based on item type (for scripts, show only Extended License)
+	var itemType = $('input[name="item_type"]').val();
+	if (itemType === 'scripts' || itemType === 'script') {
+	    // Hide Regular License field and header
+	    $('#pricebox_left').hide();
+	    // Make Extended License required and show it
+	    $('#pricebox_right').removeClass('col-sm-6').addClass('col-sm-12');
+	    $('#extended_price').attr('data-bvalidator', 'required,min[1]');
+	    // Set regular price to 0 since it's hidden for scripts
+	    $('#regular_price').val('0');
+	    $('#regular_price').removeAttr('data-bvalidator');
+	}
+	});
+</script>

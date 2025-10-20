@@ -541,6 +541,7 @@ $extend_item_price = 0;
                 } 
                 @endphp
               <div class="accordion" id="licenses">
+                @if($item['item']->regular_price != 0)
                 <div class="card border-top-0 border-left-0 border-right-0">
                   <div class="card-header d-flex justify-content-between align-items-center py-3 border-0">
                     <div class="custom-control custom-radio">
@@ -571,18 +572,19 @@ $extend_item_price = 0;
                     </div>
                   </div>
                 </div>
+                @endif
                 @if($item['item']->extended_price != 0)
                 <div class="card border-bottom-0 border-left-0 border-right-0">
                   <div class="card-header d-flex justify-content-between align-items-center py-3 border-0">
                     <div class="custom-control custom-radio">
-                      <input class="custom-control-input" type="radio" name="item_price" id="license-ext" value="{{ base64_encode($extend_item_price) }}_extended">
+                      <input class="custom-control-input" type="radio" name="item_price" id="license-ext" value="{{ base64_encode($extend_item_price) }}_extended" @if($item['item']->regular_price == 0) checked @endif>
                       <label class="custom-control-label font-weight-medium text-dark" for="license-ext" data-toggle="collapse" data-target="#extended-license">{{ __('Extended License') }}</label>
                     </div>
                     <h5 class="mb-0 text-accent font-weight-normal">
                     @if($item['item']->item_flash == 1)<del class="price-old fontsize17">{{ Helper::price_format($allsettings->site_currency_position,$item['item']->extended_price,$currency_symbol,$multicurrency) }}</del>@endif <span class="bg-faded-accent rounded-sm py-1 px-2 fontsize17">{{ Helper::price_format($allsettings->site_currency_position,$extend_item_price,$currency_symbol,$multicurrency) }}</span>
                     </h5>
                   </div>
-                  <div class="collapse" id="extended-license" data-parent="#licenses">
+                  <div class="collapse @if($item['item']->regular_price == 0) show @endif" id="extended-license" data-parent="#licenses">
                     <div class="card-body py-0 pb-2">
                       <ul class="list-unstyled font-size-sm">
                         <li class="d-flex align-items-center"><i class="dwg-check-circle text-success mr-1"></i><span class="font-size-ms">{{ __('Quality checked by') }} {{ $allsettings->site_title }}</span></li>

@@ -230,7 +230,7 @@
   });
   
   </script>
-<script src="{{ asset('resources/views/admin/template/assets/js/custom.js') }}"></script>
+<script src="{{ asset('admin/assets/js/custom.js') }}"></script>
 <script type="text/javascript">
 	$(document).ready(function(){
 	'use strict';
@@ -283,7 +283,7 @@
 		
 });
 </script>
-<script src="{{ asset('resources/views/admin/template/dragdrop/js/jquery.filer.min.js') }}" type="text/javascript"></script>
+<script src="{{ asset('admin/dragdrop/js/jquery.filer.min.js') }}" type="text/javascript"></script>
 <?php /*?><script src="{{ asset('resources/views/admin/template/dragdrop/js/custom.js') }}" type="text/javascript"></script><?php */?>
 <script src="{{ asset('theme/validate/jquery.bvalidator.min.js') }}"></script>
 <script src="{{ asset('theme/validate/themes/presenters/default.min.js') }}"></script>
