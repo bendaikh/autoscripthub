@@ -74,7 +74,7 @@
               <div class="widget mb-4 pb-4 border-bottom">
                 <h3 class="widget-title">{{ __('Price') }}</h3>
                 <?php /*?><div class="cz-range-slider" data-start-min="{{ $minprice['price']->regular_price }}" data-start-max="{{ $maxprice['price']->extended_price }}" data-min="{{ $allsettings->site_range_min_price }}" data-max="{{ $allsettings->site_range_max_price }}" data-step="1"><?php */?>
-                <div data-start-min="{{ $minprice['price']->regular_price }}" data-start-max="{{ $maxprice['price']->extended_price }}" data-min="{{ $allsettings->site_range_min_price }}" data-max="{{ $allsettings->site_range_max_price }}" data-step="1">
+                <div data-start-min="{{ $minprice['price']->extended_price }}" data-start-max="{{ $maxprice['price']->extended_price }}" data-min="{{ $allsettings->site_range_min_price }}" data-max="{{ $allsettings->site_range_max_price }}" data-step="1">
                   <div class="demo">
                       <input type="text" id="amount" class="range-price" />
                        <div id="slider-range"></div>
@@ -144,7 +144,7 @@
         @php $no = 1; @endphp
         @foreach($itemData['item'] as $featured)
         @php
-        $price = Helper::price_info($featured->item_flash,$featured->regular_price);
+        $price = Helper::price_info($featured->item_flash,$featured->extended_price);
         $count_rating = Helper::count_rating($featured->ratings);
         @endphp
         <div class="col-lg-4 col-md-4 col-sm-6 px-2 mb-3 list-item box" data-price="{{ $price }}">
@@ -319,7 +319,7 @@
                 @endif
                 <div>
                 @if($featured->free_download == 0)
-                @if($featured->item_flash == 1)<del class="price-old">{{ Helper::price_format($allsettings->site_currency_position,$featured->regular_price,$currency_symbol,$multicurrency) }}</del>@endif <span class="bg-faded-accent text-accent rounded-sm py-1 px-2">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency) }}</span>
+                @if($featured->item_flash == 1)<del class="price-old">{{ Helper::price_format($allsettings->site_currency_position,$featured->extended_price,$currency_symbol,$multicurrency) }}</del>@endif <span class="bg-faded-accent text-accent rounded-sm py-1 px-2">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency) }}</span>
                 @else
                 <span class="price-badge rounded-sm py-1 px-2">{{ __('Free') }}</span> 
                 @endif

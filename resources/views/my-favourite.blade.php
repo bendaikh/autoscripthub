@@ -35,7 +35,7 @@
                 @php $no = 1; @endphp
                 @foreach($fav['item'] as $featured)
                 @php
-                $price = Helper::price_info($featured->item_flash,$featured->regular_price);
+                $price = Helper::price_info($featured->item_flash,$featured->extended_price);
                 @endphp
               <div class="media d-block d-sm-flex align-items-center py-4 border-bottom">
               <a class="d-block position-relative mb-3 mb-sm-0 mr-sm-4 mx-auto cart-img" href="{{ url('/favourites') }}/{{ base64_encode($featured->fav_id) }}/{{ base64_encode($featured->item_id) }}" onClick="return confirm('{{ __('Are you sure you want to remove from favourites?') }}');">

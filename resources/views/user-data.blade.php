@@ -1,7 +1,7 @@
 @php $no = 1; @endphp
 @foreach($items as $featured)
 @php
-$price = Helper::price_info($featured->item_flash,$featured->regular_price);
+$price = Helper::price_info($featured->item_flash,$featured->extended_price);
 $count_rating = Helper::count_rating($featured->ratings);
 @endphp
 <div class="col-lg-6 col-md-6 col-sm-6 px-2 mb-grid-gutter prod-item" data-aos="fade-up" data-aos-delay="200">
@@ -169,7 +169,7 @@ $count_rating = Helper::count_rating($featured->ratings);
                 @endif
                 <div>
                 @if($featured->free_download == 0)
-                @if($featured->item_flash == 1)<del class="price-old">{{ Helper::price_format($allsettings->site_currency_position,$featured->regular_price,$currency_symbol,$multicurrency) }}</del>@endif <span class="bg-faded-accent text-accent rounded-sm py-1 px-2">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency) }}</span>
+                @if($featured->item_flash == 1)<del class="price-old">{{ Helper::price_format($allsettings->site_currency_position,$featured->extended_price,$currency_symbol,$multicurrency) }}</del>@endif <span class="bg-faded-accent text-accent rounded-sm py-1 px-2">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency) }}</span>
                 @else
                 <span class="price-badge rounded-sm py-1 px-2">{{ __('Free') }}</span> 
                 @endif

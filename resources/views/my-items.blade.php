@@ -46,7 +46,7 @@
                 @php $no = 1; @endphp
                 @foreach($itemData['item'] as $featured)
                 @php
-                $price = Helper::price_info($featured->item_flash,$featured->regular_price);
+                $price = Helper::price_info($featured->item_flash,$featured->extended_price);
                 @endphp
               <div class="media d-block d-sm-flex align-items-center py-4 border-bottom">
               @if($featured->item_preview!='')

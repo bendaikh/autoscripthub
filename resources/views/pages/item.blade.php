@@ -545,14 +545,14 @@ $extend_item_price = 0;
                 <div class="card border-top-0 border-left-0 border-right-0">
                   <div class="card-header d-flex justify-content-between align-items-center py-3 border-0">
                     <div class="custom-control custom-radio">
-                      <input class="custom-control-input" type="radio" name="item_price" value="{{ base64_encode($item_price) }}_regular" id="license-std" checked>
+                      <input class="custom-control-input" type="radio" name="item_price" value="{{ base64_encode($item_price) }}_regular" id="license-std" @if($item['item']->extended_price == 0) checked @endif>
                       <label class="custom-control-label font-weight-medium text-dark" for="license-std" data-toggle="collapse" data-target="#standard-license">{{ __('Regular License') }}</label>
                     </div>
                     <h5 class="mb-0 text-accent font-weight-normal">
                     @if($item['item']->item_flash == 1)<del class="price-old fontsize17">{{ Helper::price_format($allsettings->site_currency_position,$item['item']->regular_price,$currency_symbol,$multicurrency) }}</del>@endif <span class="bg-faded-accent rounded-sm py-1 px-2 fontsize17">{{ Helper::price_format($allsettings->site_currency_position,$item_price,$currency_symbol,$multicurrency) }}</span>
                     </h5>
                   </div>
-                  <div class="collapse show" id="standard-license" data-parent="#licenses">
+                  <div class="collapse @if($item['item']->extended_price == 0) show @endif" id="standard-license" data-parent="#licenses">
                     <div class="card-body py-0 pb-2">
                       <ul class="list-unstyled font-size-sm">
                         <li class="d-flex align-items-center"><i class="dwg-check-circle text-success mr-1"></i><span class="font-size-ms">{{ __('Quality checked by') }} {{ $allsettings->site_title }}</span></li>
@@ -577,14 +577,14 @@ $extend_item_price = 0;
                 <div class="card border-bottom-0 border-left-0 border-right-0">
                   <div class="card-header d-flex justify-content-between align-items-center py-3 border-0">
                     <div class="custom-control custom-radio">
-                      <input class="custom-control-input" type="radio" name="item_price" id="license-ext" value="{{ base64_encode($extend_item_price) }}_extended" @if($item['item']->regular_price == 0) checked @endif>
+                      <input class="custom-control-input" type="radio" name="item_price" id="license-ext" value="{{ base64_encode($extend_item_price) }}_extended" checked>
                       <label class="custom-control-label font-weight-medium text-dark" for="license-ext" data-toggle="collapse" data-target="#extended-license">{{ __('Extended License') }}</label>
                     </div>
                     <h5 class="mb-0 text-accent font-weight-normal">
                     @if($item['item']->item_flash == 1)<del class="price-old fontsize17">{{ Helper::price_format($allsettings->site_currency_position,$item['item']->extended_price,$currency_symbol,$multicurrency) }}</del>@endif <span class="bg-faded-accent rounded-sm py-1 px-2 fontsize17">{{ Helper::price_format($allsettings->site_currency_position,$extend_item_price,$currency_symbol,$multicurrency) }}</span>
                     </h5>
                   </div>
-                  <div class="collapse @if($item['item']->regular_price == 0) show @endif" id="extended-license" data-parent="#licenses">
+                  <div class="collapse show" id="extended-license" data-parent="#licenses">
                     <div class="card-body py-0 pb-2">
                       <ul class="list-unstyled font-size-sm">
                         <li class="d-flex align-items-center"><i class="dwg-check-circle text-success mr-1"></i><span class="font-size-ms">{{ __('Quality checked by') }} {{ $allsettings->site_title }}</span></li>
@@ -1034,7 +1034,7 @@ $extend_item_price = 0;
         @php $no = 1; @endphp
         @foreach($related['items'] as $featured)
         @php
-        $price = Helper::price_info($featured->item_flash,$featured->regular_price);
+        $price = Helper::price_info($featured->item_flash,$featured->extended_price);
         $count_rating = Helper::count_rating($featured->ratings);
         @endphp
         <div class="col-lg-3 col-md-4 col-sm-6 px-2 mb-grid-gutter prod-item">
@@ -1187,7 +1187,7 @@ $extend_item_price = 0;
                 </div>
                 <div>
                 @if($featured->free_download == 0)
-                @if($featured->item_flash == 1)<del class="price-old">{{ Helper::price_format($allsettings->site_currency_position,$featured->regular_price,$currency_symbol,$multicurrency) }}</del>@endif <span class="bg-faded-accent text-accent rounded-sm py-1 px-2">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency) }}</span>
+                @if($featured->item_flash == 1)<del class="price-old">{{ Helper::price_format($allsettings->site_currency_position,$featured->extended_price,$currency_symbol,$multicurrency) }}</del>@endif <span class="bg-faded-accent text-accent rounded-sm py-1 px-2">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency) }}</span>
                 @else
                 <span class="price-badge rounded-sm py-1 px-2">{{ __('Free') }}</span> 
                 @endif

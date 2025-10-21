@@ -70,7 +70,7 @@
         <?php $no = 1; ?>
         <?php $__currentLoopData = $featured['items']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $featured): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
         <?php
-        $price = Helper::price_info($featured->item_flash,$featured->regular_price);
+        $price = Helper::price_info($featured->item_flash,$featured->extended_price);
         $count_rating = Helper::count_rating($featured->ratings);
         ?>
         <div class="col-lg-3 col-md-4 col-sm-6 px-2 mb-grid-gutter">
@@ -231,7 +231,7 @@
                 <?php endif; ?>
                 <div>
                 <?php if($featured->free_download == 0): ?>
-                <?php if($featured->item_flash == 1): ?><del class="price-old"><?php echo e(Helper::price_format($allsettings->site_currency_position,$featured->regular_price,$currency_symbol,$multicurrency)); ?></del><?php endif; ?> <span class="bg-faded-accent text-accent rounded-sm py-1 px-2"><?php echo e(Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency)); ?></span>
+                <?php if($featured->item_flash == 1): ?><del class="price-old"><?php echo e(Helper::price_format($allsettings->site_currency_position,$featured->extended_price,$currency_symbol,$multicurrency)); ?></del><?php endif; ?> <span class="bg-faded-accent text-accent rounded-sm py-1 px-2"><?php echo e(Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency)); ?></span>
                 <?php else: ?>
                 <span class="price-badge rounded-sm py-1 px-2"><?php echo e(__('Free')); ?></span> 
                 <?php endif; ?>
@@ -261,7 +261,7 @@
         <?php $no = 1; ?>
         <?php $__currentLoopData = $popular['items']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $featured): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
         <?php
-        $price = Helper::price_info($featured->item_flash,$featured->regular_price);
+        $price = Helper::price_info($featured->item_flash,$featured->extended_price);
         $count_rating = Helper::count_rating($featured->ratings);
         ?>
         <div class="col-lg-3 col-md-4 col-sm-6 px-2 mb-grid-gutter">
@@ -427,7 +427,7 @@
                 <?php endif; ?>
                 <div>
                 <?php if($featured->free_download == 0): ?>
-                <?php if($featured->item_flash == 1): ?><del class="price-old"><?php echo e(Helper::price_format($allsettings->site_currency_position,$featured->regular_price,$currency_symbol,$multicurrency)); ?></del><?php endif; ?> <span class="bg-faded-accent text-accent rounded-sm py-1 px-2"><?php echo e(Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency)); ?></span>
+                <?php if($featured->item_flash == 1): ?><del class="price-old"><?php echo e(Helper::price_format($allsettings->site_currency_position,$featured->extended_price,$currency_symbol,$multicurrency)); ?></del><?php endif; ?> <span class="bg-faded-accent text-accent rounded-sm py-1 px-2"><?php echo e(Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency)); ?></span>
                 <?php else: ?>
                 <span class="price-badge rounded-sm py-1 px-2"><?php echo e(__('Free')); ?></span> 
                 <?php endif; ?>
@@ -457,7 +457,7 @@
         <?php $no = 1; ?>
         <?php $__currentLoopData = $flash['items']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $featured): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
         <?php
-        $price = Helper::price_info($featured->item_flash,$featured->regular_price);
+        $price = Helper::price_info($featured->item_flash,$featured->extended_price);
         $count_rating = Helper::count_rating($featured->ratings);
         ?>
         <div class="col-lg-3 col-md-4 col-sm-6 px-2 mb-grid-gutter">
@@ -626,7 +626,7 @@
                 <?php endif; ?>
                 </div>
                 <?php endif; ?>
-                <div><?php if($featured->item_flash == 1): ?><del class="price-old"><?php echo e(Helper::price_format($allsettings->site_currency_position,$featured->regular_price,$currency_symbol,$multicurrency)); ?></del><?php endif; ?> <span class="price-badge rounded-sm py-1 px-2"><?php echo e(Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency)); ?></span></div>
+                <div><?php if($featured->item_flash == 1): ?><del class="price-old"><?php echo e(Helper::price_format($allsettings->site_currency_position,$featured->extended_price,$currency_symbol,$multicurrency)); ?></del><?php endif; ?> <span class="price-badge rounded-sm py-1 px-2"><?php echo e(Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency)); ?></span></div>
               </div>
             </div>
           </div>
@@ -652,7 +652,7 @@
         <?php $no = 1; ?>
         <?php $__currentLoopData = $free['items']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $featured): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
         <?php
-        $price = Helper::price_info($featured->item_flash,$featured->regular_price);
+        $price = Helper::price_info($featured->item_flash,$featured->extended_price);
         $count_rating = Helper::count_rating($featured->ratings);
         ?>
         <div class="col-lg-3 col-md-4 col-sm-6 px-2 mb-grid-gutter">
@@ -824,7 +824,7 @@
                 <?php endif; ?>
                 <div>
                 <?php if($featured->free_download == 0): ?>
-                <?php if($featured->item_flash == 1): ?><del class="price-old"><?php echo e(Helper::price_format($allsettings->site_currency_position,$featured->regular_price,$currency_symbol,$multicurrency)); ?></del><?php endif; ?> <span class="bg-faded-accent text-accent rounded-sm py-1 px-2"><?php echo e(Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency)); ?></span>
+                <?php if($featured->item_flash == 1): ?><del class="price-old"><?php echo e(Helper::price_format($allsettings->site_currency_position,$featured->extended_price,$currency_symbol,$multicurrency)); ?></del><?php endif; ?> <span class="bg-faded-accent text-accent rounded-sm py-1 px-2"><?php echo e(Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency)); ?></span>
                 <?php else: ?>
                 <span class="price-badge rounded-sm py-1 px-2"><?php echo e(__('Free')); ?></span> 
                 <?php endif; ?>
@@ -852,7 +852,7 @@
             <?php $no = 1; ?>
             <?php $__currentLoopData = $newest['items']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $featured): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <?php
-            $price = Helper::price_info($featured->item_flash,$featured->regular_price);
+            $price = Helper::price_info($featured->item_flash,$featured->extended_price);
         $count_rating = Helper::count_rating($featured->ratings);
             ?>
           <div class="col-lg-4 col-md-6 mb-2 py-3">
@@ -869,7 +869,7 @@
                 <h6 class="widget-product-title"><a href="<?php echo e(URL::to('/item')); ?>/<?php echo e($featured->item_slug); ?>"><?php echo e($featured->item_name); ?></a></h6>
                 <div class="widget-product-meta">
                 <?php if($featured->free_download == 0): ?>
-                <span class="text-accent"><?php echo e(Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency)); ?></span> <?php if($featured->item_flash == 1): ?><del class="price-old"><?php echo e(Helper::price_format($allsettings->site_currency_position,$featured->regular_price,$currency_symbol,$multicurrency)); ?></del><?php endif; ?>
+                <span class="text-accent"><?php echo e(Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency)); ?></span> <?php if($featured->item_flash == 1): ?><del class="price-old"><?php echo e(Helper::price_format($allsettings->site_currency_position,$featured->extended_price,$currency_symbol,$multicurrency)); ?></del><?php endif; ?>
                 <?php else: ?>
                 <span class="text-accent"><?php echo e(__('Free')); ?></span>
                 <?php endif; ?>
