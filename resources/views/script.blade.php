@@ -682,6 +682,8 @@ s0.parentNode.insertBefore(s1,s0);
 </script>
 @endif
 <script src="{{ asset('admin/dropzone/min/dropzone.min.js')}}" type="text/javascript"></script>
+<!-- version links manager -->
+<script src="{{ asset('theme/js/version-links.js') }}" type="text/javascript"></script>
 <!-- google analytics -->
 @if($allsettings->google_analytics!= "")
 <!-- Google Analytics -->

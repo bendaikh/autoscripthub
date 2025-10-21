@@ -373,9 +373,58 @@
                                             </div>  
                                             
                                             <div id="main_link" @if($edit['item']->file_type == 'link') class="form-group display-block" @else  class="form-group display-none" @endif>
-                                                <label for="name" class="control-label mb-1">Main File Link/URL <span class="require">*</span></label>
-                                                <input type="text" id="item_file_link1" name="item_file_link1" class="form-control" data-bvalidator="required,url" value="{{ $edit['item']->item_file_link }}">
-                                                
+                                                <label for="name" class="control-label mb-1">
+                                                    Main File Link/URL <span class="require">*</span>
+                                                    <button type="button" id="add-version-link-btn" class="btn btn-primary btn-sm" style="margin-left: 10px; padding: 2px 8px; font-size: 18px;" title="Add another version">
+                                                      ➕
+                                                    </button>
+                                                </label>
+                                                <div id="version-links-container">
+                                                    @if(!empty($versionLinks) && count($versionLinks) > 0)
+                                                      @foreach($versionLinks as $versionLink)
+                                                      <div class="version-link-block" style="margin-bottom: 15px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 4px; background-color: #f9f9f9;">
+                                                        <div class="row">
+                                                          <div class="col-sm-5">
+                                                            <div class="form-group">
+                                                              <input type="text" name="version_names[]" class="form-control" placeholder="Version name" value="{{ $versionLink['version'] ?? '' }}" style="font-size: 14px;">
+                                                            </div>
+                                                          </div>
+                                                          <div class="col-sm-6">
+                                                            <div class="form-group">
+                                                              <input type="text" name="version_links[]" class="form-control" placeholder="File link / URL" data-bvalidator="required,url" value="{{ $versionLink['url'] ?? '' }}" style="font-size: 14px;">
+                                                            </div>
+                                                          </div>
+                                                          <div class="col-sm-1" style="text-align: center;">
+                                                            <button type="button" class="btn btn-danger btn-sm remove-version-btn" style="margin-top: 0px; padding: 6px 10px; font-size: 18px;" title="Remove this version">
+                                                              🗑️
+                                                            </button>
+                                                          </div>
+                                                        </div>
+                                                      </div>
+                                                      @endforeach
+                                                    @else
+                                                      <!-- Default single block for old items without version data -->
+                                                      <div class="version-link-block" style="margin-bottom: 15px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 4px; background-color: #f9f9f9;">
+                                                        <div class="row">
+                                                          <div class="col-sm-5">
+                                                            <div class="form-group">
+                                                              <input type="text" name="version_names[]" class="form-control" placeholder="Version name" value="" style="font-size: 14px;">
+                                                            </div>
+                                                          </div>
+                                                          <div class="col-sm-6">
+                                                            <div class="form-group">
+                                                              <input type="text" name="version_links[]" class="form-control" placeholder="File link / URL" data-bvalidator="required,url" value="{{ $edit['item']->item_file_link }}" style="font-size: 14px;">
+                                                            </div>
+                                                          </div>
+                                                          <div class="col-sm-1" style="text-align: center;">
+                                                            <button type="button" class="btn btn-danger btn-sm remove-version-btn" style="margin-top: 0px; padding: 6px 10px; font-size: 18px;" title="Remove this version">
+                                                              🗑️
+                                                            </button>
+                                                          </div>
+                                                        </div>
+                                                      </div>
+                                                    @endif
+                                                </div>
                                             </div>
                                        </div>
                                         

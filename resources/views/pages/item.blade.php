@@ -647,6 +647,31 @@ $extend_item_price = 0;
                     </div>
                   </div>
                 @endif
+                
+                @if($item['item']->file_type == 'link' && !empty($versionLinks) && count($versionLinks) > 0)
+                <!-- Version Selector -->
+                <div class="card border-0 mb-3" style="background-color: #f8f9fa;">
+                  <div class="card-body py-3">
+                    <label class="font-weight-medium text-dark mb-2">
+                      <i class="dwg-package mr-1"></i>{{ __('Select Version') }}
+                    </label>
+                    <select name="selected_version" id="selected_version" class="form-control" required>
+                      <option value="" disabled>{{ __('Choose a version') }}</option>
+                      @foreach($versionLinks as $index => $versionLink)
+                      <option value="{{ $index }}" @if($index == 0) selected @endif>
+                        @if(!empty($versionLink['version']))
+                          {{ $versionLink['version'] }}
+                        @else
+                          {{ __('Version') }} {{ $index + 1 }}
+                        @endif
+                      </option>
+                      @endforeach
+                    </select>
+                    <small class="form-text text-muted">{{ count($versionLinks) }} {{ __('version(s) available') }}</small>
+                  </div>
+                </div>
+                @endif
+                
                 <?php /*?><input type="hidden" name="user_id" value="{{ Auth::user()->id }}"><?php */?>
                 <input type="hidden" name="item_id" value="{{ $item['item']->item_id }}">
                 <input type="hidden" name="item_name" value="{{ $item['item']->item_name }}">

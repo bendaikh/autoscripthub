@@ -61,6 +61,12 @@ myDropzone.on("success", function(file, response) {
 	var currentVideoUrl = $('#video_url1').val();
 	var currentVideoPreviewType = $('#video_preview_type1').val();
 	
+	// Store version link data BEFORE HTML replacement
+	var versionLinkData = null;
+	if (window.VersionLinksManager && typeof window.VersionLinksManager.saveState === 'function') {
+		versionLinkData = window.VersionLinksManager.saveState();
+	}
+	
     // get response from successful ajax request
     $('#hide_message').hide();
 	$('#display_message').html(response.record);
@@ -93,6 +99,18 @@ myDropzone.on("success", function(file, response) {
 		} else {
 			$('#video_url1').val('');
 			$("#video_preview_type1").val('');
+		}
+		
+		// Restore version link data AFTER HTML replacement
+		if (versionLinkData && versionLinkData.length > 0) {
+			if (window.VersionLinksManager && typeof window.VersionLinksManager.restoreState === 'function') {
+				window.VersionLinksManager.restoreState(versionLinkData);
+			}
+		}
+		
+		// Reinitialize VersionLinksManager to ensure event handlers are properly bound
+		if (window.VersionLinksManager && typeof window.VersionLinksManager.reinit === 'function') {
+			window.VersionLinksManager.reinit();
 		}
 	}, 100);
 	

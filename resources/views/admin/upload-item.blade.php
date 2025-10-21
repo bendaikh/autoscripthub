@@ -323,9 +323,34 @@
                                             </div>  
                                             
                                             <div class="form-group" id="main_link">
-                                                <label for="name" class="control-label mb-1">Main File Link/URL <span class="require">*</span></label>
-                                                <input type="text" id="item_file_link1" name="item_file_link1" class="form-control" data-bvalidator="required,url">
-                                                
+                                                <label for="name" class="control-label mb-1">
+                                                    Main File Link/URL <span class="require">*</span>
+                                                    <button type="button" id="add-version-link-btn" class="btn btn-primary btn-sm" style="margin-left: 10px; padding: 2px 8px; font-size: 18px;" title="Add another version">
+                                                      ➕
+                                                    </button>
+                                                </label>
+                                                <div id="version-links-container">
+                                                    <!-- First version block (default) -->
+                                                    <div class="version-link-block" style="margin-bottom: 15px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 4px; background-color: #f9f9f9;">
+                                                      <div class="row">
+                                                        <div class="col-sm-5">
+                                                          <div class="form-group">
+                                                            <input type="text" name="version_names[]" class="form-control" placeholder="Version name" style="font-size: 14px;">
+                                                          </div>
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                          <div class="form-group">
+                                                            <input type="text" name="version_links[]" class="form-control" placeholder="File link / URL" data-bvalidator="required,url" style="font-size: 14px;">
+                                                          </div>
+                                                        </div>
+                                                        <div class="col-sm-1" style="text-align: center;">
+                                                          <button type="button" class="btn btn-danger btn-sm remove-version-btn" style="margin-top: 0px; padding: 6px 10px; font-size: 18px;" title="Remove this version">
+                                                            🗑️
+                                                          </button>
+                                                        </div>
+                                                      </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                             
                                             

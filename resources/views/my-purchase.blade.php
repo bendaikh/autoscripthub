@@ -150,6 +150,9 @@
                 <div class="font-size-sm mb-1"><strong>{{ __('Purchase Date') }} : </strong> {{ date("d F Y", strtotime($item->start_date)) }}</div>
                 <div class="font-size-sm mb-1"><strong>{{ __('Expiry Date') }} : </strong> {{ date("d F Y", strtotime($item->end_date)) }}</div>
                 <div class="font-size-sm mb-1"><strong>{{ __('License') }} : </strong> {{ $item->license }}</div>
+                @if(!empty($item->purchased_version))
+                <div class="font-size-sm mb-1"><strong><i class="dwg-package mr-1"></i>{{ __('Version') }} : </strong> <span class="badge badge-info">{{ $item->purchased_version }}</span></div>
+                @endif
                 @php
                 $moneyback_days = '+'.$item->seller_money_back_days.' days';
                 $getdate = strtotime($item->start_date. $moneyback_days);

@@ -507,6 +507,19 @@ class CommonController extends Controller
 	  $item_id = $request->input('item_id');
 	  $item_name = $request->input('item_name');
 	  $item_user_id = $request->input('item_user_id');
+	  
+	  // Get selected version info
+	  $selected_version_index = $request->input('selected_version');
+	  $selected_version_name = '';
+	  $selected_version_url = '';
+	  if($file_type == 'link' && $selected_version_index !== null && $selected_version_index !== '') {
+	      // Decode version links
+	      $versionLinksData = json_decode($item['view']->item_file_link, true);
+	      if(is_array($versionLinksData) && isset($versionLinksData[$selected_version_index])) {
+	          $selected_version_name = $versionLinksData[$selected_version_index]['version'] ?? '';
+	          $selected_version_url = $versionLinksData[$selected_version_index]['url'] ?? '';
+	      }
+	  }
 	  $additional['setting'] = Settings::editAdditional();
 	  $getmember['views'] = Members::singlevendorData($item_user_id);
 	  $user_exclusive_type = $getmember['views']->exclusive_author;
@@ -609,10 +622,10 @@ class CommonController extends Controller
 	   
 	   $getcount  = Items::getorderCount($item_id,$session_id,$order_status);
 	   
-	   $savedata = array('session_id' => $session_id, 'item_id' => $item_id, 'item_name' => $item_name, 'item_user_id' => $item_user_id, 'item_token' => $item_token, 'license' => $license, 'start_date' => $start_date, 'end_date' => $end_date, 'item_price' => $itemprice, 'vendor_amount' => $vendor_amount, 'admin_amount' => $admin_amount, 'total_price' => $price, 'order_status' => $order_status, 'coupon_key' => $coupon_key, 'coupon_id' => $coupon_id, 'coupon_code' => $coupon_code, 'coupon_type' => $coupon_type, 'coupon_value' => $coupon_value, 'discount_price' => $coupon_price, 'item_serial_stock' => $qty, 'currency_type' => $currency_symbol, 'currency_type_code' => $multicurrency, 'item_single_price' => $single_item_price);
+	   $savedata = array('session_id' => $session_id, 'item_id' => $item_id, 'item_name' => $item_name, 'item_user_id' => $item_user_id, 'item_token' => $item_token, 'license' => $license, 'start_date' => $start_date, 'end_date' => $end_date, 'item_price' => $itemprice, 'vendor_amount' => $vendor_amount, 'admin_amount' => $admin_amount, 'total_price' => $price, 'order_status' => $order_status, 'coupon_key' => $coupon_key, 'coupon_id' => $coupon_id, 'coupon_code' => $coupon_code, 'coupon_type' => $coupon_type, 'coupon_value' => $coupon_value, 'discount_price' => $coupon_price, 'item_serial_stock' => $qty, 'currency_type' => $currency_symbol, 'currency_type_code' => $multicurrency, 'item_single_price' => $single_item_price, 'purchased_version' => $selected_version_name, 'purchased_version_url' => $selected_version_url);
 	   
 	   
-	   $updatedata = array('license' => $license, 'start_date' => $start_date, 'end_date' => $end_date, 'item_price' => $itemprice, 'total_price' => $price, 'vendor_amount' => $vendor_amount, 'admin_amount' => $admin_amount, 'coupon_key' => $coupon_key, 'coupon_id' => $coupon_id, 'coupon_code' => $coupon_code, 'coupon_type' => $coupon_type, 'coupon_value' => $coupon_value, 'discount_price' => $coupon_price, 'item_serial_stock' => $qty, 'currency_type' => $currency_symbol, 'currency_type_code' => $multicurrency, 'item_single_price' => $single_item_price);
+	   $updatedata = array('license' => $license, 'start_date' => $start_date, 'end_date' => $end_date, 'item_price' => $itemprice, 'total_price' => $price, 'vendor_amount' => $vendor_amount, 'admin_amount' => $admin_amount, 'coupon_key' => $coupon_key, 'coupon_id' => $coupon_id, 'coupon_code' => $coupon_code, 'coupon_type' => $coupon_type, 'coupon_value' => $coupon_value, 'discount_price' => $coupon_price, 'item_serial_stock' => $qty, 'currency_type' => $currency_symbol, 'currency_type_code' => $multicurrency, 'item_single_price' => $single_item_price, 'purchased_version' => $selected_version_name, 'purchased_version_url' => $selected_version_url);
 	   
 	   if($file_type == 'serial')
 	   {
@@ -6056,7 +6069,18 @@ class CommonController extends Controller
 		  {
 		  $other_market_link = 0;
 		  }
-		  $data = array('item' => $item, 'getcount' => $getcount, 'item_image' => $item_image, 'item_allimage' => $item_allimage, 'category_name' => $category_name, 'item_tags' => $item_tags, 'itemData' => $itemData, 'checkif_purchased' => $checkif_purchased, 'getreview' => $getreview, 'count_rating' => $count_rating, 'getreviewdata' => $getreviewdata, 'comment' => $comment, 'comment_count' => $comment_count, 'badges' => $badges, 'country' => $country, 'trends' => $trends, 'year' => $year, 'sold_amount' => $sold_amount, 'collect_amount' => $collect_amount, 'referral_count' => $referral_count, 'viewattribute' => $viewattribute, 'item_slug' => $item_slug, 'page' => $page, 'related' => $related, 'check_if_item' => $check_if_item, 'other_market_link' => $other_market_link);
+		  
+		  // Decode version links if available
+		  $versionLinks = [];
+		  if($item['item']->file_type == 'link' && !empty($item['item']->item_file_link)) {
+		      $decoded = json_decode($item['item']->item_file_link, true);
+		      if(is_array($decoded) && isset($decoded[0]['version'])) {
+		          // It's version data
+		          $versionLinks = $decoded;
+		      }
+		  }
+		  
+		  $data = array('item' => $item, 'getcount' => $getcount, 'item_image' => $item_image, 'item_allimage' => $item_allimage, 'category_name' => $category_name, 'item_tags' => $item_tags, 'itemData' => $itemData, 'checkif_purchased' => $checkif_purchased, 'getreview' => $getreview, 'count_rating' => $count_rating, 'getreviewdata' => $getreviewdata, 'comment' => $comment, 'comment_count' => $comment_count, 'badges' => $badges, 'country' => $country, 'trends' => $trends, 'year' => $year, 'sold_amount' => $sold_amount, 'collect_amount' => $collect_amount, 'referral_count' => $referral_count, 'viewattribute' => $viewattribute, 'item_slug' => $item_slug, 'page' => $page, 'related' => $related, 'check_if_item' => $check_if_item, 'other_market_link' => $other_market_link, 'versionLinks' => $versionLinks);
 		 }
 		 else
 		 {

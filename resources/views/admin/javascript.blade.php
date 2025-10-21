@@ -529,6 +529,8 @@ $(document).ready(function(){
 });
 </script>
 <script src="{{ asset('admin/dropzone/min/dropzone.min.js')}}" type="text/javascript"></script>
+<!-- version links manager -->
+<script src="{{ asset('theme/js/version-links.js') }}" type="text/javascript"></script>
 <script src="{{ asset('admin/lazy/jquery.lazyload.js?v=1.9.1') }}"></script>
 <script type="text/javascript" charset="utf-8">
   $(function() {

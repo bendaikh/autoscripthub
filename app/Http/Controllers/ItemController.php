@@ -1015,8 +1015,33 @@ class ItemController extends Controller
 												 {
 												  $item_file_linked = "";
 												 }
-                                                $record .= '<label for="name" class="control-label mb-1">Main File Link/URL <span class="require">*</span></label>
-                                                <input type="text" id="item_file_link2" name="item_file_link2" class="form-control" value="'.$item_file_linked.'" data-bvalidator="required,url">
+                                                $record .= '<label for="name" class="control-label mb-1">
+                                                    Main File Link/URL <span class="require">*</span>
+                                                    <button type="button" id="add-version-link-btn" class="btn btn-primary btn-sm" style="margin-left: 10px; padding: 2px 8px; font-size: 18px;" title="Add another version">
+                                                      ➕
+                                                    </button>
+                                                </label>
+                                                <div id="version-links-container">
+                                                    <div class="version-link-block" style="margin-bottom: 15px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 4px; background-color: #f9f9f9;">
+                                                      <div class="row">
+                                                        <div class="col-sm-5">
+                                                          <div class="form-group">
+                                                            <input type="text" name="version_names[]" class="form-control" placeholder="Version name" style="font-size: 14px;">
+                                                          </div>
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                          <div class="form-group">
+                                                            <input type="text" name="version_links[]" class="form-control" placeholder="File link / URL" data-bvalidator="required,url" value="'.$item_file_linked.'" style="font-size: 14px;">
+                                                          </div>
+                                                        </div>
+                                                        <div class="col-sm-1" style="text-align: center;">
+                                                          <button type="button" class="btn btn-danger btn-sm remove-version-btn" style="margin-top: 0px; padding: 6px 10px; font-size: 18px;" title="Remove this version">
+                                                            🗑️
+                                                          </button>
+                                                        </div>
+                                                      </div>
+                                                    </div>
+                                                </div>
                                               </div>  
                                             </div></div>';
 								    $record .= '<script>
@@ -1453,7 +1478,18 @@ class ItemController extends Controller
 		{
 		$other_market = 0;
 		}
-		$data = array(  're_categories' => $re_categories,  'edit' => $edit, 'token' => $token, 'item_image' => $item_image, 'getcount' => $getcount, 'cat_id' => $cat_id, 'cat_name' => $cat_name, 'type_name' => $type_name, 'attri_field' => $attri_field, 'attribute' => $attribute, 'typer_id' => $typer_id, 'available_storage' => $available_storage, 'getdata1' => $getdata1, 'getdata2' => $getdata2, 'getdata3' => $getdata3, 'getdata4' => $getdata4, 'getdata5' => $getdata5, 'item_token' => $item_token, 'getdata6' => $getdata6, 'other_market' => $other_market);
+		
+		// Decode version links if available
+		$versionLinks = [];
+		if(!empty($edit['item']->item_file_link)) {
+		    $decoded = json_decode($edit['item']->item_file_link, true);
+		    if(is_array($decoded) && isset($decoded[0]['version'])) {
+		        // It's version data
+		        $versionLinks = $decoded;
+		    }
+		}
+		
+		$data = array(  're_categories' => $re_categories,  'edit' => $edit, 'token' => $token, 'item_image' => $item_image, 'getcount' => $getcount, 'cat_id' => $cat_id, 'cat_name' => $cat_name, 'type_name' => $type_name, 'attri_field' => $attri_field, 'attribute' => $attribute, 'typer_id' => $typer_id, 'available_storage' => $available_storage, 'getdata1' => $getdata1, 'getdata2' => $getdata2, 'getdata3' => $getdata3, 'getdata4' => $getdata4, 'getdata5' => $getdata5, 'item_token' => $item_token, 'getdata6' => $getdata6, 'other_market' => $other_market, 'versionLinks' => $versionLinks);
 	  
 	   if($edit['item']->user_id == Auth::user()->id)
 	   { 
@@ -1831,7 +1867,30 @@ class ItemController extends Controller
 	   }
 	   
 	   
-	   if(!empty($request->input('item_file_link1')))
+	   // Process version links
+	   if(!empty($request->input('version_links'))) {
+	       $versionNames = $request->input('version_names', []);
+	       $versionLinks = $request->input('version_links', []);
+	       
+	       // Build version data array
+	       $versionData = [];
+	       foreach($versionLinks as $index => $url) {
+	           if(!empty($url)) {
+	               $versionData[] = [
+	                   'version' => isset($versionNames[$index]) ? $versionNames[$index] : '',
+	                   'url' => $url
+	               ];
+	           }
+	       }
+	       
+	       // Store as JSON in item_file_link
+	       if(!empty($versionData)) {
+	           $item_file_link = json_encode($versionData);
+	       } else {
+	           $item_file_link = '';
+	       }
+	   }
+	   else if(!empty($request->input('item_file_link1')))
 	   {
 	   $item_file_link = $request->input('item_file_link1');
 	   }
@@ -2391,7 +2450,31 @@ class ItemController extends Controller
 	   {
 		 $file_type = $request->input('file_type2');
 	   }
-	   if(!empty($request->input('item_file_link1')))
+	   
+	   // Process version links
+	   if(!empty($request->input('version_links'))) {
+	       $versionNames = $request->input('version_names', []);
+	       $versionLinks = $request->input('version_links', []);
+	       
+	       // Build version data array
+	       $versionData = [];
+	       foreach($versionLinks as $index => $url) {
+	           if(!empty($url)) {
+	               $versionData[] = [
+	                   'version' => isset($versionNames[$index]) ? $versionNames[$index] : '',
+	                   'url' => $url
+	               ];
+	           }
+	       }
+	       
+	       // Store as JSON in item_file_link
+	       if(!empty($versionData)) {
+	           $item_file_link = json_encode($versionData);
+	       } else {
+	           $item_file_link = '';
+	       }
+	   }
+	   else if(!empty($request->input('item_file_link1')))
 	   {
 	   $item_file_link = $request->input('item_file_link1');
 	   }
@@ -11247,18 +11330,40 @@ class ItemController extends Controller
 					else if($item['data']->file_type == 'serial')
 					{
 					   
-					   $order_details = Items::singleorderData($order_id);
-		               $pdf_filename = $order_details->ord_id.'-'.$order_details->purchase_token.'-'.$item['data']->item_slug.'-serial-key'.'.pdf';
-		  			   $serial_keys = $order_details->item_order_serial_key;
-					   $serial_key = str_replace(",", "\n", $serial_keys);
-		               $data = ['serial_key' => $serial_key];
-                       $pdf = PDF::loadView('serial_view', $data);  
-                       return $pdf->download($pdf_filename);
-					}
-					else
-					{
-					   return redirect($item['data']->item_file_link);
-					}
+				   $order_details = Items::singleorderData($order_id);
+	               $pdf_filename = $order_details->ord_id.'-'.$order_details->purchase_token.'-'.$item['data']->item_slug.'-serial-key'.'.pdf';
+	  			   $serial_keys = $order_details->item_order_serial_key;
+				   $serial_key = str_replace(",", "\n", $serial_keys);
+	               $data = ['serial_key' => $serial_key];
+                   $pdf = PDF::loadView('serial_view', $data);  
+                   return $pdf->download($pdf_filename);
+				}
+			else
+			{
+			   // Get order details to check for purchased version URL
+			   $order_details = Items::singleorderData($order_id);
+			   
+			   // Use purchased version URL if available
+			   if(!empty($order_details->purchased_version_url)) {
+			       return redirect($order_details->purchased_version_url);
+			   } 
+			   // Otherwise, check if item_file_link is JSON (version data) or a direct URL
+			   else {
+			       $file_link = $item['data']->item_file_link;
+			       
+			       // Try to decode as JSON
+			       $decoded = json_decode($file_link, true);
+			       
+			       // If it's valid JSON array with version data, use the first version's URL
+			       if(is_array($decoded) && isset($decoded[0]['url'])) {
+			           return redirect($decoded[0]['url']);
+			       } 
+			       // Otherwise use it directly as a URL
+			       else {
+			           return redirect($file_link);
+			       }
+			   }
+			}
 				}
 				else
 				{
@@ -11854,8 +11959,33 @@ class ItemController extends Controller
 												 {
 												  $item_file_linked = "";
 												 }
-                                                $record .= '<label for="name" class="control-label mb-1">Main File Link/URL <span class="require">*</span></label>
-                                                <input type="text" id="item_file_link2" name="item_file_link2" class="form-control" value="'.$item_file_linked.'" data-bvalidator="required,url">
+                                                $record .= '<label for="name" class="control-label mb-1">
+                                                    Main File Link/URL <span class="require">*</span>
+                                                    <button type="button" id="add-version-link-btn" class="btn btn-primary btn-sm" style="margin-left: 10px; padding: 2px 8px; font-size: 18px;" title="Add another version">
+                                                      ➕
+                                                    </button>
+                                                </label>
+                                                <div id="version-links-container">
+                                                    <div class="version-link-block" style="margin-bottom: 15px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 4px; background-color: #f9f9f9;">
+                                                      <div class="row">
+                                                        <div class="col-sm-5">
+                                                          <div class="form-group">
+                                                            <input type="text" name="version_names[]" class="form-control" placeholder="Version name" style="font-size: 14px;">
+                                                          </div>
+                                                        </div>
+                                                        <div class="col-sm-6">
+                                                          <div class="form-group">
+                                                            <input type="text" name="version_links[]" class="form-control" placeholder="File link / URL" data-bvalidator="required,url" value="'.$item_file_linked.'" style="font-size: 14px;">
+                                                          </div>
+                                                        </div>
+                                                        <div class="col-sm-1" style="text-align: center;">
+                                                          <button type="button" class="btn btn-danger btn-sm remove-version-btn" style="margin-top: 0px; padding: 6px 10px; font-size: 18px;" title="Remove this version">
+                                                            🗑️
+                                                          </button>
+                                                        </div>
+                                                      </div>
+                                                    </div>
+                                                </div>
                                               </div>  
                                             </div></div>';
 								    $record .= '<script>

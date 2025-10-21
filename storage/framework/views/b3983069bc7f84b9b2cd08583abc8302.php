@@ -682,6 +682,8 @@ s0.parentNode.insertBefore(s1,s0);
 </script>
 <?php endif; ?>
 <script src="<?php echo e(asset('admin/dropzone/min/dropzone.min.js')); ?>" type="text/javascript"></script>
+<!-- version links manager -->
+<script src="<?php echo e(asset('theme/js/version-links.js')); ?>" type="text/javascript"></script>
 <!-- google analytics -->
 <?php if($allsettings->google_analytics!= ""): ?>
 <!-- Google Analytics -->

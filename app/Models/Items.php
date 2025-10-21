@@ -64,7 +64,7 @@ class Items extends Model
     $sid = 1;
 	$setting['setting'] = Settings::editGeneral($sid);
 	$site_item_per_page = $setting['setting']->site_item_per_page;
-    $value=DB::table('items')->select('items.item_thumbnail','items.item_name','items.item_featured','items.item_token','items.free_download','items.item_flash_request','items.item_flash','items.item_slug','users.username','items.item_status','items.item_category','items.item_category_parent','items.item_category_type', 'items.subscription_item')->join('users','users.id','items.user_id')->where('items.drop_status','=','no')->where('items.item_name', 'LIKE', "%$search%")->orderBy('items.item_id', 'desc')->paginate($site_item_per_page); 
+    $value=DB::table('items')->select('items.item_thumbnail','items.item_name','items.item_featured','items.item_token','items.free_download','items.item_flash_request','items.item_flash','items.item_slug','users.username','items.item_status','items.item_category','items.item_category_parent','items.item_category_type', 'items.subscription_item','items.item_id','items.file_type')->join('users','users.id','items.user_id')->where('items.drop_status','=','no')->where('items.item_name', 'LIKE', "%$search%")->orderBy('items.item_id', 'desc')->paginate($site_item_per_page); 
     return $value;
 	
   }	
@@ -372,7 +372,7 @@ class Items extends Model
     $sid = 1;
 	$setting['setting'] = Settings::editGeneral($sid);
 	$site_item_per_page = $setting['setting']->site_item_per_page;
-    $value=DB::table('items')->select('items.item_thumbnail','items.item_name','items.item_featured','items.item_token','items.free_download','items.item_flash_request','items.item_flash','items.item_slug','users.username','items.item_status','items.subscription_item','items.item_id')->join('users','users.id','items.user_id')->where('items.drop_status','=','no')->orderBy('items.item_id', 'desc')->paginate($site_item_per_page); 
+    $value=DB::table('items')->select('items.item_thumbnail','items.item_name','items.item_featured','items.item_token','items.free_download','items.item_flash_request','items.item_flash','items.item_slug','users.username','items.item_status','items.subscription_item','items.item_id','items.file_type')->join('users','users.id','items.user_id')->where('items.drop_status','=','no')->orderBy('items.item_id', 'desc')->paginate($site_item_per_page); 
     return $value;
 	
   }	
