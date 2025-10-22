@@ -6345,4 +6345,71 @@ class CommonController extends Controller
 	  
 	}
 	
+	public function getSalesNotifications()
+	{
+		// List of predefined cities for simulation
+		$cities = [
+			'London', 'New York', 'Paris', 'Tokyo', 'Sydney', 'Berlin',
+			'Toronto', 'Dubai', 'Singapore', 'Mumbai', 'Los Angeles',
+			'Chicago', 'Madrid', 'Rome', 'Amsterdam', 'Barcelona',
+			'San Francisco', 'Miami', 'Seattle', 'Boston', 'Austin'
+		];
+		
+		// Try to fetch real recent purchases from the last 30 days
+		$recentPurchases = DB::table('item_order')
+			->join('items', 'items.item_id', '=', 'item_order.item_id')
+			->join('users', 'users.id', '=', 'item_order.user_id')
+			->leftJoin('country', 'country.country_id', '=', 'users.country')
+			->where('item_order.order_status', '=', 'completed')
+			->where('item_order.start_date', '>=', date('Y-m-d', strtotime('-30 days')))
+			->select(
+				'items.item_name',
+				'items.item_slug',
+				'country.country_name',
+				'item_order.start_date'
+			)
+			->orderBy('item_order.ord_id', 'desc')
+			->limit(20)
+			->get();
+		
+		$notifications = [];
+		
+		if ($recentPurchases->count() > 0) {
+			// Use real purchase data
+			foreach ($recentPurchases as $purchase) {
+				$notifications[] = [
+					'product_name' => $purchase->item_name,
+					'product_slug' => $purchase->item_slug,
+					'location' => $purchase->country_name ?: $cities[array_rand($cities)],
+					'time' => $purchase->start_date
+				];
+			}
+		} else {
+			// Generate simulated data if no real purchases
+			$items = DB::table('items')
+				->where('item_status', '=', 1)
+				->where('drop_status', '=', 'no')
+				->select('item_name', 'item_slug')
+				->inRandomOrder()
+				->limit(10)
+				->get();
+			
+			if ($items->count() > 0) {
+				foreach ($items as $item) {
+					$notifications[] = [
+						'product_name' => $item->item_name,
+						'product_slug' => $item->item_slug,
+						'location' => $cities[array_rand($cities)],
+						'time' => date('Y-m-d H:i:s', strtotime('-' . rand(1, 1440) . ' minutes'))
+					];
+				}
+			}
+		}
+		
+		return response()->json([
+			'success' => true,
+			'notifications' => $notifications
+		]);
+	}
+	
 }

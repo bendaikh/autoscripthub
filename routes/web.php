@@ -887,6 +887,8 @@ Route::get('/stripe-subscription','StripeController@stripe_subscription_index');
 Route::get('/subscription-stripe/{order_id}', 'ProfileController@subscription_stripe');
 Route::get('/deposit-stripe-success/{order_id}', 'ItemController@deposit_stripe_success');
 
+// Sales notifications API endpoint (must be BEFORE catch-all route)
+Route::get('/api/sales-notifications', 'CommonController@getSalesNotifications');
 
 Route::get('/{page_slug}', 'PageController@view_page');
 

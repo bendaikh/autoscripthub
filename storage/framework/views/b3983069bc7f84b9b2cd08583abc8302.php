@@ -851,4 +851,6 @@ $(document).ready(function ()
 			});
 		</script>
 <?php endif; ?>        
-<?php endif; ?> <?php /**PATH C:\laragon\www\autoscripthub\resources\views/script.blade.php ENDPATH**/ ?>
+<?php endif; ?> 
+<!-- Sales Popup Notification System -->
+<script src="<?php echo e(asset('js/sales-popup.js')); ?>"></script><?php /**PATH C:\laragon\www\autoscripthub\resources\views/script.blade.php ENDPATH**/ ?>

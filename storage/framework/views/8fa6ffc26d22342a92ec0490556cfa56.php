@@ -46,6 +46,8 @@
 <?php endif; ?>
 <link rel="stylesheet" href="<?php echo e(asset('assets/style.css')); ?>">
 <link rel="stylesheet" href="<?php echo e(asset('theme/stripe/stripe.css')); ?>">
+<!-- Sales Popup Notification System -->
+<link rel="stylesheet" href="<?php echo e(asset('css/sales-popup.css')); ?>">
 <?php if($addition_settings->google_ads == 1): ?>
 <!-- google ads -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9233828084974503"

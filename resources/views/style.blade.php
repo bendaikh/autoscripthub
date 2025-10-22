@@ -46,6 +46,8 @@
 @endif
 <link rel="stylesheet" href="{{ asset('assets/style.css') }}">
 <link rel="stylesheet" href="{{ asset('theme/stripe/stripe.css') }}">
+<!-- Sales Popup Notification System -->
+<link rel="stylesheet" href="{{ asset('css/sales-popup.css') }}">
 @if($addition_settings->google_ads == 1)
 <!-- google ads -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9233828084974503"

@@ -851,3 +851,5 @@ $(document).ready(function ()
 		</script>
 @endif        
 @endif 
+<!-- Sales Popup Notification System -->
+<script src="{{ asset('js/sales-popup.js') }}"></script>

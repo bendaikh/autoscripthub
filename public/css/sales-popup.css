@@ -1,0 +1,228 @@
+/**
+ * Live Sales Popup Notification Styles
+ * Clean, modern design with smooth animations
+ */
+
+/* Container positioning */
+.sales-popup-container {
+    position: fixed;
+    bottom: 20px;
+    z-index: 9999;
+    max-width: 380px;
+    width: calc(100% - 40px);
+    opacity: 0;
+    transform: translateY(100px);
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    pointer-events: none;
+}
+
+/* Left position (default) */
+.sales-popup-container.sales-popup-left {
+    left: 20px;
+}
+
+/* Right position */
+.sales-popup-container.sales-popup-right {
+    right: 20px;
+}
+
+/* Show state */
+.sales-popup-container.sales-popup-show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* Inner popup design */
+.sales-popup-inner {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    border-left: 4px solid #667eea;
+    animation: pulse-border 2s infinite;
+}
+
+/* Subtle border pulse animation */
+@keyframes pulse-border {
+    0%, 100% {
+        border-left-color: #667eea;
+    }
+    50% {
+        border-left-color: #764ba2;
+    }
+}
+
+/* Icon container */
+.sales-popup-icon {
+    font-size: 32px;
+    line-height: 1;
+    flex-shrink: 0;
+    animation: bounce-icon 2s infinite;
+}
+
+@keyframes bounce-icon {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+/* Content area */
+.sales-popup-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.sales-popup-text {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #2d3748;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.sales-popup-text strong {
+    color: #667eea;
+    font-weight: 600;
+}
+
+.sales-popup-time {
+    font-size: 12px;
+    color: #718096;
+    font-weight: 400;
+    display: none; /* Hidden as per user request */
+}
+
+/* Close button */
+.sales-popup-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: transparent;
+    border: none;
+    color: #a0aec0;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: all 0.2s ease;
+    opacity: 0.6;
+}
+
+.sales-popup-close:hover {
+    color: #2d3748;
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.sales-popup-close:focus {
+    outline: none;
+}
+
+/* Dark mode support (optional) */
+@media (prefers-color-scheme: dark) {
+    .sales-popup-inner {
+        background: #2d3748;
+        border-left-color: #667eea;
+    }
+    
+    .sales-popup-text {
+        color: #e2e8f0;
+    }
+    
+    .sales-popup-text strong {
+        color: #a3bffa;
+    }
+    
+    .sales-popup-time {
+        color: #cbd5e0;
+    }
+    
+    .sales-popup-close {
+        color: #cbd5e0;
+    }
+    
+    .sales-popup-close:hover {
+        color: #f7fafc;
+    }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .sales-popup-container {
+        max-width: 100%;
+        width: calc(100% - 20px);
+        bottom: 10px;
+    }
+    
+    .sales-popup-container.sales-popup-left,
+    .sales-popup-container.sales-popup-right {
+        left: 10px;
+        right: 10px;
+    }
+    
+    .sales-popup-inner {
+        padding: 14px 16px;
+        border-radius: 10px;
+    }
+    
+    .sales-popup-icon {
+        font-size: 28px;
+    }
+    
+    .sales-popup-text {
+        font-size: 13px;
+    }
+    
+    .sales-popup-time {
+        font-size: 11px;
+    }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+    .sales-popup-icon {
+        font-size: 24px;
+    }
+    
+    .sales-popup-text {
+        font-size: 12px;
+    }
+}
+
+/* Hover effect on desktop */
+@media (min-width: 769px) {
+    .sales-popup-inner:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 45px rgba(0, 0, 0, 0.2);
+    }
+}
+
+/* Accessibility - reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    .sales-popup-container,
+    .sales-popup-close,
+    .sales-popup-inner {
+        transition: none;
+        animation: none;
+    }
+    
+    .sales-popup-icon {
+        animation: none;
+    }
+}
+
+/* Print - hide popup */
+@media print {
+    .sales-popup-container {
+        display: none !important;
+    }
+}
+
