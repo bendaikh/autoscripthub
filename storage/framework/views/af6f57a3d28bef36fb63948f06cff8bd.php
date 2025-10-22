@@ -50,9 +50,7 @@
             <?php if($addition_settings->members_count == 1): ?>
             <h6 class="pr-3 mr-3"><span class="text-primary"><?php echo e(Helper::member_count()); ?> </span><span class="font-weight-normal text-white"><?php echo e(__('Members')); ?></span></h6>
             <?php endif; ?>
-            <?php if($addition_settings->item_sale_count == 1): ?>
-            <h6 class="pr-3 mr-3"><span class="text-primary"><?php echo e($total_sale); ?> </span><span class="font-weight-normal text-white"><?php echo e(__('Sales')); ?></span></h6>
-            <?php endif; ?>
+            
             <?php if($addition_settings->files_count == 1): ?>
             <h6 class="mr-3"><span class="text-primary"><?php echo e($total_files); ?> </span><span class="font-weight-normal text-white"><?php echo e(__('Files')); ?></span></h6>
             <?php endif; ?> 

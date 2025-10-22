@@ -613,9 +613,9 @@
                 </div>
                 @else
                 <div class="font-size-sm mr-2">
-                @if($addition_settings->item_sale_count == 1)
+                {{-- @if($addition_settings->item_sale_count == 1)
                 <i class="dwg-download text-muted mr-1"></i>{{ $featured->item_sold }}<span class="font-size-xs ml-1">{{ __('Sales') }}</span>
-                @endif
+                @endif --}}
                 </div>
                 @endif
                 <div>
@@ -808,9 +808,9 @@
                 </div>
                 @else
                 <div class="font-size-sm mr-2">
-                @if($addition_settings->item_sale_count == 1)
+                {{-- @if($addition_settings->item_sale_count == 1)
                 <i class="dwg-download text-muted mr-1"></i>{{ $featured->item_sold }}<span class="font-size-xs ml-1">{{ __('Sales') }}</span>
-                @endif
+                @endif --}}
                 </div>
                 @endif
                 <div>
@@ -1007,9 +1007,9 @@
                 </div>
                 @else
                 <div class="font-size-sm mr-2">
-                @if($addition_settings->item_sale_count == 1)
+                {{-- @if($addition_settings->item_sale_count == 1)
                 <i class="dwg-download text-muted mr-1"></i>{{ $featured->item_sold }}<span class="font-size-xs ml-1">{{ __('Sales') }}</span>
-                @endif
+                @endif --}}
                 </div>
                 @endif
                 <div>@if($featured->item_flash == 1)<del class="price-old">{{ Helper::price_format($allsettings->site_currency_position,$featured->extended_price,$currency_symbol,$multicurrency) }}</del>@endif <span class="price-badge rounded-sm py-1 px-2">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency) }}</span></div>
@@ -1201,9 +1201,9 @@
                 </div>
                 @else
                 <div class="font-size-sm mr-2">
-                @if($addition_settings->item_sale_count == 1)
+                {{-- @if($addition_settings->item_sale_count == 1)
                 <i class="dwg-download text-muted mr-1"></i>{{ $featured->item_sold }}<span class="font-size-xs ml-1">{{ __('Sales') }}</span>
-                @endif
+                @endif --}}
                 </div>
                 @endif
                 <div>

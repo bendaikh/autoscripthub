@@ -957,9 +957,9 @@ $extend_item_price = 0;
                 </div></a>
                 <a class="btn btn-outline-accent btn-sm btn-block" href="{{ url('/user') }}/{{ $item['item']->username }}"><i class="dwg-briefcase font-size-sm mr-2"></i>{{ __('View Profile') }}</a>
                 </div>
-                @if($addition_settings->item_sale_count == 1)
+                {{-- @if($addition_settings->item_sale_count == 1)
               <div class="bg-secondary rounded p-3 mt-2 mb-2"><i class="dwg-download h5 text-muted align-middle mb-0 mt-n1 mr-2"></i><span class="d-inline-block h6 mb-0 mr-1">{{ $item['item']->item_sold }}</span><span class="font-size-sm">{{ __('Sales') }}</span></div>
-              @endif
+              @endif --}}
               <div class="bg-secondary rounded p-3 mb-2">
                 <div class="star-rating">
                 @if($getreview == 0)
@@ -1206,9 +1206,9 @@ $extend_item_price = 0;
                 </div>
               <div class="d-flex flex-wrap justify-content-between align-items-center">
                 <div class="font-size-sm mr-2">
-                @if($addition_settings->item_sale_count == 1)
+                {{-- @if($addition_settings->item_sale_count == 1)
                 <i class="dwg-download text-muted mr-1"></i>{{ $featured->item_sold }}<span class="font-size-xs ml-1">{{ __('Sales') }}</span>
-                @endif
+                @endif --}}
                 </div>
                 <div>
                 @if($featured->free_download == 0)

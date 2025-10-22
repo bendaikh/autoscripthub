@@ -162,9 +162,9 @@ $count_rating = Helper::count_rating($featured->ratings);
                 </div>
                 @else
                 <div class="font-size-sm mr-2">
-                @if($addition_settings->item_sale_count == 1)
+                {{-- @if($addition_settings->item_sale_count == 1)
                 <i class="dwg-download text-muted mr-1"></i>{{ $featured->item_sold }}<span class="font-size-xs ml-1">{{ __('Sales') }}</span>
-                @endif
+                @endif --}}
                 </div>
                 @endif
                 <div>

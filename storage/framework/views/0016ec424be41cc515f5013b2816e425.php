@@ -618,9 +618,7 @@
                 </div>
                 <?php else: ?>
                 <div class="font-size-sm mr-2">
-                <?php if($addition_settings->item_sale_count == 1): ?>
-                <i class="dwg-download text-muted mr-1"></i><?php echo e($featured->item_sold); ?><span class="font-size-xs ml-1"><?php echo e(__('Sales')); ?></span>
-                <?php endif; ?>
+                
                 </div>
                 <?php endif; ?>
                 <div>
@@ -814,9 +812,7 @@
                 </div>
                 <?php else: ?>
                 <div class="font-size-sm mr-2">
-                <?php if($addition_settings->item_sale_count == 1): ?>
-                <i class="dwg-download text-muted mr-1"></i><?php echo e($featured->item_sold); ?><span class="font-size-xs ml-1"><?php echo e(__('Sales')); ?></span>
-                <?php endif; ?>
+                
                 </div>
                 <?php endif; ?>
                 <div>
@@ -1015,9 +1011,7 @@
                 </div>
                 <?php else: ?>
                 <div class="font-size-sm mr-2">
-                <?php if($addition_settings->item_sale_count == 1): ?>
-                <i class="dwg-download text-muted mr-1"></i><?php echo e($featured->item_sold); ?><span class="font-size-xs ml-1"><?php echo e(__('Sales')); ?></span>
-                <?php endif; ?>
+                
                 </div>
                 <?php endif; ?>
                 <div><?php if($featured->item_flash == 1): ?><del class="price-old"><?php echo e(Helper::price_format($allsettings->site_currency_position,$featured->extended_price,$currency_symbol,$multicurrency)); ?></del><?php endif; ?> <span class="price-badge rounded-sm py-1 px-2"><?php echo e(Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency)); ?></span></div>
@@ -1211,9 +1205,7 @@
                 </div>
                 <?php else: ?>
                 <div class="font-size-sm mr-2">
-                <?php if($addition_settings->item_sale_count == 1): ?>
-                <i class="dwg-download text-muted mr-1"></i><?php echo e($featured->item_sold); ?><span class="font-size-xs ml-1"><?php echo e(__('Sales')); ?></span>
-                <?php endif; ?>
+                
                 </div>
                 <?php endif; ?>
                 <div>

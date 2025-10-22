@@ -49,9 +49,9 @@
             @if($addition_settings->members_count == 1)
             <h6 class="pr-3 mr-3"><span class="text-primary">{{ Helper::member_count() }} </span><span class="font-weight-normal text-white">{{ __('Members') }}</span></h6>
             @endif
-            @if($addition_settings->item_sale_count == 1)
+            {{-- @if($addition_settings->item_sale_count == 1)
             <h6 class="pr-3 mr-3"><span class="text-primary">{{ $total_sale }} </span><span class="font-weight-normal text-white">{{ __('Sales') }}</span></h6>
-            @endif
+            @endif --}}
             @if($addition_settings->files_count == 1)
             <h6 class="mr-3"><span class="text-primary">{{ $total_files }} </span><span class="font-weight-normal text-white">{{ __('Files') }}</span></h6>
             @endif 

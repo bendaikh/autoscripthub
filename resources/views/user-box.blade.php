@@ -44,12 +44,12 @@
         </div>
         @if($user['user']->user_type == 'vendor')
         <div class="d-flex">
-          @if($addition_settings->item_sale_count == 1)
+          {{-- @if($addition_settings->item_sale_count == 1)
           <div class="text-sm-right mr-5">
             <div class="text-light font-size-base">{{ __('total sales') }}</div>
             <h3 class="text-light">{{ $getsalecount }}</h3>
           </div>
-          @endif
+          @endif --}}
           <div class="text-sm-right">
             <div class="text-light font-size-base">{{ __('Total Ratings') }}</div>
             <div class="star-rating">
