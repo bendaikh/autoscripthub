@@ -9,6 +9,44 @@
 <head>
     
     @include('admin.stylesheet')
+    <style>
+        /* Action buttons styling */
+        .action-buttons-cell .btn {
+            margin: 2px;
+            padding: 6px 10px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .action-buttons-cell .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .action-buttons-cell .btn i {
+            font-size: 14px;
+        }
+        /* Specific button colors with hover effects */
+        .btn-success:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+        .btn-info:hover {
+            background-color: #138496;
+            border-color: #117a8b;
+        }
+        .btn-warning:hover {
+            background-color: #e0a800;
+            border-color: #d39e00;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+        }
+    </style>
 </head>
 
 <body>
@@ -123,19 +161,18 @@
                                             <td><a href="{{ url('/admin') }}/item-comment/{{ $item->item_id }}" class="blue-color">{{ __('Comments') }} [{{ $comments->has($item->item_id) ? count($comments[$item->item_id]) : 0 }}]</a></td>
                                             <td><a href="{{ url('/user') }}/{{ $item->username }}" target="_blank" class="black-color">{{ $item->username }}</a></td>
                                             <td>@if($item->item_status == 1) <span class="badge badge-success">{{ __('Approved') }}</span> @elseif($item->item_status == 2) <span class="badge badge-danger">{{ __('Rejected') }}</span> @else <span class="badge badge-warning">{{ __('UnApproved') }}</span> @endif</td>
-                                            <td>
-                                            <a href="{{ url('/admin') }}/edit-item/{{ $item->item_token }}" class="btn btn-success btn-sm"><i class="fa fa-edit"></i>&nbsp; {{ __('Edit') }}</a> 
+                                            <td class="action-buttons-cell text-center" style="white-space: nowrap;">
+                                            <a href="{{ url('/admin') }}/edit-item/{{ $item->item_token }}" class="btn btn-success btn-sm" title="{{ __('Edit Item') }}" data-toggle="tooltip"><i class="fa fa-edit"></i></a>
                                             @if(isset($item->file_type) && $item->file_type == 'link')
-                                            <button type="button" class="btn btn-info btn-sm manage-versions-btn" data-item-token="{{ $item->item_token }}" data-item-name="{{ $item->item_name }}">
-                                                <i class="fa fa-list"></i>&nbsp;{{ __('Versions') }}
+                                            <button type="button" class="btn btn-warning btn-sm manage-versions-btn" data-item-token="{{ $item->item_token }}" data-item-name="{{ $item->item_name }}" title="{{ __('Manage Versions') }}" data-toggle="tooltip">
+                                                <i class="fa fa-list"></i>
                                             </button>
                                             @endif
+                                            <button type="button" class="btn btn-info btn-sm" onclick="openInstallVideoModal('{{ $item->item_token }}', '{{ addslashes($item->item_name) }}', '{{ $item->installation_video_url ?? '' }}')" title="{{ __('Installation Video') }}" data-toggle="tooltip"><i class="fa fa-youtube-play"></i></button>
                                             @if($demo_mode == 'on') 
-                                            <a href="{{ url('/admin') }}/demo-mode" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i>&nbsp;{{ __('Trash') }}</a>
-                                            <a href="{{ url('/admin') }}/demo-mode" class="btn btn-primary btn-sm"><i class="fa fa-download"></i>&nbsp;{{ __('Download Item') }}</a>
+                                            <a href="{{ url('/admin') }}/demo-mode" class="btn btn-danger btn-sm" title="{{ __('Delete Item') }}" data-toggle="tooltip"><i class="fa fa-trash"></i></a>
                                             @else
-                                            <a href="{{ url('/admin') }}/items/{{ $item->item_token }}" class="btn btn-danger btn-sm" onClick="return confirm('{{ __('Are you sure you want to remove') }}?');"><i class="fa fa-trash"></i>&nbsp;{{ __('Trash') }}</a>
-                                            <a href="{{ url('/admin') }}/download/{{ $item->item_token }}" class="btn btn-primary btn-sm"><i class="fa fa-download"></i>&nbsp;{{ __('Download') }}</a>
+                                            <a href="{{ url('/admin') }}/items/{{ $item->item_token }}" class="btn btn-danger btn-sm" onClick="return confirm('{{ __('Are you sure you want to remove') }}?');" title="{{ __('Delete Item') }}" data-toggle="tooltip"><i class="fa fa-trash"></i></a>
                                             @endif
                                             </td>
                                         </tr>
@@ -161,6 +198,46 @@
     @include('admin.denied')
     @endif
     <!-- Right Panel -->
+
+    <!-- Installation Video Modal -->
+    <div class="modal fade" id="installVideoModal" tabindex="-1" role="dialog" aria-labelledby="installVideoModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="installVideoModalLabel">
+              <i class="fa fa-youtube-play"></i> Add Installation Video
+            </h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <form id="installVideoForm">
+          <div class="modal-body">
+            <input type="hidden" id="install-video-item-token" value="">
+            
+            <div class="form-group">
+              <label for="install-video-item-name"><strong>{{ __('Item Name') }}:</strong></label>
+              <input type="text" class="form-control" id="install-video-item-name" readonly>
+            </div>
+            
+            <div class="form-group">
+              <label for="install-video-url"><strong>{{ __('YouTube Installation Video URL') }}:</strong></label>
+              <input type="text" class="form-control" id="install-video-url" placeholder="https://www.youtube.com/watch?v=...">
+              <small class="form-text text-muted">{{ __('Paste the YouTube URL for the installation/setup tutorial video') }}</small>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+              <i class="fa fa-times"></i> {{ __('Close') }}
+            </button>
+            <button type="submit" class="btn btn-success">
+              <i class="fa fa-save"></i> {{ __('Save') }}
+            </button>
+          </div>
+          </form>
+        </div>
+      </div>
+    </div>
 
     <!-- Version Management Modal -->
     <div class="modal fade" id="versionsModal" tabindex="-1" role="dialog" aria-labelledby="versionsModalLabel" aria-hidden="true">
@@ -222,7 +299,12 @@
             $('input[type="checkbox"]', allPages).prop('checked', true);
         }
         $(this).toggleClass('allChecked');
-    })
+    });
+    
+    // Initialize tooltips for action buttons
+    if (typeof $('[data-toggle="tooltip"]').tooltip === 'function') {
+        $('[data-toggle="tooltip"]').tooltip();
+    }
 });
 
 $(document).ready(function () {
@@ -424,6 +506,89 @@ $(document).ready(function () {
 	    };
 	    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 	}
+
+// Installation Video Modal Functions
+function openInstallVideoModal(itemToken, itemName, currentUrl) {
+    $('#install-video-item-token').val(itemToken);
+    $('#install-video-item-name').val(itemName);
+    $('#install-video-url').val(currentUrl || '');
+    
+    // Multiple ways to open modal for compatibility
+    if (typeof $.fn.modal !== 'undefined') {
+        $('#installVideoModal').modal('show');
+    } else {
+        // Fallback: manually show the modal
+        $('#installVideoModal').addClass('show').css('display', 'block');
+        $('body').addClass('modal-open');
+        // Add backdrop
+        if ($('.modal-backdrop').length === 0) {
+            $('body').append('<div class="modal-backdrop fade show"></div>');
+        }
+    }
+}
+
+// Close modal function
+function closeInstallVideoModal() {
+    if (typeof $.fn.modal !== 'undefined') {
+        $('#installVideoModal').modal('hide');
+    } else {
+        $('#installVideoModal').removeClass('show').css('display', 'none');
+        $('body').removeClass('modal-open');
+        $('.modal-backdrop').remove();
+    }
+}
+
+// Handle Installation Video Form Submission
+$(document).ready(function() {
+    // Close modal when clicking close button
+    $('#installVideoModal').on('click', '[data-dismiss="modal"]', function() {
+        closeInstallVideoModal();
+    });
+    
+    // Close modal when clicking backdrop
+    $(document).on('click', '.modal-backdrop', function() {
+        closeInstallVideoModal();
+    });
+    
+    $('#installVideoForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        var itemToken = $('#install-video-item-token').val();
+        var videoUrl = $('#install-video-url').val();
+        var submitBtn = $(this).find('button[type="submit"]');
+        
+        // Disable submit button
+        submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> {{ __("Saving") }}...');
+        
+        // AJAX request to save
+        $.ajax({
+            url: '{{ url("/admin/save-installation-video") }}',
+            type: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                item_token: itemToken,
+                installation_video_url: videoUrl
+            },
+            success: function(response) {
+                if(response.success) {
+                    alert('{{ __("Installation video URL saved successfully!") }}');
+                    closeInstallVideoModal();
+                    // Reload the page to refresh the data
+                    location.reload();
+                } else {
+                    alert(response.message || '{{ __("Error saving installation video URL") }}');
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('{{ __("Error saving installation video URL") }}: ' + error);
+            },
+            complete: function() {
+                // Re-enable submit button
+                submitBtn.prop('disabled', false).html('<i class="fa fa-save"></i> {{ __("Save") }}');
+            }
+        });
+    });
+});
 
 </script>
 

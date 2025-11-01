@@ -1936,7 +1936,11 @@ class ItemController extends Controller
 	   else
 	   {
 	     $video_url = $request->input('save_video_url');
-	   } 
+	   }
+	   
+	   // Installation video URL
+	   $installation_video_url = $request->input('installation_video_url');
+	    
 	   if(!empty($request->input('video_file1')))
 	   {
 	   $video_file = $request->input('video_file1');
@@ -2016,7 +2020,7 @@ class ItemController extends Controller
 		 $updated_item = date('Y-m-d H:i:s'); 
 		
 		
-		    $data = array('item_name' => $item_name, 'item_desc' => $item_desc, 'item_thumbnail' => $item_thumbnail, 'item_preview' => $item_preview, 'item_file' => $item_file, 'file_type' => $file_type, 'item_file_link' => $item_file_link, 'item_category' =>$cat_id, 'item_category_parent' => $parent_category_id, 'item_category_type' => $cat_name, 'item_type' => $item_type, 'regular_price' => $regular_price, 'extended_price' => $extended_price, 'demo_url' => $demo_url, 'item_tags' => $item_tags, 'item_status' => $item_status, 'item_shortdesc' => $item_shortdesc, 'free_download' => $free_download, 'item_slug' => $item_slug, 'video_url' => $video_url, 'future_update' => $future_update, 'item_support' => $item_support, 'updated_item' => $updated_item, 'item_flash_request' => $item_flash_request, 'video_preview_type' => $video_preview_type, 'video_file' => $video_file, 'item_type_cat_id' => $item_category, 'seller_refund_term' => $seller_refund_term, 'seller_money_back' => $seller_money_back, 'seller_money_back_days' => $seller_money_back_days, 'item_allow_seo' => $item_allow_seo, 'item_seo_keyword' => $item_seo_keyword, 'item_seo_desc' => $item_seo_desc, 'audio_file' => $audio_file, 'item_type_id' => $type_id, 'subscription_item' => $subscription_item, 'item_delimiter' => $item_delimiter, 'item_serials_list' => $item_serials_list, 'item_reviewer' => $item_reviewer);
+		    $data = array('item_name' => $item_name, 'item_desc' => $item_desc, 'item_thumbnail' => $item_thumbnail, 'item_preview' => $item_preview, 'item_file' => $item_file, 'file_type' => $file_type, 'item_file_link' => $item_file_link, 'item_category' =>$cat_id, 'item_category_parent' => $parent_category_id, 'item_category_type' => $cat_name, 'item_type' => $item_type, 'regular_price' => $regular_price, 'extended_price' => $extended_price, 'demo_url' => $demo_url, 'item_tags' => $item_tags, 'item_status' => $item_status, 'item_shortdesc' => $item_shortdesc, 'free_download' => $free_download, 'item_slug' => $item_slug, 'video_url' => $video_url, 'installation_video_url' => $installation_video_url, 'future_update' => $future_update, 'item_support' => $item_support, 'updated_item' => $updated_item, 'item_flash_request' => $item_flash_request, 'video_preview_type' => $video_preview_type, 'video_file' => $video_file, 'item_type_cat_id' => $item_category, 'seller_refund_term' => $seller_refund_term, 'seller_money_back' => $seller_money_back, 'seller_money_back_days' => $seller_money_back_days, 'item_allow_seo' => $item_allow_seo, 'item_seo_keyword' => $item_seo_keyword, 'item_seo_desc' => $item_seo_desc, 'audio_file' => $audio_file, 'item_type_id' => $type_id, 'subscription_item' => $subscription_item, 'item_delimiter' => $item_delimiter, 'item_serials_list' => $item_serials_list, 'item_reviewer' => $item_reviewer);
 			
 		    Items::updateitemData($item_token,$data);
 			
@@ -2514,6 +2518,9 @@ class ItemController extends Controller
 	   {
 	   $video_url = $request->input('video_url2');
 	   }
+	   
+	   // Installation video URL
+	   $installation_video_url = $request->input('installation_video_url');
 	    
 	   if(!empty($request->input('video_file1')))
 	   {
@@ -2621,7 +2628,7 @@ class ItemController extends Controller
 		    
 			  
 			
-		  $data = array('user_id' => $user_id, 'item_token' => $item_token, 'item_name' => $item_name, 'item_desc' => $item_desc, 'item_thumbnail' => $item_thumbnail, 'item_preview' => $item_preview, 'item_file' => $item_file, 'file_type' => $file_type, 'item_file_link' => $item_file_link, 'item_category' =>$cat_id, 'item_category_parent' => $parent_category_id,  'item_category_type' => $cat_name, 'item_type' => $item_type, 'regular_price' => $regular_price, 'extended_price' => $extended_price, 'demo_url' => $demo_url, 'item_tags' => $item_tags, 'item_status' => $item_status, 'item_shortdesc' => $item_shortdesc, 'free_download' => $free_download, 'item_slug' => $item_slug, 'video_url' => $video_url, 'future_update' => $future_update, 'item_support' => $item_support, 'created_item' => $created_item, 'updated_item' => $updated_item, 'item_flash_request' => $item_flash_request, 'video_preview_type' => $video_preview_type, 'video_file' => $video_file, 'item_type_cat_id' => $item_category, 'seller_refund_term' => $seller_refund_term, 'seller_money_back' => $seller_money_back, 'seller_money_back_days' => $seller_money_back_days, 'item_allow_seo' => $item_allow_seo, 'item_seo_keyword' => $item_seo_keyword, 'item_seo_desc' => $item_seo_desc, 'audio_file' => $audio_file, 'item_type_id' => $type_id, 'subscription_item' => $subscription_item, 'item_delimiter' => $item_delimiter, 'item_serials_list' => $item_serials_list, 'item_reviewer' => $item_reviewer);
+		  $data = array('user_id' => $user_id, 'item_token' => $item_token, 'item_name' => $item_name, 'item_desc' => $item_desc, 'item_thumbnail' => $item_thumbnail, 'item_preview' => $item_preview, 'item_file' => $item_file, 'file_type' => $file_type, 'item_file_link' => $item_file_link, 'item_category' =>$cat_id, 'item_category_parent' => $parent_category_id,  'item_category_type' => $cat_name, 'item_type' => $item_type, 'regular_price' => $regular_price, 'extended_price' => $extended_price, 'demo_url' => $demo_url, 'item_tags' => $item_tags, 'item_status' => $item_status, 'item_shortdesc' => $item_shortdesc, 'free_download' => $free_download, 'item_slug' => $item_slug, 'video_url' => $video_url, 'installation_video_url' => $installation_video_url, 'future_update' => $future_update, 'item_support' => $item_support, 'created_item' => $created_item, 'updated_item' => $updated_item, 'item_flash_request' => $item_flash_request, 'video_preview_type' => $video_preview_type, 'video_file' => $video_file, 'item_type_cat_id' => $item_category, 'seller_refund_term' => $seller_refund_term, 'seller_money_back' => $seller_money_back, 'seller_money_back_days' => $seller_money_back_days, 'item_allow_seo' => $item_allow_seo, 'item_seo_keyword' => $item_seo_keyword, 'item_seo_desc' => $item_seo_desc, 'audio_file' => $audio_file, 'item_type_id' => $type_id, 'subscription_item' => $subscription_item, 'item_delimiter' => $item_delimiter, 'item_serials_list' => $item_serials_list, 'item_reviewer' => $item_reviewer);
 			
 			
               

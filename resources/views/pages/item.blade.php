@@ -145,6 +145,9 @@ $extend_item_price = 0;
                   @if($item['item']->demo_url != '') 
                   <a class="btn btn-outline-accent btn-sm" href="{{ url('/preview') }}/{{ $item['item']->item_slug }}" target="_blank"><i class="dwg-eye font-size-sm mr-2"></i>{{ __('Live Preview') }}</a>
                   @endif
+                  @if(!empty($item['item']->installation_video_url))
+                  <a class="btn btn-outline-primary btn-sm" href="{{ $item['item']->installation_video_url }}" target="_blank"><i class="dwg-youtube font-size-sm mr-2"></i>{{ __('Installation Video') }}</a>
+                  @endif
                   @if(Auth::guest())
                   <a class="btn btn-outline-accent btn-sm" href="{{ URL::to('/login') }}"><i class="dwg-heart font-size-lg mr-2"></i>{{ __('Add To Favorites') }}</a>
                   @endif

@@ -50,6 +50,7 @@ class Import extends Model
 			'video_preview_type',
 			'video_file',
 			'video_url',
+			'installation_video_url',
 			'item_tags',
 			'item_liked',
 			'item_views',

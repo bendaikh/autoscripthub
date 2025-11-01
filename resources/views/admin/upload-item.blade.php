@@ -298,6 +298,13 @@
                                                 </select>
                                             </div>  
                                             @endif
+                                            
+                                            <div class="form-group">
+                                                <label for="installation_video_url" class="control-label mb-1">{{ __('Installation Video YouTube URL (Optional)') }}</label>
+                                                <input type="text" id="installation_video_url" name="installation_video_url" class="form-control" placeholder="https://www.youtube.com/watch?v=...">
+                                                <small>({{ __('Add a YouTube video link to help customers install/setup this script') }})</small>
+                                            </div>
+                                            
                                             <div class="form-group">
                                                 <label for="name" class="control-label mb-1">{{ __('Upload Main File Type') }} <span class="require">*</span></label>
                                                <select name="file_type1" id="file_type1" class="form-control" data-bvalidator="required">

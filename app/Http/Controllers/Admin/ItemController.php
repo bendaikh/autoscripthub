@@ -1739,15 +1739,22 @@ class ItemController extends Controller
 				  }
 				 
 				}
-                $button = '<a href="'.url('/').'/admin/edit-item/'.$data->item_token.'" class="btn btn-success btn-sm"><i class="fa fa-edit"></i>&nbsp;'.$this->translation(2923,$translate,'').'</a>';
+                $button = '<div class="action-buttons-cell text-center" style="white-space: nowrap;">';
+				$button .= '<a href="'.url('/').'/admin/edit-item/'.$data->item_token.'" class="btn btn-success btn-sm" title="'.$this->translation(2923,$translate,'Edit').'" data-toggle="tooltip"><i class="fa fa-edit"></i></a> ';
+				
+				// Add Installation Video button
+				$installVideoUrl = isset($data->installation_video_url) ? $data->installation_video_url : '';
+				$button .= '<button type="button" class="btn btn-info btn-sm" onclick="openInstallVideoModal(\''.$data->item_token.'\', \''.addslashes($data->item_name).'\', \''.$installVideoUrl.'\')" title="'.$this->translation('Installation Video',$translate,'Installation Video').'" data-toggle="tooltip"><i class="fa fa-youtube-play"></i></button> ';
+				
 				if($demo_mode == 'on')
 				{
-				  $button .= '&nbsp;<a href="demo-mode" class="btn btn-danger btn-sm"><i class="fa fa-trash"></i>&nbsp;'.$this->translation('614dc152e18b4',$translate,'Trash').'</a>&nbsp;<a href="demo-mode" class="btn btn-primary btn-sm"><i class="fa fa-download"></i>&nbsp;'.$this->translation(3144,$translate,'').'</a>';
+				  $button .= '<a href="demo-mode" class="btn btn-danger btn-sm" title="'.$this->translation('614dc152e18b4',$translate,'Delete').'" data-toggle="tooltip"><i class="fa fa-trash"></i></a>';
 				}
 				else
 				{
-				  $button .= '&nbsp;<a href="'.url('/').'/admin/items/'.$data->item_token.'" class="btn btn-danger btn-sm" onClick="return confirm('.$this->translation('614dc5af68305',$translate,'Are you sure you want to remove?').')"><i class="fa fa-trash"></i>&nbsp;'.$this->translation('614dc152e18b4',$translate,'Trash').'</a>&nbsp;<a href="'.url('/').'/admin/download/'.$data->item_token.'" class="btn btn-primary btn-sm"><i class="fa fa-download"></i>&nbsp;'.$this->translation(3140,$translate,'').'</a>';
+				  $button .= '<a href="'.url('/').'/admin/items/'.$data->item_token.'" class="btn btn-danger btn-sm" onClick="return confirm(\''.$this->translation('614dc5af68305',$translate,'Are you sure you want to remove?').'\')" title="'.$this->translation('614dc152e18b4',$translate,'Delete').'" data-toggle="tooltip"><i class="fa fa-trash"></i></a>';
 				}
+				$button .= '</div>';
 				return $button;
 					
 					
@@ -2949,6 +2956,37 @@ class ItemController extends Controller
 	    ]);
 	}
 	
+	public function saveInstallationVideo(Request $request)
+	{
+	    $item_token = $request->input('item_token');
+	    $installation_video_url = $request->input('installation_video_url');
+	    
+	    if(empty($item_token)) {
+	        return response()->json([
+	            'success' => false,
+	            'message' => 'Item token is required'
+	        ]);
+	    }
+	    
+	    $item = Items::edititemData($item_token);
+	    
+	    if(!$item) {
+	        return response()->json([
+	            'success' => false,
+	            'message' => 'Item not found'
+	        ]);
+	    }
+	    
+	    // Update the installation video URL
+	    $data = array('installation_video_url' => $installation_video_url);
+	    Items::updateitemData($item_token, $data);
+	    
+	    return response()->json([
+	        'success' => true,
+	        'message' => 'Installation video URL saved successfully'
+	    ]);
+	}
+	
 	
 	public function delete_item_request($token)
 	{
@@ -3385,7 +3423,11 @@ class ItemController extends Controller
 	   else
 	   {
 	     $video_url = $request->input('save_video_url');
-	   } 
+	   }
+	   
+	   // Installation video URL
+	   $installation_video_url = $request->input('installation_video_url');
+	    
 	   if(!empty($request->input('video_file1')))
 	   {
 	   $video_file = $request->input('video_file1');
@@ -3484,7 +3526,7 @@ class ItemController extends Controller
 		 $updated_item = date('Y-m-d H:i:s'); 
 		
 		
-		    $data = array('item_name' => $item_name, 'item_desc' => $item_desc, 'item_thumbnail' => $item_thumbnail, 'item_preview' => $item_preview, 'item_file' => $item_file, 'file_type' => $file_type, 'item_file_link' => $item_file_link, 'item_category' =>$cat_id, 'item_category_parent' => $parent_category_id, 'item_category_type' => $cat_name, 'item_type' => $item_type, 'regular_price' => $regular_price, 'extended_price' => $extended_price, 'demo_url' => $demo_url, 'item_tags' => $item_tags, 'item_status' => $item_status, 'item_shortdesc' => $item_shortdesc, 'free_download' => $free_download, 'item_slug' => $item_slug, 'video_url' => $video_url, 'future_update' => $future_update, 'item_support' => $item_support, 'updated_item' => $updated_item, 'item_flash' => $item_flash, 'video_preview_type' => $video_preview_type, 'video_file' => $video_file, 'item_type_cat_id' => $item_category, 'seller_refund_term' => $seller_refund_term, 'seller_money_back' => $seller_money_back, 'seller_money_back_days' => $seller_money_back_days, 'item_allow_seo' => $item_allow_seo, 'item_seo_keyword' => $item_seo_keyword, 'item_seo_desc' => $item_seo_desc, 'audio_file' => $audio_file, 'item_type_id' => $type_id, 'subscription_item' => $subscription_item, 'item_delimiter' => $item_delimiter, 'item_serials_list' => $item_serials_list, 'item_reviewer' => $item_reviewer);
+		    $data = array('item_name' => $item_name, 'item_desc' => $item_desc, 'item_thumbnail' => $item_thumbnail, 'item_preview' => $item_preview, 'item_file' => $item_file, 'file_type' => $file_type, 'item_file_link' => $item_file_link, 'item_category' =>$cat_id, 'item_category_parent' => $parent_category_id, 'item_category_type' => $cat_name, 'item_type' => $item_type, 'regular_price' => $regular_price, 'extended_price' => $extended_price, 'demo_url' => $demo_url, 'item_tags' => $item_tags, 'item_status' => $item_status, 'item_shortdesc' => $item_shortdesc, 'free_download' => $free_download, 'item_slug' => $item_slug, 'video_url' => $video_url, 'installation_video_url' => $installation_video_url, 'future_update' => $future_update, 'item_support' => $item_support, 'updated_item' => $updated_item, 'item_flash' => $item_flash, 'video_preview_type' => $video_preview_type, 'video_file' => $video_file, 'item_type_cat_id' => $item_category, 'seller_refund_term' => $seller_refund_term, 'seller_money_back' => $seller_money_back, 'seller_money_back_days' => $seller_money_back_days, 'item_allow_seo' => $item_allow_seo, 'item_seo_keyword' => $item_seo_keyword, 'item_seo_desc' => $item_seo_desc, 'audio_file' => $audio_file, 'item_type_id' => $type_id, 'subscription_item' => $subscription_item, 'item_delimiter' => $item_delimiter, 'item_serials_list' => $item_serials_list, 'item_reviewer' => $item_reviewer);
 			
 		    Items::updateitemData($item_token,$data);
 			
@@ -3848,6 +3890,9 @@ class ItemController extends Controller
 	   {
 	   $video_url = $request->input('video_url2');
 	   }
+	   
+	   // Installation video URL
+	   $installation_video_url = $request->input('installation_video_url');
 	    
 	   if(!empty($request->input('video_file1')))
 	   {
@@ -3932,7 +3977,7 @@ class ItemController extends Controller
 		    
 		     
 		 
-		    $data = array('user_id' => $user_id, 'item_token' => $item_token, 'item_name' => $item_name, 'item_desc' => $item_desc, 'item_thumbnail' => $item_thumbnail, 'item_preview' => $item_preview, 'item_file' => $item_file, 'file_type' => $file_type, 'item_file_link' => $item_file_link, 'item_category' =>$cat_id, 'item_category_parent' => $parent_category_id, 'item_category_type' => $cat_name, 'item_type' => $item_type, 'regular_price' => $regular_price, 'extended_price' => $extended_price, 'demo_url' => $demo_url, 'item_tags' => $item_tags, 'item_status' => $item_status, 'item_shortdesc' => $item_shortdesc, 'free_download' => $free_download, 'item_slug' => $item_slug, 'video_url' => $video_url, 'future_update' => $future_update, 'item_support' => $item_support, 'created_item' => $created_item, 'updated_item' => $updated_item, 'video_preview_type' => $video_preview_type, 'video_file' => $video_file, 'item_type_cat_id' => $item_category, 'seller_refund_term' => $seller_refund_term, 'seller_money_back' => $seller_money_back, 'seller_money_back_days' => $seller_money_back_days, 'item_allow_seo' => $item_allow_seo, 'item_seo_keyword' => $item_seo_keyword, 'item_seo_desc' => $item_seo_desc, 'audio_file' => $audio_file, 'item_type_id' => $type_id, 'subscription_item' => $subscription_item, 'item_delimiter' => $item_delimiter, 'item_serials_list' => $item_serials_list, 'item_reviewer' => $item_reviewer);
+		    $data = array('user_id' => $user_id, 'item_token' => $item_token, 'item_name' => $item_name, 'item_desc' => $item_desc, 'item_thumbnail' => $item_thumbnail, 'item_preview' => $item_preview, 'item_file' => $item_file, 'file_type' => $file_type, 'item_file_link' => $item_file_link, 'item_category' =>$cat_id, 'item_category_parent' => $parent_category_id, 'item_category_type' => $cat_name, 'item_type' => $item_type, 'regular_price' => $regular_price, 'extended_price' => $extended_price, 'demo_url' => $demo_url, 'item_tags' => $item_tags, 'item_status' => $item_status, 'item_shortdesc' => $item_shortdesc, 'free_download' => $free_download, 'item_slug' => $item_slug, 'video_url' => $video_url, 'installation_video_url' => $installation_video_url, 'future_update' => $future_update, 'item_support' => $item_support, 'created_item' => $created_item, 'updated_item' => $updated_item, 'video_preview_type' => $video_preview_type, 'video_file' => $video_file, 'item_type_cat_id' => $item_category, 'seller_refund_term' => $seller_refund_term, 'seller_money_back' => $seller_money_back, 'seller_money_back_days' => $seller_money_back_days, 'item_allow_seo' => $item_allow_seo, 'item_seo_keyword' => $item_seo_keyword, 'item_seo_desc' => $item_seo_desc, 'audio_file' => $audio_file, 'item_type_id' => $type_id, 'subscription_item' => $subscription_item, 'item_delimiter' => $item_delimiter, 'item_serials_list' => $item_serials_list, 'item_reviewer' => $item_reviewer);
 			
 		    Items::saveitemData($data);
 			

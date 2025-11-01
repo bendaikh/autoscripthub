@@ -243,6 +243,7 @@ Route::group(['middleware' => ['is_admin', 'HtmlMinifier', 'cache', 'XSS']], fun
 	Route::get('/admin/download/{token}', 'Admin\ItemController@file_download');
 	Route::get('/admin/get-item-versions/{token}', 'Admin\ItemController@getItemVersions');
 	Route::post('/admin/save-item-versions', 'Admin\ItemController@saveItemVersions');
+	Route::post('/admin/save-installation-video', 'Admin\ItemController@saveInstallationVideo');
 	
 	Route::get('/admin/trash-items', 'Admin\ItemController@view_trash_items')->middleware('cacheable:5');
 	Route::get('/admin/restore-items/{token}', 'Admin\ItemController@view_restore_items');
