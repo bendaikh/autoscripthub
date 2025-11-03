@@ -429,8 +429,15 @@ Route::group(['middleware' => ['is_admin', 'HtmlMinifier', 'cache', 'XSS']], fun
 	Route::get('/admin/backup/delete/{file_name}', 'Admin\BackupController@delete');
 	Route::post('/admin/backup', ['as' => 'admin.backup','uses'=>'Admin\BackupController@backup']);
 
-
-
+	/* landing pages */
+	Route::get('/admin/landing-pages', 'Admin\LandingPageController@index')->name('admin.landing-pages');
+	Route::get('/admin/add-landing-page', 'Admin\LandingPageController@create')->name('admin.add-landing-page');
+	Route::post('/admin/add-landing-page', 'Admin\LandingPageController@store');
+	Route::get('/admin/edit-landing-page/{lp_id}', 'Admin\LandingPageController@edit')->name('admin.edit-landing-page');
+	Route::post('/admin/edit-landing-page', ['as' => 'admin.update-landing-page','uses'=>'Admin\LandingPageController@update']);
+	Route::get('/admin/landing-pages/{lp_id}', 'Admin\LandingPageController@delete');
+	Route::delete('/admin/landing-page-gallery/{lpg_id}', 'Admin\LandingPageController@deleteGalleryImage');
+	/* landing pages */
 
 });
 
@@ -890,6 +897,13 @@ Route::get('/deposit-stripe-success/{order_id}', 'ItemController@deposit_stripe_
 
 // Sales notifications API endpoint (must be BEFORE catch-all route)
 Route::get('/api/sales-notifications', 'CommonController@getSalesNotifications');
+
+/* landing pages - public routes (must be BEFORE catch-all route) */
+Route::get('/landing/{slug}', 'LandingPagePublicController@show')->name('landing-page.show');
+Route::get('/landing/{slug}/add-to-cart', 'LandingPagePublicController@addToCart')->name('landing-page.add-to-cart');
+Route::get('/landing/{slug}/buy-now', 'LandingPagePublicController@buyNow')->name('landing-page.buy-now');
+Route::post('/landing/{slug}/process-payment', 'LandingPagePublicController@processPayment')->name('landing-page.process-payment');
+/* landing pages */
 
 Route::get('/{page_slug}', 'PageController@view_page');
 

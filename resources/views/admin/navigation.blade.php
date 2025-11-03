@@ -143,6 +143,9 @@
                         <a href="{{ url('/admin/pages') }}"> <i class="menu-icon fa fa-file-text-o"></i>{{ __('Pages') }} </a>
                     </li>
                     @endif
+                    <li>
+                        <a href="{{ url('/admin/landing-pages') }}"> <i class="menu-icon fa fa-rocket"></i>{{ __('Landing Pages') }} </a>
+                    </li>
                     @if(in_array('features',$avilable))
                     @if($allsettings->site_features_display == 1)
                     <li>
