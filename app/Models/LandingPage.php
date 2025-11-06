@@ -24,7 +24,11 @@ class LandingPage extends Model
         'lp_meta_description',
         'lp_meta_keywords',
         'lp_status',
-        'lp_product_id'
+        'lp_product_id',
+        'lp_product_file',
+        'lp_product_file_type',
+        'lp_product_link',
+        'lp_delivery_method'
     ];
 
     /**

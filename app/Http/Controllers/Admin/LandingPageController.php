@@ -47,6 +47,7 @@ class LandingPageController extends Controller
             'lp_description' => 'required',
             'lp_price' => 'required|numeric|min:0',
             'lp_banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'lp_product_file' => 'nullable',
         ]);
 
         if ($validator->fails()) {
@@ -76,6 +77,46 @@ class LandingPageController extends Controller
             }
         }
 
+        // Handle product delivery method
+        $product_file = null;
+        $product_file_type = 'file';
+        $product_link = null;
+        $delivery_method = $request->lp_delivery_method ?? 'upload';
+        
+        if ($delivery_method == 'link') {
+            // Save product link
+            $product_link = $request->lp_product_link;
+        } else {
+            // Handle product file/folder upload
+            if ($request->hasFile('lp_product_file')) {
+                $files = $request->file('lp_product_file');
+                
+                if (is_array($files) && count($files) > 1) {
+                    // Multiple files - folder upload
+                    $product_file_type = 'folder';
+                    $folderName = 'landing_product_' . time();
+                    $folderPath = public_path('storage/landing-products/' . $folderName);
+                    
+                    if (!file_exists($folderPath)) {
+                        mkdir($folderPath, 0755, true);
+                    }
+                    
+                    foreach ($files as $file) {
+                        $fileName = $file->getClientOriginalName();
+                        $file->move($folderPath, $fileName);
+                    }
+                    
+                    $product_file = $folderName;
+                } else {
+                    // Single file upload
+                    $product_file_type = 'file';
+                    $file = is_array($files) ? $files[0] : $files;
+                    $product_file = time() . '_' . $file->getClientOriginalName();
+                    $file->move(public_path('storage/landing-products'), $product_file);
+                }
+            }
+        }
+
         $data = [
             'lp_title' => $request->lp_title,
             'lp_slug' => $slug,
@@ -89,6 +130,10 @@ class LandingPageController extends Controller
             'lp_meta_description' => $request->lp_meta_description,
             'lp_meta_keywords' => $request->lp_meta_keywords,
             'lp_status' => $request->lp_status ?? 1,
+            'lp_product_file' => $product_file,
+            'lp_product_file_type' => $product_file_type,
+            'lp_product_link' => $product_link,
+            'lp_delivery_method' => $delivery_method,
             'created_at' => now(),
             'updated_at' => now(),
         ];
@@ -149,6 +194,7 @@ class LandingPageController extends Controller
             'lp_description' => 'required',
             'lp_price' => 'required|numeric|min:0',
             'lp_banner_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'lp_product_file' => 'nullable',
         ]);
 
         if ($validator->fails()) {
@@ -187,6 +233,82 @@ class LandingPageController extends Controller
             }
         }
 
+        // Handle product delivery method
+        $product_file = $landing_page->lp_product_file;
+        $product_file_type = $landing_page->lp_product_file_type ?? 'file';
+        $product_link = $landing_page->lp_product_link;
+        $delivery_method = $request->lp_delivery_method ?? 'upload';
+        
+        if ($delivery_method == 'link') {
+            // Update product link
+            $product_link = $request->lp_product_link;
+            
+            // Delete old uploaded files if switching from upload to link
+            if ($landing_page->lp_delivery_method == 'upload' && $product_file) {
+                if ($product_file_type == 'folder') {
+                    $folderPath = public_path('storage/landing-products/' . $product_file);
+                    if (file_exists($folderPath)) {
+                        File::deleteDirectory($folderPath);
+                    }
+                } else {
+                    $filePath = public_path('storage/landing-products/' . $product_file);
+                    if (file_exists($filePath)) {
+                        File::delete($filePath);
+                    }
+                }
+                $product_file = null;
+            }
+        } else {
+            // Handle product file/folder upload
+            if ($request->hasFile('lp_product_file')) {
+                // Delete old file/folder
+                if ($product_file) {
+                    if ($product_file_type == 'folder') {
+                        $folderPath = public_path('storage/landing-products/' . $product_file);
+                        if (file_exists($folderPath)) {
+                            File::deleteDirectory($folderPath);
+                        }
+                    } else {
+                        $filePath = public_path('storage/landing-products/' . $product_file);
+                        if (file_exists($filePath)) {
+                            File::delete($filePath);
+                        }
+                    }
+                }
+                
+                $files = $request->file('lp_product_file');
+                
+                if (is_array($files) && count($files) > 1) {
+                    // Multiple files - folder upload
+                    $product_file_type = 'folder';
+                    $folderName = 'landing_product_' . time();
+                    $folderPath = public_path('storage/landing-products/' . $folderName);
+                    
+                    if (!file_exists($folderPath)) {
+                        mkdir($folderPath, 0755, true);
+                    }
+                    
+                    foreach ($files as $file) {
+                        $fileName = $file->getClientOriginalName();
+                        $file->move($folderPath, $fileName);
+                    }
+                    
+                    $product_file = $folderName;
+                } else {
+                    // Single file upload
+                    $product_file_type = 'file';
+                    $file = is_array($files) ? $files[0] : $files;
+                    $product_file = time() . '_' . $file->getClientOriginalName();
+                    $file->move(public_path('storage/landing-products'), $product_file);
+                }
+            }
+            
+            // Clear link if switching from link to upload
+            if ($landing_page->lp_delivery_method == 'link') {
+                $product_link = null;
+            }
+        }
+
         // Generate slug if title changed
         $slug = $landing_page->lp_slug;
         if ($request->lp_title !== $landing_page->lp_title) {
@@ -209,6 +331,10 @@ class LandingPageController extends Controller
             'lp_meta_description' => $request->lp_meta_description,
             'lp_meta_keywords' => $request->lp_meta_keywords,
             'lp_status' => $request->lp_status ?? 1,
+            'lp_product_file' => $product_file,
+            'lp_product_file_type' => $product_file_type,
+            'lp_product_link' => $product_link,
+            'lp_delivery_method' => $delivery_method,
             'updated_at' => now(),
         ];
 

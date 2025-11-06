@@ -437,6 +437,11 @@ Route::group(['middleware' => ['is_admin', 'HtmlMinifier', 'cache', 'XSS']], fun
 	Route::post('/admin/edit-landing-page', ['as' => 'admin.update-landing-page','uses'=>'Admin\LandingPageController@update']);
 	Route::get('/admin/landing-pages/{lp_id}', 'Admin\LandingPageController@delete');
 	Route::delete('/admin/landing-page-gallery/{lpg_id}', 'Admin\LandingPageController@deleteGalleryImage');
+	
+	/* landing page customers */
+	Route::get('/admin/landing-customers', 'Admin\LandingCustomerController@index')->name('admin.landing-customers');
+	Route::get('/admin/landing-customers/delete/{id}', 'Admin\LandingCustomerController@delete')->name('admin.delete-landing-customer');
+	/* landing page customers */
 	/* landing pages */
 
 });
@@ -903,6 +908,8 @@ Route::get('/landing/{slug}', 'LandingPagePublicController@show')->name('landing
 Route::get('/landing/{slug}/add-to-cart', 'LandingPagePublicController@addToCart')->name('landing-page.add-to-cart');
 Route::get('/landing/{slug}/buy-now', 'LandingPagePublicController@buyNow')->name('landing-page.buy-now');
 Route::post('/landing/{slug}/process-payment', 'LandingPagePublicController@processPayment')->name('landing-page.process-payment');
+Route::get('/landing/success/{order_token}', 'LandingPagePublicController@success')->name('landing-page.success');
+Route::get('/landing/download/{order_token}', 'LandingPagePublicController@download')->name('landing-page.download');
 /* landing pages */
 
 Route::get('/{page_slug}', 'PageController@view_page');

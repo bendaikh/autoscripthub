@@ -114,6 +114,45 @@
                                                 <input type="file" name="gallery_images[]" class="form-control" accept="image/*" multiple>
                                                 <small class="form-text text-muted">You can select multiple images for the gallery</small>
                                             </div>
+
+                                            <!-- Product Delivery Method -->
+                                            <div class="form-group">
+                                                <label>{{ __('Product Delivery Method') }} <span class="text-danger">*</span></label>
+                                                <div class="mt-2">
+                                                    <div class="custom-control custom-radio">
+                                                        <input type="radio" class="custom-control-input" id="delivery_upload" name="lp_delivery_method" value="upload" checked>
+                                                        <label class="custom-control-label" for="delivery_upload">
+                                                            <i class="fa fa-upload"></i> {{ __('Upload File/Folder') }}
+                                                        </label>
+                                                    </div>
+                                                    <div class="custom-control custom-radio mt-2">
+                                                        <input type="radio" class="custom-control-input" id="delivery_link" name="lp_delivery_method" value="link">
+                                                        <label class="custom-control-label" for="delivery_link">
+                                                            <i class="fa fa-link"></i> {{ __('Provide Download Link') }}
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Product File/Folder Upload -->
+                                            <div class="form-group" id="upload_section">
+                                                <label>{{ __('Product File/Folder') }} <span class="text-danger">*</span></label>
+                                                <input type="file" name="lp_product_file" class="form-control" id="product_file" webkitdirectory directory multiple>
+                                                <small class="form-text text-muted">{{ __('Upload the file or folder that will be delivered to customers after purchase') }}</small>
+                                                <div class="custom-control custom-checkbox mt-2">
+                                                    <input type="checkbox" class="custom-control-input" id="is_single_file" name="is_single_file">
+                                                    <label class="custom-control-label" for="is_single_file">
+                                                        {{ __('Single File Upload (uncheck for folder)') }}
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            <!-- Product Link -->
+                                            <div class="form-group" id="link_section" style="display: none;">
+                                                <label>{{ __('Product Download Link') }} <span class="text-danger">*</span></label>
+                                                <input type="url" name="lp_product_link" class="form-control" id="product_link" placeholder="https://example.com/file.zip">
+                                                <small class="form-text text-muted">{{ __('Provide a direct download link (e.g., Google Drive, Dropbox, etc.)') }}</small>
+                                            </div>
                                         </div>
 
                                         <div class="col-md-4">
@@ -230,6 +269,40 @@
                 alert('{{ __("At least one feature field is required") }}');
             }
         }
+
+        // Toggle between file and folder upload
+        $(document).ready(function() {
+            // Toggle between upload and link
+            $('input[name="lp_delivery_method"]').change(function() {
+                if ($(this).val() === 'upload') {
+                    $('#upload_section').show();
+                    $('#link_section').hide();
+                    $('#product_file').prop('required', true);
+                    $('#product_link').prop('required', false);
+                } else {
+                    $('#upload_section').hide();
+                    $('#link_section').show();
+                    $('#product_file').prop('required', false);
+                    $('#product_link').prop('required', true);
+                }
+            });
+
+            // Toggle between single file and folder
+            $('#is_single_file').change(function() {
+                const fileInput = $('#product_file');
+                if ($(this).is(':checked')) {
+                    // Single file mode
+                    fileInput.removeAttr('webkitdirectory directory multiple');
+                } else {
+                    // Folder mode
+                    fileInput.attr({
+                        'webkitdirectory': '',
+                        'directory': '',
+                        'multiple': ''
+                    });
+                }
+            });
+        });
     </script>
 </body>
 

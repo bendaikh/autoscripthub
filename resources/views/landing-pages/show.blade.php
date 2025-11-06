@@ -388,12 +388,7 @@
                     @endif
                 </a>
                 <div>
-                    @if(Auth::check())
-                        <a href="{{ url('/') }}" class="btn btn-sm btn-outline-primary">Dashboard</a>
-                    @else
-                        <a href="{{ url('/login') }}" class="btn btn-sm btn-outline-primary mr-2">Login</a>
-                        <a href="{{ url('/register') }}" class="btn btn-sm btn-primary">Sign Up</a>
-                    @endif
+                    <!-- No login/register buttons for landing pages -->
                 </div>
             </div>
         </div>
@@ -564,13 +559,19 @@
                         </div>
                     </div>
 
-                    @if(!Auth::check())
-                    <div class="alert alert-info" style="border-radius: 10px;">
-                        <i class="fas fa-info-circle mr-2"></i> Please <a href="{{ url('/login') }}">login</a> or <a href="{{ url('/register') }}">register</a> to continue with payment.
-                    </div>
-                    @else
                     <form id="paymentForm" action="{{ url('/landing/' . $landing_page->lp_slug . '/process-payment') }}" method="POST">
                         @csrf
+                        
+                        <!-- Email Field (Mandatory) -->
+                        <div class="form-group">
+                            <label for="customer_email" style="font-weight: 600; color: #2d3748;">
+                                <i class="fas fa-envelope mr-2"></i>Email Address <span style="color: red;">*</span>
+                            </label>
+                            <input type="email" name="customer_email" id="customer_email" class="form-control" 
+                                   placeholder="Enter your email address" required
+                                   style="padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem;">
+                            <small style="color: #718096;">We'll send your purchase details to this email</small>
+                        </div>
                         
                         <!-- PayPal Option -->
                         <div class="payment-option" onclick="selectPayment('paypal')" style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 15px; cursor: pointer; transition: all 0.3s;">
@@ -602,7 +603,6 @@
                             <i class="fas fa-lock mr-2"></i> Proceed to Payment
                         </button>
                     </form>
-                    @endif
 
                     <div class="text-center mt-3" style="color: #718096; font-size: 0.85rem;">
                         <i class="fas fa-shield-alt mr-1"></i> Secure payment • <i class="fas fa-lock mr-1"></i> SSL encrypted
@@ -619,11 +619,7 @@
     <!-- Payment Modal Scripts -->
     <script>
         function showPaymentModal() {
-            @if(!Auth::check())
-                window.location.href = '{{ url("/login") }}';
-            @else
-                $('#paymentModal').modal('show');
-            @endif
+            $('#paymentModal').modal('show');
         }
 
         function selectPayment(method) {
@@ -642,12 +638,29 @@
             // Check the radio button
             $('input[value="' + method + '"]').prop('checked', true);
             
-            // Enable submit button
-            $('#paymentBtn').prop('disabled', false);
+            // Enable submit button if email is filled
+            checkFormValidity();
+        }
+        
+        // Check form validity
+        function checkFormValidity() {
+            const email = $('#customer_email').val();
+            const paymentMethod = $('input[name="payment_method"]:checked').val();
+            
+            if (email && email.includes('@') && paymentMethod) {
+                $('#paymentBtn').prop('disabled', false);
+            } else {
+                $('#paymentBtn').prop('disabled', true);
+            }
         }
 
         // Hover effects
         $(document).ready(function() {
+            // Validate email input
+            $('#customer_email').on('input', function() {
+                checkFormValidity();
+            });
+            
             $('.payment-option').hover(
                 function() {
                     if (!$(this).find('input').is(':checked')) {

@@ -168,6 +168,56 @@
                                                 <input type="file" name="gallery_images[]" class="form-control mt-2" accept="image/*" multiple>
                                                 <small class="form-text text-muted">{{ __('Add new images to the gallery') }}</small>
                                             </div>
+
+                                            <!-- Product Delivery Method -->
+                                            <div class="form-group">
+                                                <label>{{ __('Product Delivery Method') }} <span class="text-danger">*</span></label>
+                                                <div class="mt-2">
+                                                    <div class="custom-control custom-radio">
+                                                        <input type="radio" class="custom-control-input" id="delivery_upload" name="lp_delivery_method" value="upload" {{ ($landing_page->lp_delivery_method ?? 'upload') == 'upload' ? 'checked' : '' }}>
+                                                        <label class="custom-control-label" for="delivery_upload">
+                                                            <i class="fa fa-upload"></i> {{ __('Upload File/Folder') }}
+                                                        </label>
+                                                    </div>
+                                                    <div class="custom-control custom-radio mt-2">
+                                                        <input type="radio" class="custom-control-input" id="delivery_link" name="lp_delivery_method" value="link" {{ ($landing_page->lp_delivery_method ?? 'upload') == 'link' ? 'checked' : '' }}>
+                                                        <label class="custom-control-label" for="delivery_link">
+                                                            <i class="fa fa-link"></i> {{ __('Provide Download Link') }}
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Product File/Folder Upload -->
+                                            <div class="form-group" id="upload_section" style="display: {{ ($landing_page->lp_delivery_method ?? 'upload') == 'upload' ? 'block' : 'none' }};">
+                                                <label>{{ __('Product File/Folder') }}</label>
+                                                @if($landing_page->lp_product_file && ($landing_page->lp_delivery_method ?? 'upload') == 'upload')
+                                                <div class="alert alert-success">
+                                                    <i class="fa fa-file"></i> {{ __('Current File:') }} <strong>{{ $landing_page->lp_product_file }}</strong>
+                                                    <br><small>{{ __('Type:') }} {{ ucfirst($landing_page->lp_product_file_type ?? 'file') }}</small>
+                                                </div>
+                                                @endif
+                                                <input type="file" name="lp_product_file" class="form-control" id="product_file" webkitdirectory directory multiple>
+                                                <small class="form-text text-muted">{{ __('Upload new file/folder to replace current one (leave empty to keep current)') }}</small>
+                                                <div class="custom-control custom-checkbox mt-2">
+                                                    <input type="checkbox" class="custom-control-input" id="is_single_file" name="is_single_file">
+                                                    <label class="custom-control-label" for="is_single_file">
+                                                        {{ __('Single File Upload (uncheck for folder)') }}
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            <!-- Product Link -->
+                                            <div class="form-group" id="link_section" style="display: {{ ($landing_page->lp_delivery_method ?? 'upload') == 'link' ? 'block' : 'none' }};">
+                                                <label>{{ __('Product Download Link') }} <span class="text-danger">*</span></label>
+                                                @if($landing_page->lp_product_link && ($landing_page->lp_delivery_method ?? 'upload') == 'link')
+                                                <div class="alert alert-success">
+                                                    <i class="fa fa-link"></i> {{ __('Current Link:') }} <a href="{{ $landing_page->lp_product_link }}" target="_blank">{{ $landing_page->lp_product_link }}</a>
+                                                </div>
+                                                @endif
+                                                <input type="url" name="lp_product_link" class="form-control" id="product_link" placeholder="https://example.com/file.zip" value="{{ old('lp_product_link', $landing_page->lp_product_link) }}">
+                                                <small class="form-text text-muted">{{ __('Provide a direct download link (e.g., Google Drive, Dropbox, etc.)') }}</small>
+                                            </div>
                                         </div>
 
                                         <div class="col-md-4">
@@ -317,6 +367,38 @@
                 alert('{{ __("Failed to delete image") }}');
             });
         }
+
+        // Toggle between file and folder upload
+        $(document).ready(function() {
+            // Toggle between upload and link
+            $('input[name="lp_delivery_method"]').change(function() {
+                if ($(this).val() === 'upload') {
+                    $('#upload_section').show();
+                    $('#link_section').hide();
+                    $('#product_link').prop('required', false);
+                } else {
+                    $('#upload_section').hide();
+                    $('#link_section').show();
+                    $('#product_link').prop('required', true);
+                }
+            });
+
+            // Toggle between single file and folder
+            $('#is_single_file').change(function() {
+                const fileInput = $('#product_file');
+                if ($(this).is(':checked')) {
+                    // Single file mode
+                    fileInput.removeAttr('webkitdirectory directory multiple');
+                } else {
+                    // Folder mode
+                    fileInput.attr({
+                        'webkitdirectory': '',
+                        'directory': '',
+                        'multiple': ''
+                    });
+                }
+            });
+        });
     </script>
 </body>
 

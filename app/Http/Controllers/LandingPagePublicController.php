@@ -4,6 +4,7 @@ namespace Fickrr\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Fickrr\Models\LandingPage;
+use Fickrr\Models\LandingCustomer;
 use Fickrr\Models\Settings;
 use Fickrr\Models\Items;
 use Auth;
@@ -169,53 +170,47 @@ class LandingPagePublicController extends Controller
             return redirect()->back();
         }
 
-        // Check if user is logged in
-        if (!Auth::check()) {
-            Session::flash('error', 'Please login to purchase');
-            return redirect('/login');
-        }
+        // Validate email
+        $request->validate([
+            'customer_email' => 'required|email',
+            'payment_method' => 'required|in:paypal,dodopayments',
+        ]);
 
         $payment_method = $request->payment_method;
+        $customer_email = $request->customer_email;
         
-        if (!$payment_method) {
-            Session::flash('error', 'Please select a payment method');
-            return redirect()->back();
-        }
-
-        $session_id = Session::getId();
-        $user_id = Auth::user()->id;
-
-        // Clear any existing pending orders
-        \DB::table('item_order')
-            ->where('session_id', $session_id)
-            ->where('order_status', 'pending')
-            ->delete();
-
         // Generate unique order token
         $order_token = 'LP-' . time() . '-' . rand(1000, 9999);
 
-        // Add to cart
+        // Create order record
         $order_data = [
-            'session_id' => $session_id,
-            'item_id' => 0,
-            'item_name' => $landing_page->lp_title,
-            'item_user_id' => 1,
-            'item_token' => 'lp-' . $landing_page->lp_slug,
-            'license' => 'regular',
-            'start_date' => now(),
-            'end_date' => now()->addYear(),
-            'item_price' => $landing_page->lp_price,
-            'vendor_amount' => 0,
-            'admin_amount' => $landing_page->lp_price,
-            'total_price' => $landing_page->lp_price,
-            'order_status' => 'pending',
-            'item_serial_stock' => 1,
-            'currency_type' => $landing_page->lp_currency,
-            'currency_type_code' => $landing_page->lp_currency,
-            'item_single_price' => $landing_page->lp_price,
+            'lp_id' => $landing_page->lp_id,
+            'customer_email' => $customer_email,
+            'order_token' => $order_token,
+            'amount' => $landing_page->lp_price,
+            'currency' => $landing_page->lp_currency,
+            'payment_method' => $payment_method,
+            'payment_status' => 'pending',
+            'created_at' => now(),
+            'updated_at' => now(),
         ];
 
-        \DB::table('item_order')->insert($order_data);
+        \DB::table('landing_page_orders')->insert($order_data);
+
+        // Save customer to database immediately (don't wait for payment completion)
+        LandingCustomer::firstOrCreate(
+            ['email' => $customer_email],
+            [
+                'total_purchases' => 0,
+                'total_spent' => 0,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
+
+        // Store email in session for later use
+        Session::put('landing_order_email', $customer_email);
+        Session::put('landing_order_token', $order_token);
 
         // Process based on payment method
         if ($payment_method == 'paypal') {
@@ -245,8 +240,8 @@ class LandingPagePublicController extends Controller
             $paypal_url = "https://www.sandbox.paypal.com/cgi-bin/webscr";
         }
         
-        $success_url = url('/success/' . $order_token);
-        $cancel_url = url('/cancel');
+        $success_url = url('/landing/success/' . $order_token);
+        $cancel_url = url('/landing/' . $landing_page->lp_slug);
         
         $paypal_params = [
             'cmd' => '_xclick',
@@ -325,8 +320,8 @@ class LandingPagePublicController extends Controller
                 'success_url' => $success_url,
                 'cancel_url' => url('/cancel'),
                 'customer' => [
-                    'email' => Auth::user()->email,
-                    'name' => Auth::user()->name ?? Auth::user()->username,
+                    'email' => Session::get('landing_order_email'),
+                    'name' => Session::get('landing_order_email'),
                 ],
                 'metadata' => [
                     'order_token' => $order_token,
@@ -350,6 +345,149 @@ class LandingPagePublicController extends Controller
         } catch (\Exception $e) {
             Session::flash('error', 'Payment error: ' . $e->getMessage());
             return redirect()->back();
+        }
+    }
+
+    /**
+     * Show success page after payment
+     */
+    public function success($order_token)
+    {
+        // Get order details
+        $order = \DB::table('landing_page_orders')
+            ->where('order_token', $order_token)
+            ->first();
+
+        if (!$order) {
+            Session::flash('error', 'Order not found');
+            return redirect('/');
+        }
+
+        // Update order status to completed if still pending
+        if ($order->payment_status == 'pending') {
+            \DB::table('landing_page_orders')
+                ->where('order_token', $order_token)
+                ->update([
+                    'payment_status' => 'completed',
+                    'completed_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                
+            // Refresh order data
+            $order = \DB::table('landing_page_orders')
+                ->where('order_token', $order_token)
+                ->first();
+        }
+        
+        // Update customer purchase stats (works whether order was just completed or already completed)
+        if ($order->payment_status == 'completed') {
+            LandingCustomer::createOrUpdateCustomer($order->customer_email, $order->amount);
+        }
+
+        // Get landing page details
+        $landing_page = LandingPage::getById($order->lp_id);
+        
+        if (!$landing_page) {
+            Session::flash('error', 'Product not found');
+            return redirect('/');
+        }
+
+        // Get settings
+        $sid = 1;
+        $data['setting'] = Settings::editGeneral($sid);
+        $data['order'] = $order;
+        $data['landing_page'] = $landing_page;
+
+        return view('landing-pages.success', $data);
+    }
+
+    /**
+     * Download product file
+     */
+    public function download($order_token)
+    {
+        // Get order details
+        $order = \DB::table('landing_page_orders')
+            ->where('order_token', $order_token)
+            ->where('payment_status', 'completed')
+            ->first();
+
+        if (!$order) {
+            Session::flash('error', 'Order not found or not completed');
+            return redirect('/');
+        }
+
+        // Get landing page details
+        $landing_page = LandingPage::getById($order->lp_id);
+        
+        if (!$landing_page) {
+            Session::flash('error', 'Product not found');
+            return redirect()->back();
+        }
+
+        // Handle link delivery method
+        if ($landing_page->lp_delivery_method == 'link') {
+            if (!$landing_page->lp_product_link) {
+                Session::flash('error', 'Product link not found');
+                return redirect()->back();
+            }
+            
+            // Redirect to the download link
+            return redirect($landing_page->lp_product_link);
+        }
+
+        // Handle file/folder upload delivery method
+        if (!$landing_page->lp_product_file) {
+            Session::flash('error', 'Product file not found');
+            return redirect()->back();
+        }
+
+        if ($landing_page->lp_product_file_type == 'folder') {
+            // Create ZIP of folder
+            $folderPath = public_path('storage/landing-products/' . $landing_page->lp_product_file);
+            
+            if (!file_exists($folderPath)) {
+                Session::flash('error', 'Product files not found');
+                return redirect()->back();
+            }
+
+            $zipFileName = $landing_page->lp_product_file . '.zip';
+            $zipFilePath = public_path('storage/landing-products/' . $zipFileName);
+
+            // Create zip archive
+            $zip = new \ZipArchive();
+            if ($zip->open($zipFilePath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === TRUE) {
+                $files = new \RecursiveIteratorIterator(
+                    new \RecursiveDirectoryIterator($folderPath),
+                    \RecursiveIteratorIterator::LEAVES_ONLY
+                );
+
+                foreach ($files as $file) {
+                    if (!$file->isDir()) {
+                        $filePath = $file->getRealPath();
+                        $relativePath = substr($filePath, strlen($folderPath) + 1);
+                        $zip->addFile($filePath, $relativePath);
+                    }
+                }
+
+                $zip->close();
+
+                // Download and then delete the zip
+                return response()->download($zipFilePath)->deleteFileAfterSend(true);
+            } else {
+                Session::flash('error', 'Could not create download archive');
+                return redirect()->back();
+            }
+        } else {
+            // Single file download
+            $filePath = public_path('storage/landing-products/' . $landing_page->lp_product_file);
+            
+            if (!file_exists($filePath)) {
+                Session::flash('error', 'Product file not found');
+                return redirect()->back();
+            }
+
+            return response()->download($filePath);
         }
     }
 }
