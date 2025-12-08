@@ -442,6 +442,22 @@ Route::group(['middleware' => ['is_admin', 'HtmlMinifier', 'cache', 'XSS']], fun
 	Route::get('/admin/landing-customers', 'Admin\LandingCustomerController@index')->name('admin.landing-customers');
 	Route::get('/admin/landing-customers/delete/{id}', 'Admin\LandingCustomerController@delete')->name('admin.delete-landing-customer');
 	/* landing page customers */
+
+	/* email marketing */
+	Route::get('/admin/email-marketing/templates', 'Admin\EmailMarketingController@templates')->name('admin.email-marketing.templates');
+	Route::get('/admin/email-marketing/templates/create', 'Admin\EmailMarketingController@createTemplate')->name('admin.email-marketing.create-template');
+	Route::post('/admin/email-marketing/templates/store', 'Admin\EmailMarketingController@storeTemplate')->name('admin.email-marketing.store-template');
+	Route::get('/admin/email-marketing/templates/edit/{id}', 'Admin\EmailMarketingController@editTemplate')->name('admin.email-marketing.edit-template');
+	Route::post('/admin/email-marketing/templates/update/{id}', 'Admin\EmailMarketingController@updateTemplate')->name('admin.email-marketing.update-template');
+	Route::get('/admin/email-marketing/templates/delete/{id}', 'Admin\EmailMarketingController@deleteTemplate')->name('admin.email-marketing.delete-template');
+	
+	Route::get('/admin/email-marketing/campaigns', 'Admin\EmailMarketingController@campaigns')->name('admin.email-marketing.campaigns');
+	Route::get('/admin/email-marketing/campaigns/create', 'Admin\EmailMarketingController@createCampaign')->name('admin.email-marketing.create-campaign');
+	Route::post('/admin/email-marketing/campaigns/store', 'Admin\EmailMarketingController@storeCampaign')->name('admin.email-marketing.store-campaign');
+	Route::get('/admin/email-marketing/campaigns/view/{id}', 'Admin\EmailMarketingController@viewCampaign')->name('admin.email-marketing.view-campaign');
+	Route::get('/admin/email-marketing/campaigns/delete/{id}', 'Admin\EmailMarketingController@deleteCampaign')->name('admin.email-marketing.delete-campaign');
+	/* email marketing */
+
 	/* landing pages */
 
 });

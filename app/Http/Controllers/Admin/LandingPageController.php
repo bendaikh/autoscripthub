@@ -143,20 +143,26 @@ class LandingPageController extends Controller
         // Get the last inserted ID
         $landing_page_id = \DB::getPdo()->lastInsertId();
 
-        // Handle gallery images
+        // Handle gallery images with descriptions
         if ($request->hasFile('gallery_images')) {
             $order = 0;
-            foreach ($request->file('gallery_images') as $gallery_image) {
-                $gallery_filename = time() . '_' . rand(1000, 9999) . '_' . $gallery_image->getClientOriginalName();
-                $gallery_image->move(public_path('storage/landing-pages'), $gallery_filename);
-                
-                LandingPage::saveGalleryImage([
-                    'lp_id' => $landing_page_id,
-                    'lpg_image' => $gallery_filename,
-                    'lpg_order' => $order++,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
+            $descriptions = $request->input('gallery_descriptions', []);
+            $gallery_images = $request->file('gallery_images');
+            
+            foreach ($gallery_images as $index => $gallery_image) {
+                if ($gallery_image && $gallery_image->isValid()) {
+                    $gallery_filename = time() . '_' . rand(1000, 9999) . '_' . $gallery_image->getClientOriginalName();
+                    $gallery_image->move(public_path('storage/landing-pages'), $gallery_filename);
+                    
+                    LandingPage::saveGalleryImage([
+                        'lp_id' => $landing_page_id,
+                        'lpg_image' => $gallery_filename,
+                        'lpg_description' => $descriptions[$index] ?? null,
+                        'lpg_order' => $order++,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
             }
         }
 
@@ -340,22 +346,39 @@ class LandingPageController extends Controller
 
         LandingPage::updateLandingPage($request->lp_id, $data);
 
-        // Handle new gallery images
+        // Update existing gallery image descriptions
+        if ($request->has('existing_gallery_descriptions')) {
+            foreach ($request->input('existing_gallery_descriptions') as $lpg_id => $description) {
+                \DB::table('landing_page_gallery')
+                    ->where('lpg_id', $lpg_id)
+                    ->update([
+                        'lpg_description' => $description,
+                        'updated_at' => now()
+                    ]);
+            }
+        }
+
+        // Handle new gallery images with descriptions
         if ($request->hasFile('gallery_images')) {
             $existing_images = LandingPage::getGalleryImages($request->lp_id);
             $order = count($existing_images);
+            $descriptions = $request->input('gallery_descriptions', []);
+            $gallery_images = $request->file('gallery_images');
             
-            foreach ($request->file('gallery_images') as $gallery_image) {
-                $gallery_filename = time() . '_' . rand(1000, 9999) . '_' . $gallery_image->getClientOriginalName();
-                $gallery_image->move(public_path('storage/landing-pages'), $gallery_filename);
-                
-                LandingPage::saveGalleryImage([
-                    'lp_id' => $request->lp_id,
-                    'lpg_image' => $gallery_filename,
-                    'lpg_order' => $order++,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
+            foreach ($gallery_images as $index => $gallery_image) {
+                if ($gallery_image && $gallery_image->isValid()) {
+                    $gallery_filename = time() . '_' . rand(1000, 9999) . '_' . $gallery_image->getClientOriginalName();
+                    $gallery_image->move(public_path('storage/landing-pages'), $gallery_filename);
+                    
+                    LandingPage::saveGalleryImage([
+                        'lp_id' => $request->lp_id,
+                        'lpg_image' => $gallery_filename,
+                        'lpg_description' => $descriptions[$index] ?? null,
+                        'lpg_order' => $order++,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
             }
         }
 

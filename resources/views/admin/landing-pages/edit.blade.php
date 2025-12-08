@@ -147,26 +147,59 @@
                                                 <small class="form-text text-muted">{{ __('Leave empty to keep current image') }}</small>
                                             </div>
 
-                                            <!-- Gallery Images -->
+                                            <!-- Gallery Images with Descriptions -->
                                             <div class="form-group">
                                                 <label>{{ __('Gallery Images') }}</label>
                                                 
                                                 @if(count($gallery_images) > 0)
-                                                <div class="gallery-preview">
+                                                <div class="gallery-preview mb-3">
                                                     <p><strong>{{ __('Current Gallery:') }}</strong></p>
                                                     @foreach($gallery_images as $image)
-                                                    <div class="gallery-image" id="gallery-{{ $image->lpg_id }}">
-                                                        <img src="{{ asset('storage/landing-pages/' . $image->lpg_image) }}" alt="Gallery">
-                                                        <button type="button" class="btn btn-danger btn-sm btn-delete" onclick="deleteGalleryImage({{ $image->lpg_id }})">
-                                                            <i class="fa fa-trash"></i>
-                                                        </button>
+                                                    <div class="gallery-image-card mb-3 p-3" id="gallery-{{ $image->lpg_id }}" style="border: 1px solid #e0e0e0; border-radius: 5px; background: #fafafa;">
+                                                        <div class="row align-items-center">
+                                                            <div class="col-md-3">
+                                                                <img src="{{ asset('storage/landing-pages/' . $image->lpg_image) }}" alt="Gallery" style="width: 100%; height: 100px; object-fit: cover; border-radius: 5px;">
+                                                            </div>
+                                                            <div class="col-md-7">
+                                                                <label>{{ __('Description') }}</label>
+                                                                <textarea name="existing_gallery_descriptions[{{ $image->lpg_id }}]" class="form-control" rows="2" placeholder="Enter image description...">{{ $image->lpg_description ?? '' }}</textarea>
+                                                            </div>
+                                                            <div class="col-md-2 text-right">
+                                                                <button type="button" class="btn btn-danger btn-sm" onclick="deleteGalleryImage({{ $image->lpg_id }})">
+                                                                    <i class="fa fa-trash"></i> {{ __('Delete') }}
+                                                                </button>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                     @endforeach
                                                 </div>
                                                 @endif
 
-                                                <input type="file" name="gallery_images[]" class="form-control mt-2" accept="image/*" multiple>
-                                                <small class="form-text text-muted">{{ __('Add new images to the gallery') }}</small>
+                                                <hr>
+                                                <p><strong>{{ __('Add New Images:') }}</strong></p>
+                                                <div id="gallery-container">
+                                                    <div class="gallery-item-input mb-3 p-3" style="border: 1px solid #e0e0e0; border-radius: 5px; background: #fafafa;">
+                                                        <div class="row">
+                                                            <div class="col-md-5">
+                                                                <label>{{ __('Image') }}</label>
+                                                                <input type="file" name="gallery_images[]" class="form-control" accept="image/*">
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label>{{ __('Description') }}</label>
+                                                                <textarea name="gallery_descriptions[]" class="form-control" rows="2" placeholder="Enter image description..."></textarea>
+                                                            </div>
+                                                            <div class="col-md-1 d-flex align-items-end">
+                                                                <button type="button" class="btn btn-danger btn-sm" onclick="removeGalleryInput(this)">
+                                                                    <i class="fa fa-times"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-primary mt-2" onclick="addGalleryInput()">
+                                                    <i class="fa fa-plus"></i> {{ __('Add Image') }}
+                                                </button>
+                                                <small class="form-text text-muted d-block mt-2">Each image can have its own description shown on the landing page</small>
                                             </div>
 
                                             <!-- Product Delivery Method -->
@@ -366,6 +399,45 @@
                 console.error('Error:', error);
                 alert('{{ __("Failed to delete image") }}');
             });
+        }
+
+        function addGalleryInput() {
+            const container = document.getElementById('gallery-container');
+            const newItem = document.createElement('div');
+            newItem.className = 'gallery-item-input mb-3 p-3';
+            newItem.style.border = '1px solid #e0e0e0';
+            newItem.style.borderRadius = '5px';
+            newItem.style.background = '#fafafa';
+            newItem.innerHTML = `
+                <div class="row">
+                    <div class="col-md-5">
+                        <label>{{ __('Image') }}</label>
+                        <input type="file" name="gallery_images[]" class="form-control" accept="image/*">
+                    </div>
+                    <div class="col-md-6">
+                        <label>{{ __('Description') }}</label>
+                        <textarea name="gallery_descriptions[]" class="form-control" rows="2" placeholder="Enter image description..."></textarea>
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeGalleryInput(this)">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(newItem);
+        }
+
+        function removeGalleryInput(button) {
+            const container = document.getElementById('gallery-container');
+            if (container.children.length > 1) {
+                button.closest('.gallery-item-input').remove();
+            } else {
+                // Clear the inputs instead of removing
+                const item = button.closest('.gallery-item-input');
+                item.querySelector('input[type="file"]').value = '';
+                item.querySelector('textarea').value = '';
+            }
         }
 
         // Toggle between file and folder upload

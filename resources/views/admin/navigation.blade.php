@@ -149,6 +149,15 @@
                     <li>
                         <a href="{{ url('/admin/landing-customers') }}"> <i class="menu-icon fa fa-users"></i>{{ __('Landing Customers') }} </a>
                     </li>
+                    <li class="menu-item-has-children dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> 
+                            <i class="menu-icon fa fa-envelope"></i>{{ __('Email Marketing') }}
+                        </a>
+                        <ul class="sub-menu children dropdown-menu">
+                            <li><i class="fa fa-file-text"></i><a href="{{ url('/admin/email-marketing/templates') }}">{{ __('Templates') }}</a></li>
+                            <li><i class="fa fa-paper-plane"></i><a href="{{ url('/admin/email-marketing/campaigns') }}">{{ __('Campaigns') }}</a></li>
+                        </ul>
+                    </li>
                     @if(in_array('features',$avilable))
                     @if($allsettings->site_features_display == 1)
                     <li>

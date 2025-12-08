@@ -263,9 +263,9 @@
         
         .gallery-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-top: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
         }
         
         .gallery-item {
@@ -273,7 +273,7 @@
             overflow: hidden;
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
-            cursor: pointer;
+            background: white;
         }
         
         .gallery-item:hover {
@@ -283,9 +283,112 @@
         
         .gallery-item img {
             width: 100%;
-            height: 250px;
+            height: 280px;
             object-fit: cover;
             display: block;
+        }
+        
+        .gallery-item-content {
+            padding: 20px;
+        }
+        
+        .gallery-item-description {
+            color: #4a5568;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+        
+        /* Trust/Security Section */
+        .trust-section {
+            padding: 60px 0;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .trust-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+        
+        .trust-item {
+            text-align: center;
+            padding: 30px 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .trust-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .trust-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 1.8rem;
+        }
+        
+        .trust-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        
+        .trust-description {
+            color: #718096;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin: 0;
+        }
+        
+        .payment-icons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .payment-icons img {
+            height: 30px;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+        
+        .payment-icons img:hover {
+            opacity: 1;
+        }
+        
+        .payment-icons i {
+            font-size: 2rem;
+            color: #718096;
+            transition: color 0.3s;
+        }
+        
+        .payment-icons i:hover {
+            color: #667eea;
+        }
+        
+        @media (max-width: 768px) {
+            .gallery-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .trust-grid {
+                grid-template-columns: 1fr;
+            }
         }
         
         /* CTA Section */
@@ -496,13 +599,15 @@
     @if(count($gallery_images) > 0)
     <section class="gallery-section">
         <div class="container">
-            <h2 class="section-title">Gallery</h2>
-            <p class="section-subtitle">See it in action</p>
-            
             <div class="gallery-grid">
                 @foreach($gallery_images as $image)
                 <div class="gallery-item">
-                    <img src="{{ asset('storage/landing-pages/' . $image->lpg_image) }}" alt="Gallery Image">
+                    <img src="{{ asset('storage/landing-pages/' . $image->lpg_image) }}" alt="{{ $image->lpg_description ?? 'Product Image' }}">
+                    @if(!empty($image->lpg_description))
+                    <div class="gallery-item-content">
+                        <p class="gallery-item-description">{{ $image->lpg_description }}</p>
+                    </div>
+                    @endif
                 </div>
                 @endforeach
             </div>
@@ -522,6 +627,55 @@
             <button type="button" class="btn-primary-custom" onclick="showPaymentModal()">
                 <i class="fas fa-shopping-cart mr-2"></i> Purchase Now
             </button>
+        </div>
+    </section>
+
+    <!-- Trust & Security Section -->
+    <section class="trust-section">
+        <div class="container">
+            <div class="trust-grid">
+                <!-- Secure Payments -->
+                <div class="trust-item">
+                    <div class="trust-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="trust-title">Secure Payments</h3>
+                    <p class="trust-description">Your payment information is protected with industry-standard SSL encryption. All transactions are 100% secure.</p>
+                    <div class="payment-icons">
+                        <i class="fab fa-cc-visa"></i>
+                        <i class="fab fa-cc-mastercard"></i>
+                        <i class="fab fa-cc-amex"></i>
+                        <i class="fab fa-paypal"></i>
+                    </div>
+                </div>
+                
+                <!-- PayPal Protection -->
+                <div class="trust-item">
+                    <div class="trust-icon">
+                        <i class="fab fa-paypal"></i>
+                    </div>
+                    <h3 class="trust-title">PayPal Protected</h3>
+                    <p class="trust-description">Pay safely with PayPal's Buyer Protection. Your purchase is protected and you can shop with confidence.</p>
+                </div>
+                
+                <!-- Money Back Guarantee -->
+                <div class="trust-item">
+                    <div class="trust-icon">
+                        <i class="fas fa-undo-alt"></i>
+                    </div>
+                    <h3 class="trust-title">Refund Policy</h3>
+                    <p class="trust-description">Not satisfied? We offer hassle-free refunds. Your satisfaction is our priority and we stand behind our products.</p>
+                </div>
+                
+                <!-- Customer Support -->
+                <div class="trust-item">
+                    <div class="trust-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h3 class="trust-title">Premium Support</h3>
+                    <p class="trust-description">Get help when you need it. Our dedicated support team is here to assist you with any questions or concerns.</p>
+                </div>
+            </div>
         </div>
     </section>
 
