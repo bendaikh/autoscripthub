@@ -49,15 +49,6 @@ class LandingPagePublicController extends Controller
         // Convert price
         $data['price_data'] = Helper::convertPriceToLocalCurrency($usdPrice, $detectedCountry);
         
-        // Debug info (remove in production if needed)
-        $data['debug_info'] = [
-            'ip' => $visitorIp,
-            'country' => $detectedCountry,
-            'currency_code' => $data['price_data']['currency'],
-            'original_usd' => $usdPrice,
-            'converted_price' => $data['price_data']['price']
-        ];
-        
         // Also convert extended price if exists
         if ($data['landing_page']->lp_extended_price && $data['landing_page']->lp_extended_price > 0) {
             $data['extended_price_data'] = Helper::convertPriceToLocalCurrency($data['landing_page']->lp_extended_price, $detectedCountry);

@@ -674,23 +674,6 @@
                         @endif
                     </div>
                     
-                    {{-- Debug info (remove this in production) --}}
-                    @if(isset($debug_info) && config('app.debug'))
-                    <div style="font-size: 0.8rem; color: #999; margin-top: 10px; padding: 10px; background: #f5f5f5; border-radius: 5px;">
-                        <strong>Debug Info:</strong><br>
-                        IP: {{ $debug_info['ip'] }}<br>
-                        Country: {{ $debug_info['country'] }}<br>
-                        Currency: {{ $debug_info['currency_code'] }}<br>
-                        USD Price: {{ $debug_info['original_usd'] }}<br>
-                        Converted Price: {{ $debug_info['converted_price'] }}<br>
-                        @if($debug_info['ip'] === '127.0.0.1' || $debug_info['ip'] === '::1')
-                        <br><strong style="color: #e74c3c;">⚠️ Localhost Detected!</strong><br>
-                        To test with Morocco, add <code>?force_country=MA</code> to the URL<br>
-                        Example: <code>{{ url()->current() }}?force_country=MA</code>
-                        @endif
-                    </div>
-                    @endif
-                    
                     <div class="hero-actions">
                         <button type="button" class="btn-primary-custom" onclick="showPaymentModal()">
                             <i class="fas fa-shopping-cart mr-2"></i> Buy Now
