@@ -15,6 +15,7 @@ class LandingPage extends Model
         'lp_title',
         'lp_slug',
         'lp_description',
+        'lp_what_you_get',
         'lp_banner_image',
         'lp_features',
         'lp_price',

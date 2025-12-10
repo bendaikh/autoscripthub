@@ -29,6 +29,15 @@
                 <div class="page-header float-right">
                     <div class="page-title">
                         <ol class="breadcrumb text-right">
+                            <a href="{{ route('admin.landing-page-messages') }}" class="btn btn-info btn-sm mr-2">
+                                <i class="fa fa-comments"></i> {{ __('View Messages') }}
+                                @php
+                                    $unread_count = \Fickrr\Models\LandingPageMessage::getUnreadCount();
+                                @endphp
+                                @if($unread_count > 0)
+                                <span class="badge badge-danger">{{ $unread_count }}</span>
+                                @endif
+                            </a>
                             <a href="{{ route('admin.add-landing-page') }}" class="btn btn-success btn-sm">
                                 <i class="fa fa-plus"></i> {{ __('Add Landing Page') }}
                             </a>

@@ -283,9 +283,13 @@
         
         .gallery-item img {
             width: 100%;
-            height: 280px;
-            object-fit: cover;
+            height: auto;
+            min-height: 280px;
+            max-height: 600px;
+            object-fit: contain;
+            object-position: center;
             display: block;
+            background: #f8f9fa;
         }
         
         .gallery-item-content {
@@ -476,6 +480,138 @@
             padding: 15px 20px;
             margin-bottom: 20px;
         }
+
+        /* Chat Icon */
+        .chat-icon {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.8rem;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+        }
+
+        .chat-icon:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6);
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            }
+            50% {
+                box-shadow: 0 5px 30px rgba(102, 126, 234, 0.7);
+            }
+            100% {
+                box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            }
+        }
+
+        .chat-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        /* Chat Modal */
+        .chat-modal-content {
+            border-radius: 15px;
+            border: none;
+            overflow: hidden;
+        }
+
+        .chat-modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px 30px;
+        }
+
+        .chat-modal-body {
+            padding: 30px;
+        }
+
+        .chat-form-group {
+            margin-bottom: 20px;
+        }
+
+        .chat-form-group label {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .chat-form-group input,
+        .chat-form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .chat-form-group input:focus,
+        .chat-form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .chat-submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .chat-submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .chat-submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+            .chat-icon {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -595,6 +731,21 @@
         </div>
     </section>
 
+    <!-- What You'll Get Section -->
+    @if(!empty($landing_page->lp_what_you_get))
+    <section class="what-you-get-section" style="padding: 80px 0; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+        <div class="container">
+            <h2 class="section-title">What You'll Get After Payment</h2>
+            <p class="section-subtitle">Here's exactly what you'll receive when you complete your purchase</p>
+            <div class="what-you-get-content" style="max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);">
+                <div class="description-content">
+                    {!! $landing_page->lp_what_you_get !!}
+                </div>
+            </div>
+        </div>
+    </section>
+    @endif
+
     <!-- Gallery Section -->
     @if(count($gallery_images) > 0)
     <section class="gallery-section">
@@ -692,6 +843,62 @@
             </p>
         </div>
     </footer>
+
+    <!-- Chat Icon -->
+    <div class="chat-icon" onclick="showChatModal()" title="Send us a message">
+        <i class="fas fa-comments"></i>
+    </div>
+
+    <!-- Chat Modal -->
+    <div class="modal fade" id="chatModal" tabindex="-1" role="dialog" aria-labelledby="chatModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content chat-modal-content">
+                <div class="modal-header chat-modal-header">
+                    <h5 class="modal-title" id="chatModalLabel">
+                        <i class="fas fa-comments mr-2"></i> Send us a Message
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body chat-modal-body">
+                    <form id="chatForm" action="{{ url('/landing/' . $landing_page->lp_slug . '/send-message') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="lp_id" value="{{ $landing_page->lp_id }}">
+                        
+                        <div class="chat-form-group">
+                            <label for="lpm_name">Your Name <span style="color: red;">*</span></label>
+                            <input type="text" name="lpm_name" id="lpm_name" class="form-control" required placeholder="Enter your name">
+                        </div>
+
+                        <div class="chat-form-group">
+                            <label for="lpm_email">Your Email <span style="color: red;">*</span></label>
+                            <input type="email" name="lpm_email" id="lpm_email" class="form-control" required placeholder="Enter your email">
+                        </div>
+
+                        <div class="chat-form-group">
+                            <label for="lpm_phone">Phone Number (Optional)</label>
+                            <input type="text" name="lpm_phone" id="lpm_phone" class="form-control" placeholder="Enter your phone number">
+                        </div>
+
+                        <div class="chat-form-group">
+                            <label for="lpm_subject">Subject (Optional)</label>
+                            <input type="text" name="lpm_subject" id="lpm_subject" class="form-control" placeholder="Enter subject">
+                        </div>
+
+                        <div class="chat-form-group">
+                            <label for="lpm_message">Message <span style="color: red;">*</span></label>
+                            <textarea name="lpm_message" id="lpm_message" class="form-control" rows="5" required placeholder="Enter your message..."></textarea>
+                        </div>
+
+                        <button type="submit" class="chat-submit-btn" id="chatSubmitBtn">
+                            <i class="fas fa-paper-plane mr-2"></i> Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Payment Modal -->
     <div class="modal fade" id="paymentModal" tabindex="-1" role="dialog" aria-labelledby="paymentModalLabel" aria-hidden="true">
@@ -847,6 +1054,70 @@
         setTimeout(function() {
             $('.alert').fadeOut('slow');
         }, 5000);
+
+        // Chat Modal Functions
+        function showChatModal() {
+            $('#chatModal').modal('show');
+        }
+
+        // Handle chat form submission
+        $('#chatForm').on('submit', function(e) {
+            e.preventDefault();
+            
+            const submitBtn = $('#chatSubmitBtn');
+            const originalText = submitBtn.html();
+            
+            // Disable button and show loading
+            submitBtn.prop('disabled', true);
+            submitBtn.html('<i class="fas fa-spinner fa-spin mr-2"></i> Sending...');
+            
+            // Submit form via AJAX
+            $.ajax({
+                url: $(this).attr('action'),
+                method: 'POST',
+                data: $(this).serialize(),
+                success: function(response) {
+                    if (response.success) {
+                        // Show success message
+                        $('#chatModal').modal('hide');
+                        $('body').append('<div class="alert alert-success" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;"><i class="fas fa-check-circle mr-2"></i> ' + response.message + '</div>');
+                        
+                        // Reset form
+                        $('#chatForm')[0].reset();
+                        
+                        // Hide alert after 5 seconds
+                        setTimeout(function() {
+                            $('.alert-success').fadeOut('slow', function() {
+                                $(this).remove();
+                            });
+                        }, 5000);
+                    } else {
+                        alert(response.message || 'An error occurred. Please try again.');
+                        submitBtn.prop('disabled', false);
+                        submitBtn.html(originalText);
+                    }
+                },
+                error: function(xhr) {
+                    let errorMessage = 'An error occurred. Please try again.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                        const errors = Object.values(xhr.responseJSON.errors).flat();
+                        errorMessage = errors.join('\n');
+                    }
+                    alert(errorMessage);
+                    submitBtn.prop('disabled', false);
+                    submitBtn.html(originalText);
+                }
+            });
+        });
+
+        // Reset form when modal is closed
+        $('#chatModal').on('hidden.bs.modal', function() {
+            $('#chatForm')[0].reset();
+            $('#chatSubmitBtn').prop('disabled', false);
+            $('#chatSubmitBtn').html('<i class="fas fa-paper-plane mr-2"></i> Send Message');
+        });
     </script>
 </body>
 </html>

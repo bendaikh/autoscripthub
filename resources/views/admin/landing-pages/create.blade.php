@@ -79,6 +79,16 @@
                                                 @endif
                                             </div>
 
+                                            <!-- What You'll Get After Payment -->
+                                            <div class="form-group">
+                                                <label>{{ __('What You\'ll Get After Payment') }}</label>
+                                                <textarea name="lp_what_you_get" id="what_you_get" class="form-control summernote" rows="6" placeholder="Describe what clients will receive after completing payment (e.g., download link, access credentials, product files, etc.)">{{ old('lp_what_you_get') }}</textarea>
+                                                <small class="form-text text-muted">{{ __('This content will be displayed on the landing page to inform customers about what they will receive after payment. You can use HTML formatting.') }}</small>
+                                                @if ($errors->has('lp_what_you_get'))
+                                                <span class="text-danger">{{ $errors->first('lp_what_you_get') }}</span>
+                                                @endif
+                                            </div>
+
                                             <!-- Features Section -->
                                             <div class="form-group">
                                                 <label>{{ __('Key Features') }}</label>

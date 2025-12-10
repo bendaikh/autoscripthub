@@ -5,6 +5,7 @@ namespace Fickrr\Http\Controllers\Admin;
 use Illuminate\Http\Request;
 use Fickrr\Http\Controllers\Controller;
 use Fickrr\Models\LandingPage;
+use Fickrr\Models\LandingPageMessage;
 use Fickrr\Models\Settings;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\File;
@@ -121,6 +122,7 @@ class LandingPageController extends Controller
             'lp_title' => $request->lp_title,
             'lp_slug' => $slug,
             'lp_description' => $request->lp_description,
+            'lp_what_you_get' => $request->lp_what_you_get,
             'lp_banner_image' => $banner_image,
             'lp_features' => json_encode($features),
             'lp_price' => $request->lp_price,
@@ -328,6 +330,7 @@ class LandingPageController extends Controller
             'lp_title' => $request->lp_title,
             'lp_slug' => $slug,
             'lp_description' => $request->lp_description,
+            'lp_what_you_get' => $request->lp_what_you_get,
             'lp_banner_image' => $banner_image,
             'lp_features' => json_encode($features),
             'lp_price' => $request->lp_price,
@@ -432,6 +435,69 @@ class LandingPageController extends Controller
         }
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Display all landing page messages
+     */
+    public function messages()
+    {
+        $data['messages'] = LandingPageMessage::getAllMessages();
+        $data['unread_count'] = LandingPageMessage::getUnreadCount();
+        $sid = 1;
+        $data['setting'] = Settings::editGeneral($sid);
+        
+        return view('admin.landing-pages.messages', $data);
+    }
+
+    /**
+     * Mark message as read
+     */
+    public function markAsRead($lpm_id)
+    {
+        LandingPageMessage::updateStatus($lpm_id, 1);
+        Session::flash('success', 'Message marked as read');
+        return redirect()->back();
+    }
+
+    /**
+     * Mark message as replied
+     */
+    public function markAsReplied($lpm_id)
+    {
+        LandingPageMessage::updateStatus($lpm_id, 2);
+        Session::flash('success', 'Message marked as replied');
+        return redirect()->back();
+    }
+
+    /**
+     * Delete message
+     */
+    public function deleteMessage($lpm_id)
+    {
+        LandingPageMessage::deleteMessage($lpm_id);
+        Session::flash('success', 'Message deleted successfully');
+        return redirect()->back();
+    }
+
+    /**
+     * Delete multiple messages
+     */
+    public function deleteMultipleMessages(Request $request)
+    {
+        $message_ids = $request->input('message_ids', []);
+        
+        if (empty($message_ids)) {
+            Session::flash('error', 'Please select at least one message');
+            return redirect()->back();
+        }
+
+        foreach ($message_ids as $lpm_id) {
+            LandingPageMessage::deleteMessage($lpm_id);
+        }
+
+        Session::flash('success', 'Messages deleted successfully');
+        return redirect()->back();
     }
 }
 

@@ -438,6 +438,14 @@ Route::group(['middleware' => ['is_admin', 'HtmlMinifier', 'cache', 'XSS']], fun
 	Route::get('/admin/landing-pages/{lp_id}', 'Admin\LandingPageController@delete');
 	Route::delete('/admin/landing-page-gallery/{lpg_id}', 'Admin\LandingPageController@deleteGalleryImage');
 	
+	/* landing page messages */
+	Route::get('/admin/landing-page-messages', 'Admin\LandingPageController@messages')->name('admin.landing-page-messages');
+	Route::get('/admin/landing-page-messages/mark-read/{lpm_id}', 'Admin\LandingPageController@markAsRead')->name('admin.landing-page-messages.mark-read');
+	Route::get('/admin/landing-page-messages/mark-replied/{lpm_id}', 'Admin\LandingPageController@markAsReplied')->name('admin.landing-page-messages.mark-replied');
+	Route::get('/admin/landing-page-messages/delete/{lpm_id}', 'Admin\LandingPageController@deleteMessage')->name('admin.landing-page-messages.delete');
+	Route::post('/admin/landing-page-messages/delete-multiple', 'Admin\LandingPageController@deleteMultipleMessages')->name('admin.landing-page-messages.delete-multiple');
+	/* landing page messages */
+	
 	/* landing page customers */
 	Route::get('/admin/landing-customers', 'Admin\LandingCustomerController@index')->name('admin.landing-customers');
 	Route::get('/admin/landing-customers/delete/{id}', 'Admin\LandingCustomerController@delete')->name('admin.delete-landing-customer');
@@ -924,6 +932,7 @@ Route::get('/landing/{slug}', 'LandingPagePublicController@show')->name('landing
 Route::get('/landing/{slug}/add-to-cart', 'LandingPagePublicController@addToCart')->name('landing-page.add-to-cart');
 Route::get('/landing/{slug}/buy-now', 'LandingPagePublicController@buyNow')->name('landing-page.buy-now');
 Route::post('/landing/{slug}/process-payment', 'LandingPagePublicController@processPayment')->name('landing-page.process-payment');
+Route::post('/landing/{slug}/send-message', 'LandingPagePublicController@sendMessage')->name('landing-page.send-message');
 Route::get('/landing/success/{order_token}', 'LandingPagePublicController@success')->name('landing-page.success');
 Route::get('/landing/download/{order_token}', 'LandingPagePublicController@download')->name('landing-page.download');
 /* landing pages */

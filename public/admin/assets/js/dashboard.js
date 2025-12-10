@@ -36,6 +36,7 @@ function random (min, max) {
     //Traffic Chart
     var ctx = document.getElementById( "trafficChart" );
     //ctx.height = 200;
+    if (ctx) {
     var myChart = new Chart( ctx, {
         type: 'line',
         data: {
@@ -120,6 +121,7 @@ function random (min, max) {
 
         }
     } );
+    } // end if (ctx)
 
 
 } )( jQuery );

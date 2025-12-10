@@ -5,11 +5,13 @@ namespace Fickrr\Http\Controllers;
 use Illuminate\Http\Request;
 use Fickrr\Models\LandingPage;
 use Fickrr\Models\LandingCustomer;
+use Fickrr\Models\LandingPageMessage;
 use Fickrr\Models\Settings;
 use Fickrr\Models\Items;
 use Auth;
 use Session;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Validator;
 
 class LandingPagePublicController extends Controller
 {
@@ -489,6 +491,59 @@ class LandingPagePublicController extends Controller
 
             return response()->download($filePath);
         }
+    }
+
+    /**
+     * Send message from landing page
+     */
+    public function sendMessage(Request $request, $slug)
+    {
+        $landing_page = LandingPage::getBySlug($slug);
+        
+        if (!$landing_page) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Landing page not found'
+            ], 404);
+        }
+
+        // Validate request
+        $validator = Validator::make($request->all(), [
+            'lp_id' => 'required|exists:landing_pages,lp_id',
+            'lpm_name' => 'required|string|max:255',
+            'lpm_email' => 'required|email|max:255',
+            'lpm_phone' => 'nullable|string|max:50',
+            'lpm_subject' => 'nullable|string|max:255',
+            'lpm_message' => 'required|string|max:5000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Save message
+        $message_data = [
+            'lp_id' => $request->lp_id,
+            'lpm_name' => $request->lpm_name,
+            'lpm_email' => $request->lpm_email,
+            'lpm_phone' => $request->lpm_phone,
+            'lpm_subject' => $request->lpm_subject,
+            'lpm_message' => $request->lpm_message,
+            'lpm_status' => 0, // Unread
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+
+        LandingPageMessage::saveMessage($message_data);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Your message has been sent successfully! We will get back to you soon.'
+        ]);
     }
 }
 

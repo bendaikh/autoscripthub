@@ -17,6 +17,7 @@
 
     //WidgetChart 1
     var ctx = document.getElementById( "widgetChart1" );
+    if (ctx) {
     ctx.height = 150;
     var myChart = new Chart( ctx, {
         type: 'line',
@@ -70,10 +71,12 @@
             }
         }
     } );
+    }
 
 
     //WidgetChart 2
     var ctx = document.getElementById( "widgetChart2" );
+    if (ctx) {
     ctx.height = 150;
     var myChart = new Chart( ctx, {
         type: 'line',
@@ -128,11 +131,13 @@
             }
         }
     } );
+    }
 
 
 
     //WidgetChart 3
     var ctx = document.getElementById( "widgetChart3" );
+    if (ctx) {
     ctx.height = 70;
     var myChart = new Chart( ctx, {
         type: 'line',
@@ -186,10 +191,12 @@
             }
         }
     } );
+    }
 
 
     //WidgetChart 4
     var ctx = document.getElementById( "widgetChart4" );
+    if (ctx) {
     ctx.height = 70;
     var myChart = new Chart( ctx, {
         type: 'bar',
@@ -222,6 +229,7 @@
             }
         }
     } );
+    }
 
 
 
