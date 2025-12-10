@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Storage;
 use Aws\S3\Exception\S3Exception;
 use Aws\S3\S3Client;
 use Illuminate\Support\Facades\Log;
+use GuzzleHttp\Client as GuzzleClient;
 
 class Helper {
 
@@ -715,6 +716,240 @@ class Helper {
 		
 		 return $img_url;
 		 
+	}
+	
+	/**
+	 * Get visitor country code from IP address
+	 * Uses free IP geolocation API
+	 */
+	public static function getVisitorCountry($ip = null)
+	{
+		// If no IP provided, try to get from request
+		if ($ip === null) {
+			$ip = request()->ip();
+		}
+		
+		// Check if country is forced via query parameter (for testing) - check this FIRST
+		if (request()->has('force_country')) {
+			$forcedCountry = strtoupper(trim(request()->get('force_country')));
+			if (strlen($forcedCountry) == 2 && ctype_alpha($forcedCountry)) {
+				$sessionKey = 'visitor_country_' . md5($ip);
+				session()->put($sessionKey, $forcedCountry);
+				return $forcedCountry;
+			}
+		}
+		
+		// Skip localhost/private IPs - but try to detect anyway for development
+		$isLocalhost = empty($ip) || $ip === '127.0.0.1' || $ip === '::1' || 
+		               strpos($ip, '192.168.') === 0 || strpos($ip, '10.') === 0 ||
+		               strpos($ip, '172.16.') === 0 || strpos($ip, '172.17.') === 0;
+		
+		// For localhost, check if there's a default country in config
+		if ($isLocalhost) {
+			$defaultLocalhostCountry = config('app.localhost_default_country', null);
+			if ($defaultLocalhostCountry) {
+				$sessionKey = 'visitor_country_' . md5($ip);
+				session()->put($sessionKey, strtoupper($defaultLocalhostCountry));
+				return strtoupper($defaultLocalhostCountry);
+			}
+		}
+		
+		// For localhost, we'll still try the API but with a longer timeout
+		// This allows testing with VPN or if behind a proxy
+		
+		// Try to get country from session cache first
+		$sessionKey = 'visitor_country_' . md5($ip);
+		if (session()->has($sessionKey)) {
+			return session()->get($sessionKey);
+		}
+		
+		// Use free IP geolocation API (ip-api.com - free tier: 45 requests/minute)
+		try {
+			$timeout = $isLocalhost ? 5 : 3; // Longer timeout for localhost
+			$client = new GuzzleClient(['timeout' => $timeout, 'verify' => false]);
+			
+			// Try ip-api.com first
+			$response = $client->get("http://ip-api.com/json/{$ip}?fields=status,countryCode");
+			$data = json_decode($response->getBody()->getContents(), true);
+			
+			if (isset($data['status']) && $data['status'] === 'success' && isset($data['countryCode'])) {
+				$countryCode = $data['countryCode'];
+				// Cache in session for 24 hours
+				session()->put($sessionKey, $countryCode);
+				return $countryCode;
+			}
+		} catch (\Exception $e) {
+			// If ip-api.com fails, try ipapi.co as fallback
+			try {
+				$client = new GuzzleClient(['timeout' => 3, 'verify' => false]);
+				$response = $client->get("https://ipapi.co/{$ip}/country_code/");
+				$countryCode = trim($response->getBody()->getContents());
+				
+				if (!empty($countryCode) && strlen($countryCode) == 2) {
+					session()->put($sessionKey, $countryCode);
+					return $countryCode;
+				}
+			} catch (\Exception $e2) {
+				// Both APIs failed
+			}
+		}
+		
+		// For localhost, default to US. For real IPs, try to return US but log the issue
+		if ($isLocalhost) {
+			return 'US'; // Default for localhost
+		}
+		
+		// For real IPs that failed detection, still return US but this shouldn't happen often
+		return 'US';
+	}
+	
+	/**
+	 * Map country code to currency code
+	 */
+	public static function countryToCurrency($countryCode)
+	{
+		$countryCurrencyMap = [
+			// Major countries
+			'US' => 'USD', 'CA' => 'CAD', 'GB' => 'GBP', 'AU' => 'AUD', 'NZ' => 'NZD',
+			'DE' => 'EUR', 'FR' => 'EUR', 'IT' => 'EUR', 'ES' => 'EUR', 'NL' => 'EUR',
+			'BE' => 'EUR', 'AT' => 'EUR', 'PT' => 'EUR', 'IE' => 'EUR', 'FI' => 'EUR',
+			'GR' => 'EUR', 'LU' => 'EUR', 'MT' => 'EUR', 'CY' => 'EUR', 'SK' => 'EUR',
+			'SI' => 'EUR', 'EE' => 'EUR', 'LV' => 'EUR', 'LT' => 'EUR',
+			
+			// Asia
+			'JP' => 'JPY', 'CN' => 'CNY', 'IN' => 'INR', 'KR' => 'KRW', 'SG' => 'SGD',
+			'HK' => 'HKD', 'TW' => 'TWD', 'TH' => 'THB', 'MY' => 'MYR', 'ID' => 'IDR',
+			'PH' => 'PHP', 'VN' => 'VND', 'PK' => 'PKR', 'BD' => 'BDT', 'LK' => 'LKR',
+			
+			// Middle East & Africa
+			'AE' => 'AED', 'SA' => 'SAR', 'IL' => 'ILS', 'TR' => 'TRY', 'EG' => 'EGP',
+			'ZA' => 'ZAR', 'NG' => 'NGN', 'KE' => 'KES', 'MA' => 'MAD', 'DZ' => 'DZD',
+			'TN' => 'TND', 'GH' => 'GHS', 'ET' => 'ETB',
+			
+			// Latin America
+			'MX' => 'MXN', 'BR' => 'BRL', 'AR' => 'ARS', 'CL' => 'CLP', 'CO' => 'COP',
+			'PE' => 'PEN', 'VE' => 'VES', 'UY' => 'UYU', 'PY' => 'PYG', 'BO' => 'BOB',
+			'EC' => 'USD', 'CR' => 'CRC', 'PA' => 'PAB', 'GT' => 'GTQ', 'HN' => 'HNL',
+			'NI' => 'NIO', 'SV' => 'USD', 'DO' => 'DOP', 'CU' => 'CUP', 'JM' => 'JMD',
+			
+			// Eastern Europe
+			'RU' => 'RUB', 'PL' => 'PLN', 'CZ' => 'CZK', 'HU' => 'HUF', 'RO' => 'RON',
+			'BG' => 'BGN', 'HR' => 'HRK', 'RS' => 'RSD', 'UA' => 'UAH', 'BY' => 'BYN',
+			'MD' => 'MDL', 'GE' => 'GEL', 'AM' => 'AMD', 'AZ' => 'AZN', 'KZ' => 'KZT',
+			
+			// Other
+			'CH' => 'CHF', 'SE' => 'SEK', 'NO' => 'NOK', 'DK' => 'DKK', 'IS' => 'ISK',
+			'ZA' => 'ZAR', 'EG' => 'EGP', 'MA' => 'MAD',
+		];
+		
+		return $countryCurrencyMap[$countryCode] ?? 'USD';
+	}
+	
+	/**
+	 * Convert USD price to local currency based on visitor's country
+	 */
+	public static function convertPriceToLocalCurrency($usdPrice, $countryCode = null)
+	{
+		// Get country if not provided
+		if ($countryCode === null) {
+			$countryCode = self::getVisitorCountry();
+		}
+		
+		// Get currency code for country
+		$currencyCode = self::countryToCurrency($countryCode);
+		
+		// If already USD, return as is
+		if ($currencyCode === 'USD') {
+			return [
+				'price' => $usdPrice,
+				'currency' => 'USD',
+				'symbol' => '$',
+				'country' => $countryCode
+			];
+		}
+		
+		// Get currency from database
+		$currency = Currencies::getCurrency($currencyCode);
+		
+		// Default exchange rates if currency not in database (approximate rates)
+		$defaultRates = [
+			'MAD' => 10.0,   // 1 USD ≈ 10 MAD (approximate)
+			'EUR' => 0.91,
+			'GBP' => 0.80,
+			'JPY' => 150.0,
+			'CNY' => 7.2,
+			'INR' => 83.0,
+			'IDR' => 15750.0, // 1 USD ≈ 15,750 IDR (Indonesian Rupiah)
+			'AED' => 3.67,
+			'SAR' => 3.75,
+			'EGP' => 30.0,
+			'TRY' => 32.0,
+		];
+		
+		$defaultSymbols = [
+			'MAD' => 'د.م.',
+			'EUR' => '€',
+			'GBP' => '£',
+			'JPY' => '¥',
+			'CNY' => '¥',
+			'INR' => '₹',
+			'IDR' => 'Rp',
+			'AED' => 'د.إ',
+			'SAR' => 'ر.س',
+			'EGP' => 'E£',
+			'TRY' => '₺',
+		];
+		
+		if ($currency && isset($currency->currency_rate) && $currency->currency_rate > 0) {
+			// Currency found in database
+			$convertedPrice = $usdPrice * floatval($currency->currency_rate);
+			return [
+				'price' => $convertedPrice,
+				'currency' => $currencyCode,
+				'symbol' => $currency->currency_symbol ?? ($defaultSymbols[$currencyCode] ?? $currencyCode),
+				'country' => $countryCode
+			];
+		} elseif (isset($defaultRates[$currencyCode])) {
+			// Currency not in database, use default rate
+			$convertedPrice = $usdPrice * $defaultRates[$currencyCode];
+			return [
+				'price' => $convertedPrice,
+				'currency' => $currencyCode,
+				'symbol' => $defaultSymbols[$currencyCode] ?? $currencyCode,
+				'country' => $countryCode
+			];
+		}
+		
+		// Fallback to USD if currency not found and no default rate
+		return [
+			'price' => $usdPrice,
+			'currency' => 'USD',
+			'symbol' => '$',
+			'country' => $countryCode
+		];
+	}
+	
+	/**
+	 * Format price with currency symbol
+	 */
+	public static function formatLocalPrice($priceData, $decimals = 2)
+	{
+		$price = round($priceData['price'], $decimals);
+		$symbol = $priceData['symbol'] ?? $priceData['currency'];
+		
+		// Format based on currency (some currencies put symbol after)
+		$position = 'left'; // Default
+		
+		// Currencies that typically put symbol after
+		if (in_array($priceData['currency'], ['EUR', 'GBP', 'JPY', 'CNY'])) {
+			$position = 'right';
+		}
+		
+		if ($position === 'left') {
+			return $symbol . number_format($price, $decimals);
+		} else {
+			return number_format($price, $decimals) . ' ' . $symbol;
+		}
 	}
 	
 	

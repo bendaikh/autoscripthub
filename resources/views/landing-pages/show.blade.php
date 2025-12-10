@@ -667,12 +667,29 @@
                     <p class="hero-subtitle">{{ strip_tags(substr($landing_page->lp_description, 0, 200)) }}...</p>
                     
                     <div class="price-display">
-                        <span class="price-currency">{{ $landing_page->lp_currency }}</span>
-                        <span class="price-amount">{{ number_format($landing_page->lp_price, 2) }}</span>
-                        @if($landing_page->lp_extended_price && $landing_page->lp_extended_price > 0)
-                        <span class="price-extended">{{ $landing_page->lp_currency }} {{ number_format($landing_page->lp_extended_price, 2) }}</span>
+                        <span class="price-currency">{{ $price_data['symbol'] ?? '$' }}</span>
+                        <span class="price-amount">{{ number_format($price_data['price'] ?? $landing_page->lp_price, 2) }}</span>
+                        @if($extended_price_data && $extended_price_data['price'] > 0)
+                        <span class="price-extended">{{ $extended_price_data['symbol'] }} {{ number_format($extended_price_data['price'], 2) }}</span>
                         @endif
                     </div>
+                    
+                    {{-- Debug info (remove this in production) --}}
+                    @if(isset($debug_info) && config('app.debug'))
+                    <div style="font-size: 0.8rem; color: #999; margin-top: 10px; padding: 10px; background: #f5f5f5; border-radius: 5px;">
+                        <strong>Debug Info:</strong><br>
+                        IP: {{ $debug_info['ip'] }}<br>
+                        Country: {{ $debug_info['country'] }}<br>
+                        Currency: {{ $debug_info['currency_code'] }}<br>
+                        USD Price: {{ $debug_info['original_usd'] }}<br>
+                        Converted Price: {{ $debug_info['converted_price'] }}<br>
+                        @if($debug_info['ip'] === '127.0.0.1' || $debug_info['ip'] === '::1')
+                        <br><strong style="color: #e74c3c;">⚠️ Localhost Detected!</strong><br>
+                        To test with Morocco, add <code>?force_country=MA</code> to the URL<br>
+                        Example: <code>{{ url()->current() }}?force_country=MA</code>
+                        @endif
+                    </div>
+                    @endif
                     
                     <div class="hero-actions">
                         <button type="button" class="btn-primary-custom" onclick="showPaymentModal()">
@@ -772,8 +789,8 @@
             <h2 class="cta-title">Ready to Get Started?</h2>
             <p class="cta-subtitle">Join thousands of satisfied customers today!</p>
             <div class="price-display justify-content-center">
-                <span class="price-currency">{{ $landing_page->lp_currency }}</span>
-                <span class="price-amount">{{ number_format($landing_page->lp_price, 2) }}</span>
+                <span class="price-currency">{{ $price_data['symbol'] }}</span>
+                <span class="price-amount">{{ number_format($price_data['price'], 2) }}</span>
             </div>
             <button type="button" class="btn-primary-custom" onclick="showPaymentModal()">
                 <i class="fas fa-shopping-cart mr-2"></i> Purchase Now
@@ -916,7 +933,7 @@
                     <div class="text-center mb-4">
                         <h3 style="font-weight: 600; color: #2d3748;">{{ $landing_page->lp_title }}</h3>
                         <div style="font-size: 2rem; font-weight: 700; color: #667eea; margin-top: 15px;">
-                            {{ $landing_page->lp_currency }} {{ number_format($landing_page->lp_price, 2) }}
+                            {{ $price_data['symbol'] }} {{ number_format($price_data['price'], 2) }}
                         </div>
                     </div>
 

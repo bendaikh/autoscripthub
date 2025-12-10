@@ -8,6 +8,7 @@ use Fickrr\Models\LandingCustomer;
 use Fickrr\Models\LandingPageMessage;
 use Fickrr\Models\Settings;
 use Fickrr\Models\Items;
+use Fickrr\Helpers\Helper;
 use Auth;
 use Session;
 use GuzzleHttp\Client;
@@ -36,6 +37,33 @@ class LandingPagePublicController extends Controller
         $sid = 1;
         $data['setting'] = Settings::editGeneral($sid);
         $data['additional'] = Settings::editAdditional();
+        
+        // Convert price to visitor's local currency
+        // Assume lp_price is stored in USD
+        $usdPrice = $data['landing_page']->lp_price;
+        
+        // Get visitor's IP and country for debugging
+        $visitorIp = request()->ip();
+        $detectedCountry = Helper::getVisitorCountry($visitorIp);
+        
+        // Convert price
+        $data['price_data'] = Helper::convertPriceToLocalCurrency($usdPrice, $detectedCountry);
+        
+        // Debug info (remove in production if needed)
+        $data['debug_info'] = [
+            'ip' => $visitorIp,
+            'country' => $detectedCountry,
+            'currency_code' => $data['price_data']['currency'],
+            'original_usd' => $usdPrice,
+            'converted_price' => $data['price_data']['price']
+        ];
+        
+        // Also convert extended price if exists
+        if ($data['landing_page']->lp_extended_price && $data['landing_page']->lp_extended_price > 0) {
+            $data['extended_price_data'] = Helper::convertPriceToLocalCurrency($data['landing_page']->lp_extended_price, $detectedCountry);
+        } else {
+            $data['extended_price_data'] = null;
+        }
         
         return view('landing-pages.show', $data);
     }

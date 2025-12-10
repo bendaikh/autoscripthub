@@ -935,6 +935,24 @@ Route::post('/landing/{slug}/process-payment', 'LandingPagePublicController@proc
 Route::post('/landing/{slug}/send-message', 'LandingPagePublicController@sendMessage')->name('landing-page.send-message');
 Route::get('/landing/success/{order_token}', 'LandingPagePublicController@success')->name('landing-page.success');
 Route::get('/landing/download/{order_token}', 'LandingPagePublicController@download')->name('landing-page.download');
+
+// Debug route for currency conversion testing (remove in production)
+Route::get('/test-currency/{country?}', function($country = null) {
+    $ip = request()->ip();
+    $detectedCountry = $country ?? \Fickrr\Helpers\Helper::getVisitorCountry($ip);
+    $currencyCode = \Fickrr\Helpers\Helper::countryToCurrency($detectedCountry);
+    $testPrice = 12; // $12 USD
+    $converted = \Fickrr\Helpers\Helper::convertPriceToLocalCurrency($testPrice, $detectedCountry);
+    
+    return response()->json([
+        'ip' => $ip,
+        'detected_country' => $detectedCountry,
+        'currency_code' => $currencyCode,
+        'test_price_usd' => $testPrice,
+        'converted' => $converted,
+        'session_country' => session()->get('visitor_country_' . md5($ip))
+    ]);
+});
 /* landing pages */
 
 Route::get('/{page_slug}', 'PageController@view_page');
