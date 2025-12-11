@@ -18,6 +18,24 @@
     <meta property="og:image" content="{{ asset('storage/landing-pages/' . $landing_page->lp_banner_image) }}">
     @endif
     
+    <!-- Meta Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '716465200546687');
+    fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=716465200546687&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel Code -->
+    
     <!-- Favicon -->
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
     
@@ -706,7 +724,7 @@
                     </div>
                     
                     <div class="hero-actions">
-                        <button type="button" class="btn-primary-custom" onclick="showPaymentModal()">
+                        <button type="button" class="btn-primary-custom" onclick="showPaymentModal(); trackBuyNowClick();">
                             <i class="fas fa-shopping-cart mr-2"></i> Buy Now
                         </button>
                     </div>
@@ -843,7 +861,7 @@
                 <span class="price-currency">{{ $price_data['symbol'] }}</span>
                 <span class="price-amount">{{ number_format($price_data['price'], 2) }}</span>
             </div>
-            <button type="button" class="btn-primary-custom" onclick="showPaymentModal()">
+            <button type="button" class="btn-primary-custom" onclick="showPaymentModal(); trackBuyNowClick();">
                 <i class="fas fa-shopping-cart mr-2"></i> Purchase Now
             </button>
         </div>
@@ -1049,6 +1067,13 @@
     <script>
         function showPaymentModal() {
             $('#paymentModal').modal('show');
+            // Track Lead event when payment modal is opened
+            if (typeof fbq !== 'undefined') {
+                fbq('track', 'Lead', {
+                    content_name: '{{ $landing_page->lp_title }}',
+                    content_category: 'Landing Page'
+                });
+            }
         }
 
         function selectPayment(method) {
@@ -1071,6 +1096,18 @@
             checkFormValidity();
         }
         
+        // Track Buy Now button click
+        function trackBuyNowClick() {
+            if (typeof fbq !== 'undefined') {
+                fbq('track', 'Lead', {
+                    content_name: '{{ $landing_page->lp_title }}',
+                    content_category: 'Landing Page',
+                    value: {{ $price_data['price'] ?? $landing_page->lp_price }},
+                    currency: '{{ $price_data['currency'] ?? $landing_page->lp_currency }}'
+                });
+            }
+        }
+        
         // Check form validity
         function checkFormValidity() {
             const email = $('#customer_email').val();
@@ -1082,6 +1119,22 @@
                 $('#paymentBtn').prop('disabled', true);
             }
         }
+        
+        // Track when payment form is submitted
+        $('#paymentForm').on('submit', function() {
+            if (typeof fbq !== 'undefined') {
+                const email = $('#customer_email').val();
+                const paymentMethod = $('input[name="payment_method"]:checked').val();
+                
+                fbq('track', 'InitiateCheckout', {
+                    content_name: '{{ $landing_page->lp_title }}',
+                    content_category: 'Landing Page',
+                    value: {{ $price_data['price'] ?? $landing_page->lp_price }},
+                    currency: '{{ $price_data['currency'] ?? $landing_page->lp_currency }}',
+                    num_items: 1
+                });
+            }
+        });
 
         // Hover effects
         $(document).ready(function() {
