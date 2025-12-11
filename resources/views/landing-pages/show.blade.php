@@ -46,7 +46,7 @@
         .hero-section {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 100px 0 80px;
+            padding: 40px 0 80px;
             position: relative;
             overflow: hidden;
         }
@@ -68,7 +68,7 @@
         }
         
         .hero-title {
-            font-size: 3.5rem;
+            font-size: 2.5rem;
             font-weight: 800;
             margin-bottom: 25px;
             line-height: 1.2;
@@ -303,6 +303,37 @@
             margin: 0;
         }
         
+        /* Video Section */
+        .video-section {
+            padding: 80px 0;
+            background: white;
+        }
+        
+        .video-container {
+            max-width: 900px;
+            margin: 0 auto;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+            background: #000;
+        }
+        
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+        }
+        
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
         /* Trust/Security Section */
         .trust-section {
             padding: 60px 0;
@@ -444,7 +475,7 @@
         /* Responsive */
         @media (max-width: 768px) {
             .hero-title {
-                font-size: 2.5rem;
+                font-size: 1.8rem;
             }
             
             .hero-subtitle {
@@ -692,6 +723,63 @@
         </div>
     </section>
 
+    <!-- Gallery Section -->
+    @if(count($gallery_images) > 0)
+    <section class="gallery-section">
+        <div class="container">
+            <div class="gallery-grid">
+                @foreach($gallery_images as $image)
+                <div class="gallery-item">
+                    <img src="{{ asset('storage/landing-pages/' . $image->lpg_image) }}" alt="{{ $image->lpg_description ?? 'Product Image' }}">
+                    @if(!empty($image->lpg_description))
+                    <div class="gallery-item-content">
+                        <p class="gallery-item-description">{{ $image->lpg_description }}</p>
+                    </div>
+                    @endif
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+    @endif
+
+    <!-- Video Section -->
+    @if(!empty($landing_page->lp_youtube_url))
+    <section class="video-section">
+        <div class="container">
+            <h2 class="section-title">Watch Demo</h2>
+            <p class="section-subtitle">See it in action</p>
+            <div class="video-container">
+                <div class="video-wrapper">
+                    @php
+                        $youtube_url = $landing_page->lp_youtube_url;
+                        $video_id = '';
+                        
+                        // Extract video ID from various YouTube URL formats
+                        if (preg_match('/youtube\.com\/watch\?v=([^\&\?\/]+)/', $youtube_url, $matches)) {
+                            $video_id = $matches[1];
+                        } elseif (preg_match('/youtube\.com\/embed\/([^\&\?\/]+)/', $youtube_url, $matches)) {
+                            $video_id = $matches[1];
+                        } elseif (preg_match('/youtube\.com\/v\/([^\&\?\/]+)/', $youtube_url, $matches)) {
+                            $video_id = $matches[1];
+                        } elseif (preg_match('/youtu\.be\/([^\&\?\/]+)/', $youtube_url, $matches)) {
+                            $video_id = $matches[1];
+                        }
+                    @endphp
+                    @if($video_id)
+                    <iframe 
+                        src="https://www.youtube.com/embed/{{ $video_id }}" 
+                        title="Product Video" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        allowfullscreen>
+                    </iframe>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </section>
+    @endif
+
     <!-- Features Section -->
     @if(count($features) > 0)
     <section class="features-section">
@@ -741,26 +829,6 @@
                 <div class="description-content">
                     {!! $landing_page->lp_what_you_get !!}
                 </div>
-            </div>
-        </div>
-    </section>
-    @endif
-
-    <!-- Gallery Section -->
-    @if(count($gallery_images) > 0)
-    <section class="gallery-section">
-        <div class="container">
-            <div class="gallery-grid">
-                @foreach($gallery_images as $image)
-                <div class="gallery-item">
-                    <img src="{{ asset('storage/landing-pages/' . $image->lpg_image) }}" alt="{{ $image->lpg_description ?? 'Product Image' }}">
-                    @if(!empty($image->lpg_description))
-                    <div class="gallery-item-content">
-                        <p class="gallery-item-description">{{ $image->lpg_description }}</p>
-                    </div>
-                    @endif
-                </div>
-                @endforeach
             </div>
         </div>
     </section>

@@ -89,6 +89,16 @@
                                                 @endif
                                             </div>
 
+                                            <!-- YouTube Video URL -->
+                                            <div class="form-group">
+                                                <label>{{ __('YouTube Video URL') }}</label>
+                                                <input type="url" name="lp_youtube_url" class="form-control" value="{{ old('lp_youtube_url') }}" placeholder="https://www.youtube.com/watch?v=...">
+                                                <small class="form-text text-muted">{{ __('Enter a YouTube video URL to display on the landing page. Supports youtube.com/watch?v= and youtu.be/ formats.') }}</small>
+                                                @if ($errors->has('lp_youtube_url'))
+                                                <span class="text-danger">{{ $errors->first('lp_youtube_url') }}</span>
+                                                @endif
+                                            </div>
+
                                             <!-- Features Section -->
                                             <div class="form-group">
                                                 <label>{{ __('Key Features') }}</label>

@@ -18,6 +18,7 @@ class LandingPage extends Model
         'lp_what_you_get',
         'lp_banner_image',
         'lp_features',
+        'lp_youtube_url',
         'lp_price',
         'lp_extended_price',
         'lp_currency',
