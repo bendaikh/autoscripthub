@@ -34,68 +34,47 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        .modal-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1040;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(0, 0, 0, 0.5);
-            opacity: 0;
-            transition: opacity 0.15s linear;
-        }
-        .modal-backdrop.show {
-            opacity: 1;
-        }
+        /* Modal fixes */
         .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 1050;
-            display: none;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            outline: 0;
+            z-index: 99999; /* Higher than any other element on the page */
         }
-        .modal.show {
-            display: block !important;
-        }
-        .modal.show .modal-dialog {
-            pointer-events: auto;
-            transform: none;
-            transition: transform 0.3s ease-out;
+        .modal-backdrop {
+            z-index: 99998; /* Just below the modal */
+            background-color: rgba(0, 0, 0, 0.5);
         }
         .modal-dialog {
-            position: relative;
-            width: auto;
             margin: 1.75rem auto;
-            max-width: 500px;
-            pointer-events: none;
-        }
-        .modal-dialog.modal-lg {
-            max-width: 800px;
         }
         .modal-content {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            pointer-events: auto;
-            background-color: #fff;
-            background-clip: padding-box;
-            border: 1px solid rgba(0, 0, 0, 0.2);
-            border-radius: 0.3rem;
-            outline: 0;
-            box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.5);
+            border: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
-        .modal.fade .modal-dialog {
-            transition: transform 0.3s ease-out;
-            transform: translate(0, -50px);
+        .modal-header {
+            border-bottom: 1px solid #dee2e6;
+            padding: 1rem 1.5rem;
         }
-        .modal.show .modal-dialog {
-            transform: translate(0, 0);
+        .modal-body {
+            padding: 1.5rem;
+        }
+        .modal-footer {
+            border-top: 1px solid #dee2e6;
+            padding: 1rem 1.5rem;
+        }
+        .modal-body strong {
+            color: #495057;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .modal-body a {
+            color: #007bff;
+            word-break: break-all;
+        }
+        .modal-body .bg-light {
+            background-color: #f8f9fa !important;
+            border: 1px solid #dee2e6;
+            max-height: 300px;
+            overflow-y: auto;
+            word-wrap: break-word;
         }
     </style>
 </head>
@@ -208,7 +187,7 @@
                                                 <td>{{ date('d M Y, h:i A', strtotime($message->created_at)) }}</td>
                                                 <td>
                                                     <div class="btn-group" role="group">
-                                                        <button type="button" class="btn btn-info btn-sm" onclick="openMessageModal('{{ $message->lpm_id }}');" title="{{ __('View') }}">
+                                                        <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#messageModal{{ $message->lpm_id }}" title="{{ __('View') }}">
                                                             <i class="fa fa-eye"></i>
                                                         </button>
                                                         @if($message->lpm_status == 0)
@@ -229,67 +208,83 @@
                                             </tr>
 
                                             <!-- Message Detail Modal -->
-                                            <div class="modal fade" id="messageModal{{ $message->lpm_id }}" tabindex="-1" role="dialog" aria-labelledby="messageModalLabel{{ $message->lpm_id }}" aria-hidden="true" data-backdrop="true" data-keyboard="true">
-                                                <div class="modal-dialog modal-lg" role="document">
-                                                    <div class="modal-content" onclick="event.stopPropagation();">
+                                            <div class="modal fade" id="messageModal{{ $message->lpm_id }}" tabindex="-1" role="dialog" aria-labelledby="messageModalLabel{{ $message->lpm_id }}" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+                                                    <div class="modal-content">
                                                         <div class="modal-header">
                                                             <h5 class="modal-title" id="messageModalLabel{{ $message->lpm_id }}">{{ __('Message Details') }}</h5>
-                                                            <button type="button" class="close" aria-label="Close" onclick="closeMessageModal('{{ $message->lpm_id }}');" style="cursor: pointer;">
+                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                                                 <span aria-hidden="true">&times;</span>
                                                             </button>
                                                         </div>
                                                         <div class="modal-body">
                                                             <div class="row mb-3">
                                                                 <div class="col-md-6">
-                                                                    <strong>{{ __('Landing Page:') }}</strong><br>
-                                                                    <a href="{{ url('/landing/' . $message->lp_slug) }}" target="_blank">{{ $message->lp_title }}</a>
+                                                                    <strong>{{ __('Landing Page:') }}</strong>
+                                                                    <div class="mt-1">
+                                                                        <a href="{{ url('/landing/' . $message->lp_slug) }}" target="_blank" class="text-primary">{{ $message->lp_title }}</a>
+                                                                    </div>
                                                                 </div>
                                                                 <div class="col-md-6">
-                                                                    <strong>{{ __('Date:') }}</strong><br>
-                                                                    {{ date('d M Y, h:i A', strtotime($message->created_at)) }}
+                                                                    <strong>{{ __('Date:') }}</strong>
+                                                                    <div class="mt-1 text-muted">
+                                                                        {{ date('d M Y, h:i A', strtotime($message->created_at)) }}
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                             <hr>
                                                             <div class="row mb-3">
                                                                 <div class="col-md-6">
-                                                                    <strong>{{ __('Name:') }}</strong><br>
-                                                                    {{ $message->lpm_name }}
+                                                                    <strong>{{ __('Name:') }}</strong>
+                                                                    <div class="mt-1">
+                                                                        {{ $message->lpm_name }}
+                                                                    </div>
                                                                 </div>
                                                                 <div class="col-md-6">
-                                                                    <strong>{{ __('Email:') }}</strong><br>
-                                                                    <a href="mailto:{{ $message->lpm_email }}">{{ $message->lpm_email }}</a>
+                                                                    <strong>{{ __('Email:') }}</strong>
+                                                                    <div class="mt-1">
+                                                                        <a href="mailto:{{ $message->lpm_email }}" class="text-primary">{{ $message->lpm_email }}</a>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                             @if($message->lpm_phone)
                                                             <div class="row mb-3">
                                                                 <div class="col-md-6">
-                                                                    <strong>{{ __('Phone:') }}</strong><br>
-                                                                    <a href="tel:{{ $message->lpm_phone }}">{{ $message->lpm_phone }}</a>
+                                                                    <strong>{{ __('Phone:') }}</strong>
+                                                                    <div class="mt-1">
+                                                                        <a href="tel:{{ $message->lpm_phone }}" class="text-primary">{{ $message->lpm_phone }}</a>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                             @endif
                                                             @if($message->lpm_subject)
                                                             <div class="row mb-3">
                                                                 <div class="col-md-12">
-                                                                    <strong>{{ __('Subject:') }}</strong><br>
-                                                                    {{ $message->lpm_subject }}
+                                                                    <strong>{{ __('Subject:') }}</strong>
+                                                                    <div class="mt-1">
+                                                                        {{ $message->lpm_subject }}
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                             @endif
                                                             <hr>
                                                             <div class="row">
                                                                 <div class="col-md-12">
-                                                                    <strong>{{ __('Message:') }}</strong><br>
-                                                                    <div class="p-3 bg-light rounded" style="white-space: pre-wrap;">{{ $message->lpm_message }}</div>
+                                                                    <strong>{{ __('Message:') }}</strong>
+                                                                    <div class="mt-2 p-3 bg-light rounded" style="white-space: pre-wrap; word-wrap: break-word; max-height: 300px; overflow-y: auto;">{{ $message->lpm_message }}</div>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                         <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" onclick="closeMessageModal('{{ $message->lpm_id }}');">{{ __('Close') }}</button>
+                                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                                                <i class="fa fa-times"></i> {{ __('Close') }}
+                                                            </button>
                                                             @if($message->lpm_status == 0)
-                                                            <a href="{{ route('admin.landing-page-messages.mark-read', $message->lpm_id) }}" class="btn btn-success">{{ __('Mark as Read') }}</a>
+                                                            <a href="{{ route('admin.landing-page-messages.mark-read', $message->lpm_id) }}" class="btn btn-success">
+                                                                <i class="fa fa-check"></i> {{ __('Mark as Read') }}
+                                                            </a>
                                                             @endif
-                                                            <a href="mailto:{{ $message->lpm_email }}?subject=Re: {{ $message->lpm_subject ?? 'Your Message' }}" class="btn btn-primary">
+                                                            <a href="mailto:{{ $message->lpm_email }}?subject=Re: {{ urlencode($message->lpm_subject ?? 'Your Message') }}" class="btn btn-primary" onclick="window.location.href='{{ route('admin.landing-page-messages.mark-replied', $message->lpm_id) }}';">
                                                                 <i class="fa fa-envelope"></i> {{ __('Reply via Email') }}
                                                             </a>
                                                         </div>
@@ -328,54 +323,6 @@
     <script src="{{ asset('admin/assets/js/init-scripts/data-table/datatables-init.js') }}"></script>
     
     <script type="text/javascript">
-        // Global modal functions (defined outside document.ready for immediate availability)
-        function openMessageModal(messageId) {
-            var modalId = '#messageModal' + messageId;
-            var $modal = $(modalId);
-            
-            // Close any other open modals first
-            $('.modal.show').each(function() {
-                var otherId = $(this).attr('id').replace('messageModal', '');
-                closeMessageModal(otherId);
-            });
-            
-            // Create backdrop if it doesn't exist
-            if ($('.modal-backdrop').length === 0) {
-                $('body').append('<div class="modal-backdrop fade"></div>');
-            }
-            
-            // Show modal
-            $modal.css('display', 'block');
-            $('body').addClass('modal-open');
-            
-            // Fade in effect (small delay for CSS transition)
-            setTimeout(function() {
-                $modal.addClass('show');
-                $('.modal-backdrop').addClass('show');
-            }, 10);
-        }
-
-        function closeMessageModal(messageId) {
-            var modalId = '#messageModal' + messageId;
-            var $modal = $(modalId);
-            
-            // Fade out effect
-            $modal.removeClass('show');
-            $('.modal-backdrop').removeClass('show');
-            
-            // Remove after animation
-            setTimeout(function() {
-                $modal.css('display', 'none');
-                $('.modal-backdrop').remove();
-                $('body').removeClass('modal-open');
-                $('body').css('padding-right', '');
-            }, 150);
-        }
-
-        // Also make available on window object
-        window.openMessageModal = openMessageModal;
-        window.closeMessageModal = closeMessageModal;
-
         $(document).ready(function () { 
             var oTable = $('#example').dataTable({
                 stateSave: true,
@@ -393,31 +340,9 @@
                 $(this).toggleClass('allChecked');
             });
 
-            // Close modal on backdrop click
-            $(document).on('click', '.modal-backdrop', function() {
-                $('.modal.show').each(function() {
-                    var modalId = $(this).attr('id').replace('messageModal', '');
-                    closeMessageModal(modalId);
-                });
-            });
-
-            // Close modal on ESC key
-            $(document).on('keydown', function(e) {
-                if (e.keyCode === 27) { // ESC key
-                    $('.modal.show').each(function() {
-                        var modalId = $(this).attr('id').replace('messageModal', '');
-                        closeMessageModal(modalId);
-                    });
-                }
-            });
-
-            // Close modal when clicking outside content (on modal background)
-            $(document).on('click', '.modal.show', function(e) {
-                if ($(e.target).hasClass('modal')) {
-                    var modalId = $(this).attr('id').replace('messageModal', '');
-                    closeMessageModal(modalId);
-                }
-            });
+            // Ensure modals work properly
+            // Move all modals to <body> to avoid stacking context issues
+            $('.modal').appendTo('body');
         });
     </script>
 </body>
