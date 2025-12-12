@@ -392,6 +392,116 @@ class LandingPageController extends Controller
     }
 
     /**
+     * Duplicate landing page
+     */
+    public function duplicate($id)
+    {
+        $landing_page = LandingPage::getById($id);
+        
+        if (!$landing_page) {
+            Session::flash('error', 'Landing page not found');
+            return redirect()->route('admin.landing-pages');
+        }
+
+        // Generate new title and slug
+        $new_title = 'Copy of ' . $landing_page->lp_title;
+        $new_slug = LandingPage::generateSlug($new_title);
+
+        // Copy banner image
+        $new_banner_image = null;
+        if ($landing_page->lp_banner_image && file_exists(public_path('storage/landing-pages/' . $landing_page->lp_banner_image))) {
+            $extension = pathinfo($landing_page->lp_banner_image, PATHINFO_EXTENSION);
+            $new_banner_image = time() . '_' . rand(1000, 9999) . '_copy.' . $extension;
+            File::copy(
+                public_path('storage/landing-pages/' . $landing_page->lp_banner_image),
+                public_path('storage/landing-pages/' . $new_banner_image)
+            );
+        }
+
+        // Copy product file/folder
+        $new_product_file = null;
+        $product_file_type = $landing_page->lp_product_file_type ?? 'file';
+        if ($landing_page->lp_product_file && $landing_page->lp_delivery_method == 'upload') {
+            if ($product_file_type == 'folder') {
+                // Copy folder
+                $new_folder_name = 'landing_product_' . time() . '_copy';
+                $source_folder = public_path('storage/landing-products/' . $landing_page->lp_product_file);
+                $dest_folder = public_path('storage/landing-products/' . $new_folder_name);
+                
+                if (file_exists($source_folder)) {
+                    File::copyDirectory($source_folder, $dest_folder);
+                    $new_product_file = $new_folder_name;
+                }
+            } else {
+                // Copy single file
+                $extension = pathinfo($landing_page->lp_product_file, PATHINFO_EXTENSION);
+                $new_product_file = time() . '_' . rand(1000, 9999) . '_copy.' . $extension;
+                if (file_exists(public_path('storage/landing-products/' . $landing_page->lp_product_file))) {
+                    File::copy(
+                        public_path('storage/landing-products/' . $landing_page->lp_product_file),
+                        public_path('storage/landing-products/' . $new_product_file)
+                    );
+                }
+            }
+        }
+
+        // Prepare data for new landing page
+        $data = [
+            'lp_title' => $new_title,
+            'lp_slug' => $new_slug,
+            'lp_description' => $landing_page->lp_description,
+            'lp_what_you_get' => $landing_page->lp_what_you_get,
+            'lp_banner_image' => $new_banner_image,
+            'lp_features' => $landing_page->lp_features,
+            'lp_youtube_url' => $landing_page->lp_youtube_url,
+            'lp_price' => $landing_page->lp_price,
+            'lp_extended_price' => $landing_page->lp_extended_price,
+            'lp_currency' => $landing_page->lp_currency ?? 'USD',
+            'lp_meta_title' => $landing_page->lp_meta_title,
+            'lp_meta_description' => $landing_page->lp_meta_description,
+            'lp_meta_keywords' => $landing_page->lp_meta_keywords,
+            'lp_status' => 0, // Set to inactive by default
+            'lp_product_file' => $new_product_file,
+            'lp_product_file_type' => $product_file_type,
+            'lp_product_link' => $landing_page->lp_product_link,
+            'lp_delivery_method' => $landing_page->lp_delivery_method ?? 'upload',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+
+        LandingPage::saveLandingPage($data);
+
+        // Get the last inserted ID
+        $new_landing_page_id = \DB::getPdo()->lastInsertId();
+
+        // Copy gallery images
+        $gallery_images = LandingPage::getGalleryImages($id);
+        $order = 0;
+        foreach ($gallery_images as $image) {
+            if (file_exists(public_path('storage/landing-pages/' . $image->lpg_image))) {
+                $extension = pathinfo($image->lpg_image, PATHINFO_EXTENSION);
+                $new_gallery_filename = time() . '_' . rand(1000, 9999) . '_copy_' . $order . '.' . $extension;
+                File::copy(
+                    public_path('storage/landing-pages/' . $image->lpg_image),
+                    public_path('storage/landing-pages/' . $new_gallery_filename)
+                );
+                
+                LandingPage::saveGalleryImage([
+                    'lp_id' => $new_landing_page_id,
+                    'lpg_image' => $new_gallery_filename,
+                    'lpg_description' => $image->lpg_description,
+                    'lpg_order' => $order++,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+
+        Session::flash('success', 'Landing page duplicated successfully!');
+        return redirect()->route('admin.landing-pages');
+    }
+
+    /**
      * Delete landing page
      */
     public function delete($id)

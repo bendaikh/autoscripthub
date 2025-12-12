@@ -435,6 +435,7 @@ Route::group(['middleware' => ['is_admin', 'HtmlMinifier', 'cache', 'XSS']], fun
 	Route::post('/admin/add-landing-page', 'Admin\LandingPageController@store');
 	Route::get('/admin/edit-landing-page/{lp_id}', 'Admin\LandingPageController@edit')->name('admin.edit-landing-page');
 	Route::post('/admin/edit-landing-page', ['as' => 'admin.update-landing-page','uses'=>'Admin\LandingPageController@update']);
+	Route::get('/admin/landing-pages/duplicate/{lp_id}', 'Admin\LandingPageController@duplicate')->name('admin.duplicate-landing-page');
 	Route::get('/admin/landing-pages/{lp_id}', 'Admin\LandingPageController@delete');
 	Route::delete('/admin/landing-page-gallery/{lpg_id}', 'Admin\LandingPageController@deleteGalleryImage');
 	

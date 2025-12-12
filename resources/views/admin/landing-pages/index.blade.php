@@ -93,6 +93,11 @@
                                                 <a href="{{ route('admin.edit-landing-page', $page->lp_id) }}" class="btn btn-success btn-sm">
                                                     <i class="fa fa-edit"></i> {{ __('Edit') }}
                                                 </a>
+                                                <a href="{{ route('admin.duplicate-landing-page', $page->lp_id) }}" 
+                                                   class="btn btn-info btn-sm" 
+                                                   title="{{ __('Duplicate Landing Page') }}">
+                                                    <i class="fa fa-copy"></i> {{ __('Duplicate') }}
+                                                </a>
                                                 <a href="{{ url('/admin/landing-pages/' . $page->lp_id) }}" 
                                                    class="btn btn-danger btn-sm" 
                                                    onClick="return confirm('{{ __('Are you sure you want to delete this landing page') }}?');">
