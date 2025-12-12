@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Storage;
 use Session;
+use Illuminate\Support\Facades\DB;
 
 class LandingPageController extends Controller
 {
@@ -610,6 +611,67 @@ class LandingPageController extends Controller
 
         Session::flash('success', 'Messages deleted successfully');
         return redirect()->back();
+    }
+
+    /**
+     * Landing page analytics (countries + events summary)
+     */
+    public function analytics(Request $request, $lp_id)
+    {
+        $lp_id = (int) $lp_id;
+        $landingPage = LandingPage::getById($lp_id);
+        if (!$landingPage) {
+            Session::flash('error', 'Landing page not found');
+            return redirect()->route('admin.landing-pages');
+        }
+
+        $days = (int) $request->get('days', 30);
+        if ($days <= 0) {
+            $days = 30;
+        }
+        if ($days > 365) {
+            $days = 365;
+        }
+
+        $from = now()->subDays($days);
+
+        $visitsBase = DB::table('landing_page_visits')
+            ->where('lp_id', $lp_id)
+            ->where('created_at', '>=', $from);
+
+        $data['landing_page'] = $landingPage;
+        $data['days'] = $days;
+        $data['from'] = $from;
+
+        $data['total_visits'] = (clone $visitsBase)->count();
+        $data['unique_visitors'] = (clone $visitsBase)->distinct('lpv_visitor_id')->count('lpv_visitor_id');
+        $data['pageviews'] = (int) ((clone $visitsBase)->sum('lpv_pageviews') ?? 0);
+
+        $data['countries'] = DB::table('landing_page_visits')
+            ->select(
+                'lpv_country_code',
+                DB::raw('COUNT(*) as visits'),
+                DB::raw('COUNT(DISTINCT lpv_visitor_id) as unique_visitors'),
+                DB::raw('COALESCE(SUM(lpv_pageviews),0) as pageviews')
+            )
+            ->where('lp_id', $lp_id)
+            ->where('created_at', '>=', $from)
+            ->groupBy('lpv_country_code')
+            ->orderByDesc('visits')
+            ->get();
+
+        $data['events'] = DB::table('landing_page_events')
+            ->select('lpe_name', DB::raw('COUNT(*) as total'))
+            ->where('lp_id', $lp_id)
+            ->where('created_at', '>=', $from)
+            ->groupBy('lpe_name')
+            ->orderByDesc('total')
+            ->get();
+
+        $sid = 1;
+        $data['setting'] = Settings::editGeneral($sid);
+
+        return view('admin.landing-pages.analytics', $data);
     }
 }
 

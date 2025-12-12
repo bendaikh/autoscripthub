@@ -436,6 +436,7 @@ Route::group(['middleware' => ['is_admin', 'HtmlMinifier', 'cache', 'XSS']], fun
 	Route::get('/admin/edit-landing-page/{lp_id}', 'Admin\LandingPageController@edit')->name('admin.edit-landing-page');
 	Route::post('/admin/edit-landing-page', ['as' => 'admin.update-landing-page','uses'=>'Admin\LandingPageController@update']);
 	Route::get('/admin/landing-pages/duplicate/{lp_id}', 'Admin\LandingPageController@duplicate')->name('admin.duplicate-landing-page');
+	Route::get('/admin/landing-pages/{lp_id}/analytics', 'Admin\LandingPageController@analytics')->name('admin.landing-pages.analytics');
 	Route::get('/admin/landing-pages/{lp_id}', 'Admin\LandingPageController@delete');
 	Route::delete('/admin/landing-page-gallery/{lpg_id}', 'Admin\LandingPageController@deleteGalleryImage');
 	
@@ -473,6 +474,9 @@ Route::group(['middleware' => ['is_admin', 'HtmlMinifier', 'cache', 'XSS']], fun
 
 
 /* admin panel */
+
+// Landing page analytics (public tracking endpoint)
+Route::post('/landing/track', 'LandingPageAnalyticsController@track')->name('landing-page.track');
 
 Route::group(['middleware' => ['HtmlMinifier', 'cache', 'XSS']], function () {
 

@@ -93,6 +93,9 @@
                                                 <a href="{{ route('admin.edit-landing-page', $page->lp_id) }}" class="btn btn-success btn-sm">
                                                     <i class="fa fa-edit"></i> {{ __('Edit') }}
                                                 </a>
+                                                <a href="{{ route('admin.landing-pages.analytics', $page->lp_id) }}" class="btn btn-primary btn-sm">
+                                                    <i class="fa fa-bar-chart"></i> {{ __('Analytics') }}
+                                                </a>
                                                 <a href="{{ route('admin.duplicate-landing-page', $page->lp_id) }}" 
                                                    class="btn btn-info btn-sm" 
                                                    title="{{ __('Duplicate Landing Page') }}">

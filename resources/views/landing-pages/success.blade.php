@@ -314,10 +314,31 @@
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Landing Page Analytics -->
+    <script>
+        window.LP_ANALYTICS_CONFIG = {
+            endpoint: "{{ url('/landing/track') }}",
+            lpId: {{ (int) $landing_page->lp_id }},
+            lpSlug: "{{ $landing_page->lp_slug }}",
+            pageType: "landing_success"
+        };
+    </script>
+    <script src="{{ asset('js/lp-analytics.js') }}"></script>
     
     <!-- Facebook Pixel Purchase Event -->
     <script>
         $(document).ready(function() {
+            // Track purchase completed for internal analytics
+            if (typeof window.lpTrack === 'function') {
+                window.lpTrack('purchase_completed', {
+                    value: {{ $order->amount }},
+                    currency: "{{ $order->currency }}",
+                    order_id: "{{ $order->order_token }}",
+                    payment_method: "{{ $order->payment_method }}"
+                });
+            }
+
             // Track Purchase event when success page loads
             if (typeof fbq !== 'undefined') {
                 fbq('track', 'Purchase', {

@@ -1058,11 +1058,25 @@
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Landing Page Analytics -->
+    <script>
+        window.LP_ANALYTICS_CONFIG = {
+            endpoint: "{{ url('/landing/track') }}",
+            lpId: {{ (int) $landing_page->lp_id }},
+            lpSlug: "{{ $landing_page->lp_slug }}",
+            pageType: "landing"
+        };
+    </script>
+    <script src="{{ asset('js/lp-analytics.js') }}"></script>
     
     <!-- Payment Modal Scripts -->
     <script>
         function showPaymentModal() {
             $('#paymentModal').modal('show');
+            if (typeof window.lpTrack === 'function') {
+                window.lpTrack('payment_modal_opened');
+            }
             // Track Lead event when payment modal is opened
             if (typeof fbq !== 'undefined') {
                 fbq('track', 'Lead', {
@@ -1090,10 +1104,17 @@
             
             // Enable submit button if email is filled
             checkFormValidity();
+
+            if (typeof window.lpTrack === 'function') {
+                window.lpTrack('payment_method_selected', { method: method });
+            }
         }
         
         // Track Buy Now button click
         function trackBuyNowClick() {
+            if (typeof window.lpTrack === 'function') {
+                window.lpTrack('buy_now_click');
+            }
             if (typeof fbq !== 'undefined') {
                 fbq('track', 'Lead', {
                     content_name: '{{ $landing_page->lp_title }}',
@@ -1118,6 +1139,10 @@
         
         // Track when payment form is submitted
         $('#paymentForm').on('submit', function() {
+            if (typeof window.lpTrack === 'function') {
+                const paymentMethod = $('input[name="payment_method"]:checked').val();
+                window.lpTrack('initiate_checkout', { method: paymentMethod || null, has_email: !!$('#customer_email').val() });
+            }
             if (typeof fbq !== 'undefined') {
                 const email = $('#customer_email').val();
                 const paymentMethod = $('input[name="payment_method"]:checked').val();
@@ -1175,11 +1200,18 @@
         // Chat Modal Functions
         function showChatModal() {
             $('#chatModal').modal('show');
+            if (typeof window.lpTrack === 'function') {
+                window.lpTrack('chat_opened');
+            }
         }
 
         // Handle chat form submission
         $('#chatForm').on('submit', function(e) {
             e.preventDefault();
+
+            if (typeof window.lpTrack === 'function') {
+                window.lpTrack('chat_message_submitted', { has_email: !!$('#lpm_email').val() });
+            }
             
             const submitBtn = $('#chatSubmitBtn');
             const originalText = submitBtn.html();
@@ -1195,6 +1227,9 @@
                 data: $(this).serialize(),
                 success: function(response) {
                     if (response.success) {
+                        if (typeof window.lpTrack === 'function') {
+                            window.lpTrack('chat_message_sent');
+                        }
                         // Show success message
                         $('#chatModal').modal('hide');
                         $('body').append('<div class="alert alert-success" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;"><i class="fas fa-check-circle mr-2"></i> ' + response.message + '</div>');
