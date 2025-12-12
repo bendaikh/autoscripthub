@@ -731,7 +731,40 @@
                 </div>
                 
                 <div class="col-lg-6">
-                    @if($landing_page->lp_banner_image)
+                    @if(!empty($landing_page->lp_youtube_url))
+                    <div class="hero-banner" style="border-radius: 20px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); overflow: hidden; margin-top: 30px; background: #000;">
+                        <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
+                            @php
+                                $youtube_url = $landing_page->lp_youtube_url;
+                                $video_id = '';
+                                
+                                // Extract video ID from various YouTube URL formats
+                                if (preg_match('/youtube\.com\/watch\?v=([^\&\?\/]+)/', $youtube_url, $matches)) {
+                                    $video_id = $matches[1];
+                                } elseif (preg_match('/youtube\.com\/embed\/([^\&\?\/]+)/', $youtube_url, $matches)) {
+                                    $video_id = $matches[1];
+                                } elseif (preg_match('/youtube\.com\/v\/([^\&\?\/]+)/', $youtube_url, $matches)) {
+                                    $video_id = $matches[1];
+                                } elseif (preg_match('/youtu\.be\/([^\&\?\/]+)/', $youtube_url, $matches)) {
+                                    $video_id = $matches[1];
+                                }
+                            @endphp
+                            @if($video_id)
+                            <iframe 
+                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+                                src="https://www.youtube.com/embed/{{ $video_id }}?rel=0&modestbranding=1" 
+                                title="Product Video Demo" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                allowfullscreen>
+                            </iframe>
+                            @else
+                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; background: #333;">
+                                <p>Invalid YouTube URL</p>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    @elseif($landing_page->lp_banner_image)
                     <div class="hero-banner">
                         <img src="{{ asset('storage/landing-pages/' . $landing_page->lp_banner_image) }}" alt="{{ $landing_page->lp_title }}">
                     </div>
@@ -756,43 +789,6 @@
                     @endif
                 </div>
                 @endforeach
-            </div>
-        </div>
-    </section>
-    @endif
-
-    <!-- Video Section -->
-    @if(!empty($landing_page->lp_youtube_url))
-    <section class="video-section">
-        <div class="container">
-            <h2 class="section-title">Watch Demo</h2>
-            <p class="section-subtitle">See it in action</p>
-            <div class="video-container">
-                <div class="video-wrapper">
-                    @php
-                        $youtube_url = $landing_page->lp_youtube_url;
-                        $video_id = '';
-                        
-                        // Extract video ID from various YouTube URL formats
-                        if (preg_match('/youtube\.com\/watch\?v=([^\&\?\/]+)/', $youtube_url, $matches)) {
-                            $video_id = $matches[1];
-                        } elseif (preg_match('/youtube\.com\/embed\/([^\&\?\/]+)/', $youtube_url, $matches)) {
-                            $video_id = $matches[1];
-                        } elseif (preg_match('/youtube\.com\/v\/([^\&\?\/]+)/', $youtube_url, $matches)) {
-                            $video_id = $matches[1];
-                        } elseif (preg_match('/youtu\.be\/([^\&\?\/]+)/', $youtube_url, $matches)) {
-                            $video_id = $matches[1];
-                        }
-                    @endphp
-                    @if($video_id)
-                    <iframe 
-                        src="https://www.youtube.com/embed/{{ $video_id }}" 
-                        title="Product Video" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                        allowfullscreen>
-                    </iframe>
-                    @endif
-                </div>
             </div>
         </div>
     </section>
