@@ -67,13 +67,13 @@ class LandingPagePublicController extends Controller
         $landing_page = LandingPage::getBySlug($slug);
         
         if (!$landing_page) {
-            Session::flash('error', 'Product not found');
+            Session::flash('error', __('Product not found'));
             return redirect()->back();
         }
 
         // Check if user is logged in
         if (!Auth::check()) {
-            Session::flash('error', 'Please login to purchase');
+            Session::flash('error', __('Please login to purchase'));
             return redirect('/login');
         }
 
@@ -91,7 +91,7 @@ class LandingPagePublicController extends Controller
             ->first();
 
         if ($existing_order) {
-            Session::flash('info', 'This product is already in your cart');
+            Session::flash('info', __('This product is already in your cart'));
             return redirect('/cart');
         }
 
@@ -118,7 +118,7 @@ class LandingPagePublicController extends Controller
 
         \DB::table('item_order')->insert($order_data);
 
-        Session::flash('success', 'Product added to cart successfully!');
+        Session::flash('success', __('Product added to cart successfully!'));
         return redirect('/cart');
     }
 
@@ -130,13 +130,13 @@ class LandingPagePublicController extends Controller
         $landing_page = LandingPage::getBySlug($slug);
         
         if (!$landing_page) {
-            Session::flash('error', 'Product not found');
+            Session::flash('error', __('Product not found'));
             return redirect()->back();
         }
 
         // Check if user is logged in
         if (!Auth::check()) {
-            Session::flash('error', 'Please login to purchase');
+            Session::flash('error', __('Please login to purchase'));
             return redirect('/login');
         }
 
@@ -187,7 +187,7 @@ class LandingPagePublicController extends Controller
         $landing_page = LandingPage::getBySlug($slug);
         
         if (!$landing_page) {
-            Session::flash('error', 'Product not found');
+            Session::flash('error', __('Product not found'));
             return redirect()->back();
         }
 
@@ -240,7 +240,7 @@ class LandingPagePublicController extends Controller
             return $this->processDodoPayments($landing_page, $order_token);
         }
 
-        Session::flash('error', 'Invalid payment method');
+        Session::flash('error', __('Invalid payment method'));
         return redirect()->back();
     }
 
@@ -380,7 +380,7 @@ class LandingPagePublicController extends Controller
             ->first();
 
         if (!$order) {
-            Session::flash('error', 'Order not found');
+            Session::flash('error', __('Order not found'));
             return redirect('/');
         }
 
@@ -409,7 +409,7 @@ class LandingPagePublicController extends Controller
         $landing_page = LandingPage::getById($order->lp_id);
         
         if (!$landing_page) {
-            Session::flash('error', 'Product not found');
+            Session::flash('error', __('Product not found'));
             return redirect('/');
         }
 
@@ -434,7 +434,7 @@ class LandingPagePublicController extends Controller
             ->first();
 
         if (!$order) {
-            Session::flash('error', 'Order not found or not completed');
+            Session::flash('error', __('Order not found or not completed'));
             return redirect('/');
         }
 
@@ -442,14 +442,14 @@ class LandingPagePublicController extends Controller
         $landing_page = LandingPage::getById($order->lp_id);
         
         if (!$landing_page) {
-            Session::flash('error', 'Product not found');
+            Session::flash('error', __('Product not found'));
             return redirect()->back();
         }
 
         // Handle link delivery method
         if ($landing_page->lp_delivery_method == 'link') {
             if (!$landing_page->lp_product_link) {
-                Session::flash('error', 'Product link not found');
+                Session::flash('error', __('Product link not found'));
                 return redirect()->back();
             }
             
@@ -459,7 +459,7 @@ class LandingPagePublicController extends Controller
 
         // Handle file/folder upload delivery method
         if (!$landing_page->lp_product_file) {
-            Session::flash('error', 'Product file not found');
+            Session::flash('error', __('Product file not found'));
             return redirect()->back();
         }
 
@@ -468,7 +468,7 @@ class LandingPagePublicController extends Controller
             $folderPath = public_path('storage/landing-products/' . $landing_page->lp_product_file);
             
             if (!file_exists($folderPath)) {
-                Session::flash('error', 'Product files not found');
+                Session::flash('error', __('Product files not found'));
                 return redirect()->back();
             }
 
@@ -496,7 +496,7 @@ class LandingPagePublicController extends Controller
                 // Download and then delete the zip
                 return response()->download($zipFilePath)->deleteFileAfterSend(true);
             } else {
-                Session::flash('error', 'Could not create download archive');
+                Session::flash('error', __('Could not create download archive'));
                 return redirect()->back();
             }
         } else {
@@ -504,7 +504,7 @@ class LandingPagePublicController extends Controller
             $filePath = public_path('storage/landing-products/' . $landing_page->lp_product_file);
             
             if (!file_exists($filePath)) {
-                Session::flash('error', 'Product file not found');
+                Session::flash('error', __('Product file not found'));
                 return redirect()->back();
             }
 
@@ -522,7 +522,7 @@ class LandingPagePublicController extends Controller
         if (!$landing_page) {
             return response()->json([
                 'success' => false,
-                'message' => 'Landing page not found'
+                'message' => __('Landing page not found')
             ], 404);
         }
 
@@ -539,7 +539,7 @@ class LandingPagePublicController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Validation failed',
+                'message' => __('Validation failed'),
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -561,7 +561,7 @@ class LandingPagePublicController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Your message has been sent successfully! We will get back to you soon.'
+            'message' => __('Your message has been sent successfully! We will get back to you soon.')
         ]);
     }
 }

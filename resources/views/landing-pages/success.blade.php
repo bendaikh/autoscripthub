@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() == 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     
-    <title>Purchase Successful - {{ $landing_page->lp_title }}</title>
+    <title>{{ __('Purchase Successful') }} - {{ $landing_page->lp_title }}</title>
     
     <!-- Meta Pixel Code -->
     <script>
@@ -34,6 +34,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    @if(app()->getLocale() == 'ar')
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    @endif
     
     <style>
         * {
@@ -43,7 +46,7 @@
         }
         
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: {{ app()->getLocale() == 'ar' ? "'Noto Sans Arabic', 'Inter', sans-serif" : "'Inter', sans-serif" }};
             color: #333;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
@@ -52,6 +55,17 @@
             justify-content: center;
             padding: 20px;
         }
+
+        @if(app()->getLocale() == 'ar')
+        html[dir="rtl"] body {
+            direction: rtl;
+            text-align: right;
+        }
+
+        html[dir="rtl"] .order-details {
+            text-align: right;
+        }
+        @endif
         
         .success-container {
             background: white;
@@ -230,37 +244,37 @@
         </div>
         
         <!-- Success Title -->
-        <h1 class="success-title">Payment Successful!</h1>
+        <h1 class="success-title">{{ __('Payment Successful!') }}</h1>
         <p class="success-message">
-            Thank you for your purchase! Your order has been completed successfully.
+            {{ __('Thank you for your purchase! Your order has been completed successfully.') }}
         </p>
         
         <!-- Email Info -->
         <div class="email-info">
             <i class="fas fa-envelope mr-2"></i>
-            <strong>Order confirmation sent to:</strong> {{ $order->customer_email }}
+            <strong>{{ __('Order confirmation sent to:') }}</strong> {{ $order->customer_email }}
         </div>
         
         <!-- Order Details -->
         <div class="order-details">
             <div class="order-detail-row">
-                <span class="order-detail-label">Order Token:</span>
+                <span class="order-detail-label">{{ __('Order Token:') }}</span>
                 <span class="order-detail-value">{{ $order->order_token }}</span>
             </div>
             <div class="order-detail-row">
-                <span class="order-detail-label">Product:</span>
+                <span class="order-detail-label">{{ __('Product:') }}</span>
                 <span class="order-detail-value">{{ $landing_page->lp_title }}</span>
             </div>
             <div class="order-detail-row">
-                <span class="order-detail-label">Amount Paid:</span>
+                <span class="order-detail-label">{{ __('Amount Paid:') }}</span>
                 <span class="order-detail-value">{{ $order->currency }} {{ number_format($order->amount, 2) }}</span>
             </div>
             <div class="order-detail-row">
-                <span class="order-detail-label">Payment Method:</span>
+                <span class="order-detail-label">{{ __('Payment Method:') }}</span>
                 <span class="order-detail-value">{{ ucfirst($order->payment_method) }}</span>
             </div>
             <div class="order-detail-row">
-                <span class="order-detail-label">Date:</span>
+                <span class="order-detail-label">{{ __('Date:') }}</span>
                 <span class="order-detail-value">{{ date('F d, Y - h:i A', strtotime($order->completed_at)) }}</span>
             </div>
         </div>
@@ -269,30 +283,30 @@
         @if($landing_page->lp_delivery_method == 'link' && $landing_page->lp_product_link)
         <div class="download-section">
             <div class="download-title">
-                <i class="fas fa-download mr-2"></i>Download Your Product
+                <i class="fas fa-download mr-2"></i>{{ __('Download Your Product') }}
             </div>
             <p class="download-description">
-                Your purchase is ready! Click the button below to access your download link.
+                {{ __('Your purchase is ready! Click the button below to access your download link.') }}
             </p>
             <a href="{{ url('/landing/download/' . $order->order_token) }}" class="btn-download" target="_blank">
-                <i class="fas fa-external-link-alt mr-2"></i>Access Download Link
+                <i class="fas fa-external-link-alt mr-2"></i>{{ __('Access Download Link') }}
             </a>
         </div>
         @elseif($landing_page->lp_delivery_method == 'upload' && $landing_page->lp_product_file)
         <div class="download-section">
             <div class="download-title">
-                <i class="fas fa-download mr-2"></i>Download Your Product
+                <i class="fas fa-download mr-2"></i>{{ __('Download Your Product') }}
             </div>
             <p class="download-description">
-                Your purchase is ready! Click the button below to download your 
+                {{ __('Your purchase is ready! Click the button below to download your') }}
                 @if($landing_page->lp_product_file_type == 'folder')
-                    files (folder will be downloaded as ZIP).
+                    {{ __('files (folder will be downloaded as ZIP).') }}
                 @else
-                    file.
+                    {{ __('file.') }}
                 @endif
             </p>
             <a href="{{ url('/landing/download/' . $order->order_token) }}" class="btn-download">
-                <i class="fas fa-download mr-2"></i>Download Now
+                <i class="fas fa-download mr-2"></i>{{ __('Download Now') }}
             </a>
         </div>
         @endif
@@ -300,13 +314,13 @@
         <!-- Additional Info -->
         <p style="color: #718096; font-size: 0.9rem; margin-top: 20px;">
             <i class="fas fa-info-circle mr-1"></i>
-            Keep this page bookmarked or save your order token to download your files again later.
+            {{ __('Keep this page bookmarked or save your order token to download your files again later.') }}
         </p>
         
         <!-- Home Button -->
         @if(isset($setting->site_title))
         <a href="{{ url('/') }}" class="btn-home">
-            <i class="fas fa-home mr-2"></i>Back to Home
+            <i class="fas fa-home mr-2"></i>{{ __('Back to Home') }}
         </a>
         @endif
     </div>

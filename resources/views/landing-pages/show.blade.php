@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() == 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -45,6 +45,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    @if(app()->getLocale() == 'ar')
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    @endif
     
     <style>
         * {
@@ -54,10 +57,87 @@
         }
         
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: {{ app()->getLocale() == 'ar' ? "'Noto Sans Arabic', 'Inter', sans-serif" : "'Inter', sans-serif" }};
             color: #333;
             background-color: #fff;
             overflow-x: hidden;
+        }
+
+        @if(app()->getLocale() == 'ar')
+        html[dir="rtl"] body {
+            direction: rtl;
+            text-align: right;
+        }
+
+        html[dir="rtl"] .btn-secondary-custom {
+            margin-left: 0;
+            margin-right: 15px;
+        }
+
+        html[dir="rtl"] .price-extended {
+            margin-left: 0;
+            margin-right: 15px;
+        }
+
+        html[dir="rtl"] .price-currency {
+            margin-right: 0;
+            margin-left: 5px;
+        }
+
+        html[dir="rtl"] .description-content ul,
+        html[dir="rtl"] .description-content ol {
+            padding-left: 0;
+            padding-right: 30px;
+        }
+
+        html[dir="rtl"] .chat-icon {
+            right: auto;
+            left: 30px;
+        }
+
+        html[dir="rtl"] .chat-badge {
+            right: auto;
+            left: -5px;
+        }
+
+        html[dir="rtl"] .payment-option input[type="radio"] {
+            margin-right: 0;
+            margin-left: 15px;
+        }
+
+        html[dir="rtl"] .landing-lang-switcher {
+            margin-left: 0;
+            margin-right: 15px;
+        }
+
+        @media (max-width: 768px) {
+            html[dir="rtl"] .chat-icon {
+                right: auto;
+                left: 20px;
+            }
+        }
+        @endif
+
+        .landing-lang-switcher .dropdown-toggle {
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .landing-lang-switcher .dropdown-toggle:hover {
+            text-decoration: none;
+            color: #764ba2;
+            border-color: #667eea;
+        }
+
+        .landing-lang-switcher .dropdown-menu {
+            min-width: 140px;
         }
         
         /* Hero Section */
@@ -675,8 +755,17 @@
                         {{ $setting->site_title ?? 'Home' }}
                     @endif
                 </a>
-                <div>
-                    <!-- No login/register buttons for landing pages -->
+                <div class="d-flex align-items-center">
+                    <div class="dropdown landing-lang-switcher">
+                        <a class="dropdown-toggle" href="javascript:void(0);" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-globe"></i> {{ __('Language') }}
+                        </a>
+                        <div class="dropdown-menu {{ app()->getLocale() == 'ar' ? 'dropdown-menu-left' : 'dropdown-menu-right' }}">
+                            @foreach($available_locales as $locale_name => $available_locale)
+                            <a class="dropdown-item {{ app()->getLocale() == $available_locale ? 'active font-weight-bold' : '' }}" href="{{ url('/language/' . $available_locale) }}">{{ $locale_name }}</a>
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -725,7 +814,7 @@
                     
                     <div class="hero-actions">
                         <button type="button" class="btn-primary-custom" onclick="showPaymentModal(); trackBuyNowClick();">
-                            <i class="fas fa-shopping-cart mr-2"></i> Buy Now
+                            <i class="fas fa-shopping-cart mr-2"></i> {{ __('Buy Now') }}
                         </button>
                     </div>
                 </div>
@@ -753,13 +842,13 @@
                             <iframe 
                                 style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
                                 src="https://www.youtube.com/embed/{{ $video_id }}?rel=0&modestbranding=1" 
-                                title="Product Video Demo" 
+                                title="{{ __('Product Video Demo') }}" 
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                                 allowfullscreen>
                             </iframe>
                             @else
                             <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; background: #333;">
-                                <p>Invalid YouTube URL</p>
+                                <p>{{ __('Invalid YouTube URL') }}</p>
                             </div>
                             @endif
                         </div>
@@ -781,7 +870,7 @@
             <div class="gallery-grid">
                 @foreach($gallery_images as $image)
                 <div class="gallery-item">
-                    <img src="{{ asset('storage/landing-pages/' . $image->lpg_image) }}" alt="{{ $image->lpg_description ?? 'Product Image' }}">
+                    <img src="{{ asset('storage/landing-pages/' . $image->lpg_image) }}" alt="{{ $image->lpg_description ?? __('Product Image') }}">
                     @if(!empty($image->lpg_description))
                     <div class="gallery-item-content">
                         <p class="gallery-item-description">{{ $image->lpg_description }}</p>
@@ -798,8 +887,8 @@
     @if(count($features) > 0)
     <section class="features-section">
         <div class="container">
-            <h2 class="section-title">Key Features</h2>
-            <p class="section-subtitle">Everything you need to succeed</p>
+            <h2 class="section-title">{{ __('Key Features') }}</h2>
+            <p class="section-subtitle">{{ __('Everything you need to succeed') }}</p>
             
             <div class="row">
                 @foreach($features as $index => $feature)
@@ -814,7 +903,7 @@
                             <i class="{{ $icon }}"></i>
                         </div>
                         <h3 class="feature-title">{{ $feature }}</h3>
-                        <p class="feature-description">Experience the power of this amazing feature that helps you achieve your goals faster and more efficiently.</p>
+                        <p class="feature-description">{{ __('Experience the power of this amazing feature that helps you achieve your goals faster and more efficiently.') }}</p>
                     </div>
                 </div>
                 @endif
@@ -837,8 +926,8 @@
     @if(!empty($landing_page->lp_what_you_get))
     <section class="what-you-get-section" style="padding: 80px 0; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
         <div class="container">
-            <h2 class="section-title">What You'll Get After Payment</h2>
-            <p class="section-subtitle">Here's exactly what you'll receive when you complete your purchase</p>
+            <h2 class="section-title">{{ __('What You\'ll Get After Payment') }}</h2>
+            <p class="section-subtitle">{{ __('Here\'s exactly what you\'ll receive when you complete your purchase') }}</p>
             <div class="what-you-get-content" style="max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);">
                 <div class="description-content">
                     {!! $landing_page->lp_what_you_get !!}
@@ -851,14 +940,14 @@
     <!-- CTA Section -->
     <section class="cta-section">
         <div class="container">
-            <h2 class="cta-title">Ready to Get Started?</h2>
-            <p class="cta-subtitle">Join thousands of satisfied customers today!</p>
+            <h2 class="cta-title">{{ __('Ready to Get Started?') }}</h2>
+            <p class="cta-subtitle">{{ __('Join thousands of satisfied customers today!') }}</p>
             <div class="price-display justify-content-center">
                 <span class="price-currency">{{ $price_data['symbol'] }}</span>
                 <span class="price-amount">{{ number_format($price_data['price'], 2) }}</span>
             </div>
             <button type="button" class="btn-primary-custom" onclick="showPaymentModal(); trackBuyNowClick();">
-                <i class="fas fa-shopping-cart mr-2"></i> Purchase Now
+                <i class="fas fa-shopping-cart mr-2"></i> {{ __('Purchase Now') }}
             </button>
         </div>
     </section>
@@ -872,8 +961,8 @@
                     <div class="trust-icon">
                         <i class="fas fa-shield-alt"></i>
                     </div>
-                    <h3 class="trust-title">Secure Payments</h3>
-                    <p class="trust-description">Your payment information is protected with industry-standard SSL encryption. All transactions are 100% secure.</p>
+                    <h3 class="trust-title">{{ __('Secure Payments') }}</h3>
+                    <p class="trust-description">{{ __('Your payment information is protected with industry-standard SSL encryption. All transactions are 100% secure.') }}</p>
                     <div class="payment-icons">
                         <i class="fab fa-cc-visa"></i>
                         <i class="fab fa-cc-mastercard"></i>
@@ -887,8 +976,8 @@
                     <div class="trust-icon">
                         <i class="fab fa-paypal"></i>
                     </div>
-                    <h3 class="trust-title">PayPal Protected</h3>
-                    <p class="trust-description">Pay safely with PayPal's Buyer Protection. Your purchase is protected and you can shop with confidence.</p>
+                    <h3 class="trust-title">{{ __('PayPal Protected') }}</h3>
+                    <p class="trust-description">{{ __('Pay safely with PayPal\'s Buyer Protection. Your purchase is protected and you can shop with confidence.') }}</p>
                 </div>
                 
                 <!-- Money Back Guarantee -->
@@ -896,8 +985,8 @@
                     <div class="trust-icon">
                         <i class="fas fa-undo-alt"></i>
                     </div>
-                    <h3 class="trust-title">Refund Policy</h3>
-                    <p class="trust-description">Not satisfied? We offer hassle-free refunds. Your satisfaction is our priority and we stand behind our products.</p>
+                    <h3 class="trust-title">{{ __('Refund Policy') }}</h3>
+                    <p class="trust-description">{{ __('Not satisfied? We offer hassle-free refunds. Your satisfaction is our priority and we stand behind our products.') }}</p>
                 </div>
                 
                 <!-- Customer Support -->
@@ -905,8 +994,8 @@
                     <div class="trust-icon">
                         <i class="fas fa-headset"></i>
                     </div>
-                    <h3 class="trust-title">Premium Support</h3>
-                    <p class="trust-description">Get help when you need it. Our dedicated support team is here to assist you with any questions or concerns.</p>
+                    <h3 class="trust-title">{{ __('Premium Support') }}</h3>
+                    <p class="trust-description">{{ __('Get help when you need it. Our dedicated support team is here to assist you with any questions or concerns.') }}</p>
                 </div>
             </div>
         </div>
@@ -915,10 +1004,10 @@
     <!-- Footer -->
     <footer style="background: #2d3748; color: white; padding: 40px 0; text-align: center;">
         <div class="container">
-            <p>&copy; {{ date('Y') }} {{ $setting->site_title ?? 'Your Site' }}. All rights reserved.</p>
+            <p>&copy; {{ date('Y') }} {{ $setting->site_title ?? 'Your Site' }}. {{ __('All rights reserved.') }}</p>
             <p class="mt-2">
-                <a href="{{ url('/') }}" style="color: white; margin: 0 15px;">Home</a>
-                <a href="{{ url('/contact') }}" style="color: white; margin: 0 15px;">Contact</a>
+                <a href="{{ url('/') }}" style="color: white; margin: 0 15px;">{{ __('Home') }}</a>
+                <a href="{{ url('/contact') }}" style="color: white; margin: 0 15px;">{{ __('Contact') }}</a>
                 @if(isset($setting->site_email))
                 <a href="mailto:{{ $setting->site_email }}" style="color: white; margin: 0 15px;">{{ $setting->site_email }}</a>
                 @endif
@@ -927,7 +1016,7 @@
     </footer>
 
     <!-- Chat Icon -->
-    <div class="chat-icon" onclick="showChatModal()" title="Send us a message">
+    <div class="chat-icon" onclick="showChatModal()" title="{{ __('Send us a message') }}">
         <i class="fas fa-comments"></i>
     </div>
 
@@ -937,9 +1026,9 @@
             <div class="modal-content chat-modal-content">
                 <div class="modal-header chat-modal-header">
                     <h5 class="modal-title" id="chatModalLabel">
-                        <i class="fas fa-comments mr-2"></i> Send us a Message
+                        <i class="fas fa-comments mr-2"></i> {{ __('Send us a Message') }}
                     </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white;">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('Close') }}" style="color: white;">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -949,32 +1038,32 @@
                         <input type="hidden" name="lp_id" value="{{ $landing_page->lp_id }}">
                         
                         <div class="chat-form-group">
-                            <label for="lpm_name">Your Name <span style="color: red;">*</span></label>
-                            <input type="text" name="lpm_name" id="lpm_name" class="form-control" required placeholder="Enter your name">
+                            <label for="lpm_name">{{ __('Your Name') }} <span style="color: red;">*</span></label>
+                            <input type="text" name="lpm_name" id="lpm_name" class="form-control" required placeholder="{{ __('Enter your name') }}">
                         </div>
 
                         <div class="chat-form-group">
-                            <label for="lpm_email">Your Email <span style="color: red;">*</span></label>
-                            <input type="email" name="lpm_email" id="lpm_email" class="form-control" required placeholder="Enter your email">
+                            <label for="lpm_email">{{ __('Your Email') }} <span style="color: red;">*</span></label>
+                            <input type="email" name="lpm_email" id="lpm_email" class="form-control" required placeholder="{{ __('Enter your email') }}">
                         </div>
 
                         <div class="chat-form-group">
-                            <label for="lpm_phone">Phone Number (Optional)</label>
-                            <input type="text" name="lpm_phone" id="lpm_phone" class="form-control" placeholder="Enter your phone number">
+                            <label for="lpm_phone">{{ __('Phone Number (Optional)') }}</label>
+                            <input type="text" name="lpm_phone" id="lpm_phone" class="form-control" placeholder="{{ __('Enter your phone number') }}">
                         </div>
 
                         <div class="chat-form-group">
-                            <label for="lpm_subject">Subject (Optional)</label>
-                            <input type="text" name="lpm_subject" id="lpm_subject" class="form-control" placeholder="Enter subject">
+                            <label for="lpm_subject">{{ __('Subject (Optional)') }}</label>
+                            <input type="text" name="lpm_subject" id="lpm_subject" class="form-control" placeholder="{{ __('Enter subject') }}">
                         </div>
 
                         <div class="chat-form-group">
-                            <label for="lpm_message">Message <span style="color: red;">*</span></label>
-                            <textarea name="lpm_message" id="lpm_message" class="form-control" rows="5" required placeholder="Enter your message..."></textarea>
+                            <label for="lpm_message">{{ __('Message') }} <span style="color: red;">*</span></label>
+                            <textarea name="lpm_message" id="lpm_message" class="form-control" rows="5" required placeholder="{{ __('Enter your message...') }}"></textarea>
                         </div>
 
                         <button type="submit" class="chat-submit-btn" id="chatSubmitBtn">
-                            <i class="fas fa-paper-plane mr-2"></i> Send Message
+                            <i class="fas fa-paper-plane mr-2"></i> {{ __('Send Message') }}
                         </button>
                     </form>
                 </div>
@@ -988,9 +1077,9 @@
             <div class="modal-content" style="border-radius: 15px; border: none; overflow: hidden;">
                 <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
                     <h5 class="modal-title" id="paymentModalLabel">
-                        <i class="fas fa-lock mr-2"></i> Choose Payment Method
+                        <i class="fas fa-lock mr-2"></i> {{ __('Choose Payment Method') }}
                     </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white;">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('Close') }}" style="color: white;">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -1008,12 +1097,12 @@
                         <!-- Email Field (Mandatory) -->
                         <div class="form-group">
                             <label for="customer_email" style="font-weight: 600; color: #2d3748;">
-                                <i class="fas fa-envelope mr-2"></i>Email Address <span style="color: red;">*</span>
+                                <i class="fas fa-envelope mr-2"></i>{{ __('Email Address') }} <span style="color: red;">*</span>
                             </label>
                             <input type="email" name="customer_email" id="customer_email" class="form-control" 
-                                   placeholder="Enter your email address" required
+                                   placeholder="{{ __('Enter your email address') }}" required
                                    style="padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem;">
-                            <small style="color: #718096;">We'll send your purchase details to this email</small>
+                            <small style="color: #718096;">{{ __('We\'ll send your purchase details to this email') }}</small>
                         </div>
                         
                         <!-- PayPal Option -->
@@ -1022,9 +1111,9 @@
                                 <input type="radio" name="payment_method" id="paypal_radio" value="paypal" style="width: 20px; height: 20px; margin-right: 15px;">
                                 <div class="flex-grow-1">
                                     <h5 style="margin: 0; font-weight: 600; color: #2d3748;">
-                                        <i class="fab fa-paypal" style="color: #0070ba; font-size: 1.5rem;"></i> PayPal
+                                        <i class="fab fa-paypal" style="color: #0070ba; font-size: 1.5rem;"></i> {{ __('PayPal') }}
                                     </h5>
-                                    <p style="margin: 5px 0 0 0; color: #718096; font-size: 0.9rem;">The safer, easier way to pay</p>
+                                    <p style="margin: 5px 0 0 0; color: #718096; font-size: 0.9rem;">{{ __('the safer, easier way to pay') }}</p>
                                 </div>
                             </div>
                         </div>
@@ -1035,20 +1124,20 @@
                                 <input type="radio" name="payment_method" id="dodopayments_radio" value="dodopayments" style="width: 20px; height: 20px; margin-right: 15px;">
                                 <div class="flex-grow-1">
                                     <h5 style="margin: 0; font-weight: 600; color: #2d3748;">
-                                        <i class="fas fa-credit-card" style="color: #667eea; font-size: 1.5rem;"></i> Credit/Debit Card
+                                        <i class="fas fa-credit-card" style="color: #667eea; font-size: 1.5rem;"></i> {{ __('Credit/Debit Card') }}
                                     </h5>
-                                    <p style="margin: 5px 0 0 0; color: #718096; font-size: 0.9rem;">Pay securely with your card</p>
+                                    <p style="margin: 5px 0 0 0; color: #718096; font-size: 0.9rem;">{{ __('Pay securely with your card') }}</p>
                                 </div>
                             </div>
                         </div>
 
                         <button type="submit" id="paymentBtn" class="btn btn-block" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; font-size: 1.1rem; font-weight: 600; border-radius: 10px; border: none; transition: all 0.3s;" disabled>
-                            <i class="fas fa-lock mr-2"></i> Proceed to Payment
+                            <i class="fas fa-lock mr-2"></i> {{ __('Proceed to Payment') }}
                         </button>
                     </form>
 
                     <div class="text-center mt-3" style="color: #718096; font-size: 0.85rem;">
-                        <i class="fas fa-shield-alt mr-1"></i> Secure payment • <i class="fas fa-lock mr-1"></i> SSL encrypted
+                        <i class="fas fa-shield-alt mr-1"></i> {{ __('Secure payment • SSL encrypted') }}
                     </div>
                 </div>
             </div>
@@ -1218,7 +1307,7 @@
             
             // Disable button and show loading
             submitBtn.prop('disabled', true);
-            submitBtn.html('<i class="fas fa-spinner fa-spin mr-2"></i> Sending...');
+            submitBtn.html('<i class="fas fa-spinner fa-spin mr-2"></i> {{ __('Sending...') }}');
             
             // Submit form via AJAX
             $.ajax({
@@ -1244,13 +1333,13 @@
                             });
                         }, 5000);
                     } else {
-                        alert(response.message || 'An error occurred. Please try again.');
+                        alert(response.message || '{{ __('An error occurred. Please try again.') }}');
                         submitBtn.prop('disabled', false);
                         submitBtn.html(originalText);
                     }
                 },
                 error: function(xhr) {
-                    let errorMessage = 'An error occurred. Please try again.';
+                    let errorMessage = '{{ __('An error occurred. Please try again.') }}';
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         errorMessage = xhr.responseJSON.message;
                     } else if (xhr.responseJSON && xhr.responseJSON.errors) {
@@ -1268,7 +1357,7 @@
         $('#chatModal').on('hidden.bs.modal', function() {
             $('#chatForm')[0].reset();
             $('#chatSubmitBtn').prop('disabled', false);
-            $('#chatSubmitBtn').html('<i class="fas fa-paper-plane mr-2"></i> Send Message');
+            $('#chatSubmitBtn').html('<i class="fas fa-paper-plane mr-2"></i> {{ __('Send Message') }}');
         });
     </script>
 </body>
