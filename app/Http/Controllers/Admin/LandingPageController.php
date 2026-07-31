@@ -65,7 +65,11 @@ class LandingPageController extends Controller
         $banner_image = null;
         if ($request->hasFile('lp_banner_image')) {
             $image = $request->file('lp_banner_image');
-            $banner_image = time() . '_' . $image->getClientOriginalName();
+            $bannerError = \Fickrr\Helpers\SecureUpload::validateImage($image);
+            if ($bannerError !== null) {
+                return redirect()->back()->with('error', $bannerError)->withInput();
+            }
+            $banner_image = \Fickrr\Helpers\SecureUpload::safeFilename(\Fickrr\Helpers\SecureUpload::extension($image));
             $image->move(public_path('storage/landing-pages'), $banner_image);
         }
 
@@ -92,6 +96,7 @@ class LandingPageController extends Controller
             // Handle product file/folder upload
             if ($request->hasFile('lp_product_file')) {
                 $files = $request->file('lp_product_file');
+                $productAllowed = ['zip', 'rar', '7z', 'tar', 'gz', 'pdf', 'jpg', 'jpeg', 'png', 'webp', 'gif', 'mp4', 'mp3'];
                 
                 if (is_array($files) && count($files) > 1) {
                     // Multiple files - folder upload
@@ -104,7 +109,11 @@ class LandingPageController extends Controller
                     }
                     
                     foreach ($files as $file) {
-                        $fileName = $file->getClientOriginalName();
+                        $err = \Fickrr\Helpers\SecureUpload::validateItemFile($file, $productAllowed);
+                        if ($err !== null) {
+                            return redirect()->back()->with('error', $err)->withInput();
+                        }
+                        $fileName = \Fickrr\Helpers\SecureUpload::safeFilename(\Fickrr\Helpers\SecureUpload::extension($file));
                         $file->move($folderPath, $fileName);
                     }
                     
@@ -113,7 +122,11 @@ class LandingPageController extends Controller
                     // Single file upload
                     $product_file_type = 'file';
                     $file = is_array($files) ? $files[0] : $files;
-                    $product_file = time() . '_' . $file->getClientOriginalName();
+                    $err = \Fickrr\Helpers\SecureUpload::validateItemFile($file, $productAllowed);
+                    if ($err !== null) {
+                        return redirect()->back()->with('error', $err)->withInput();
+                    }
+                    $product_file = \Fickrr\Helpers\SecureUpload::safeFilename(\Fickrr\Helpers\SecureUpload::extension($file));
                     $file->move(public_path('storage/landing-products'), $product_file);
                 }
             }
@@ -229,7 +242,11 @@ class LandingPageController extends Controller
             }
             
             $image = $request->file('lp_banner_image');
-            $banner_image = time() . '_' . $image->getClientOriginalName();
+            $bannerError = \Fickrr\Helpers\SecureUpload::validateImage($image);
+            if ($bannerError !== null) {
+                return redirect()->back()->with('error', $bannerError)->withInput();
+            }
+            $banner_image = \Fickrr\Helpers\SecureUpload::safeFilename(\Fickrr\Helpers\SecureUpload::extension($image));
             $image->move(public_path('storage/landing-pages'), $banner_image);
         }
 
@@ -287,6 +304,7 @@ class LandingPageController extends Controller
                 }
                 
                 $files = $request->file('lp_product_file');
+                $productAllowed = ['zip', 'rar', '7z', 'tar', 'gz', 'pdf', 'jpg', 'jpeg', 'png', 'webp', 'gif', 'mp4', 'mp3'];
                 
                 if (is_array($files) && count($files) > 1) {
                     // Multiple files - folder upload
@@ -299,7 +317,11 @@ class LandingPageController extends Controller
                     }
                     
                     foreach ($files as $file) {
-                        $fileName = $file->getClientOriginalName();
+                        $err = \Fickrr\Helpers\SecureUpload::validateItemFile($file, $productAllowed);
+                        if ($err !== null) {
+                            return redirect()->back()->with('error', $err)->withInput();
+                        }
+                        $fileName = \Fickrr\Helpers\SecureUpload::safeFilename(\Fickrr\Helpers\SecureUpload::extension($file));
                         $file->move($folderPath, $fileName);
                     }
                     
@@ -308,7 +330,11 @@ class LandingPageController extends Controller
                     // Single file upload
                     $product_file_type = 'file';
                     $file = is_array($files) ? $files[0] : $files;
-                    $product_file = time() . '_' . $file->getClientOriginalName();
+                    $err = \Fickrr\Helpers\SecureUpload::validateItemFile($file, $productAllowed);
+                    if ($err !== null) {
+                        return redirect()->back()->with('error', $err)->withInput();
+                    }
+                    $product_file = \Fickrr\Helpers\SecureUpload::safeFilename(\Fickrr\Helpers\SecureUpload::extension($file));
                     $file->move(public_path('storage/landing-products'), $product_file);
                 }
             }

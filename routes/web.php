@@ -566,11 +566,11 @@ Route::get('/user-verify/{user_token}', 'CommonController@user_verify');
 
 
 /* item */
-Route::post('/upload', 'CommonController@upload');
+Route::post('/upload', 'CommonController@upload')->middleware('auth');
 
-Route::post('/fileupload', ['as' => 'fileupload','uses'=>'ItemController@fileupload']);
-Route::get('/upload-item/{itemtype}', 'ItemController@upload_item');
-Route::post('/upload-item', ['as' => 'upload-item','uses'=>'ItemController@save_items']);
+Route::post('/fileupload', ['as' => 'fileupload','uses'=>'ItemController@fileupload'])->middleware('auth');
+Route::get('/upload-item/{itemtype}', 'ItemController@upload_item')->middleware('auth');
+Route::post('/upload-item', ['as' => 'upload-item','uses'=>'ItemController@save_items'])->middleware('auth');
 
 Route::get('/manage-item', 'ItemController@manage_item')->middleware('cacheable:5');
 Route::get('/manage-item/{token}', 'ItemController@delete_item_request');
@@ -941,23 +941,6 @@ Route::post('/landing/{slug}/send-message', 'LandingPagePublicController@sendMes
 Route::get('/landing/success/{order_token}', 'LandingPagePublicController@success')->name('landing-page.success');
 Route::get('/landing/download/{order_token}', 'LandingPagePublicController@download')->name('landing-page.download');
 
-// Debug route for currency conversion testing (remove in production)
-Route::get('/test-currency/{country?}', function($country = null) {
-    $ip = request()->ip();
-    $detectedCountry = $country ?? \Fickrr\Helpers\Helper::getVisitorCountry($ip);
-    $currencyCode = \Fickrr\Helpers\Helper::countryToCurrency($detectedCountry);
-    $testPrice = 12; // $12 USD
-    $converted = \Fickrr\Helpers\Helper::convertPriceToLocalCurrency($testPrice, $detectedCountry);
-    
-    return response()->json([
-        'ip' => $ip,
-        'detected_country' => $detectedCountry,
-        'currency_code' => $currencyCode,
-        'test_price_usd' => $testPrice,
-        'converted' => $converted,
-        'session_country' => session()->get('visitor_country_' . md5($ip))
-    ]);
-});
 /* landing pages */
 
 Route::get('/{page_slug}', 'PageController@view_page');

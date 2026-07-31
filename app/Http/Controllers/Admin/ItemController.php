@@ -543,7 +543,7 @@ class ItemController extends Controller
      $url = URL::to("/");
 	 
 	 $checkvalidation   = str_replace(".","",$additional->item_file_extension);
-	 $validextensions = explode(',', $checkvalidation);
+	 $validextensions = \Fickrr\Helpers\SecureUpload::filterAllowedExtensions(explode(',', $checkvalidation));
 	 
      if($request->hasFile('file')) 
 	 {
@@ -557,7 +557,11 @@ class ItemController extends Controller
        }
 
        // Get file extension
-       $extension = $request->file('file')->getClientOriginalExtension();
+       $extension = \Fickrr\Helpers\SecureUpload::extension($request->file('file'));
+       $uploadError = \Fickrr\Helpers\SecureUpload::validateItemFile($request->file('file'), $validextensions);
+       if ($uploadError !== null) {
+          return response()->json(['error' => $uploadError], 422);
+       }
        
 	   
        // Valid extensions

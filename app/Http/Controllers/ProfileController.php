@@ -1793,6 +1793,19 @@ class ProfileController extends Controller
 	    $ord_token   = $encrypter->decrypt($ordtoken);
 		$payment_token = '';
 		$purchased_token = $ord_token;
+		if ((string) Auth::user()->user_purchase_token !== (string) $purchased_token) {
+			return view('failure');
+		}
+		if (Auth::user()->user_subscr_payment_status == 'completed') {
+			$result_data = array('payment_token' => $payment_token);
+			return view('success')->with($result_data);
+		}
+		if (Auth::user()->user_subscr_payment_status != 'pending') {
+			return view('failure');
+		}
+		if (!\Fickrr\Helpers\CoinbaseVerify::chargeConfirmed($purchased_token)) {
+			return view('failure');
+		}
 		$subscr_id = Auth::user()->user_subscr_id;
 		$subscr['view'] = Subscription::editsubData($subscr_id);
 		$subscri_date = $subscr['view']->subscr_duration;
@@ -2170,9 +2183,9 @@ class ProfileController extends Controller
         $ord_token = $res->event->data->metadata->trx;
 		$coinbase_secret_key = $additional['setting']->coinbase_secret_key;
 		$headers = apache_request_headers();
-        $sentSign = $headers['x-cc-webhook-signature'];
+        $sentSign = $headers['x-cc-webhook-signature'] ?? ($headers['X-Cc-Webhook-Signature'] ?? '');
         $sig = hash_hmac('sha256', $postdata, $coinbase_secret_key);
-        if ($sentSign == $sig) {
+        if (hash_equals((string) $sig, (string) $sentSign)) {
             if ($res->event->type == 'charge:confirmed') 
 			{
 			    
@@ -2192,18 +2205,18 @@ class ProfileController extends Controller
         $postdata = file_get_contents("php://input");
         $res = json_decode($postdata, true);
         
-        // Get webhook signing key from settings (you'll need to add this field)
+        // Require webhook signing key — fail closed if unset
         $dodopayments_webhook_secret = $additional['setting']->dodopayments_webhook_secret ?? '';
+        if (empty($dodopayments_webhook_secret)) {
+            return response()->json(['error' => 'Webhook secret not configured'], 500);
+        }
+
+        $headers = apache_request_headers();
+        $sentSign = $headers['X-Dodo-Signature'] ?? $headers['x-dodo-signature'] ?? '';
         
-        // Verify webhook signature if secret is configured
-        if (!empty($dodopayments_webhook_secret)) {
-            $headers = apache_request_headers();
-            $sentSign = $headers['X-Dodo-Signature'] ?? $headers['x-dodo-signature'] ?? '';
-            
-            $dodoService = new \Fickrr\Services\DodoPaymentsService('', 'test');
-            if (!$dodoService->verifyWebhookSignature($postdata, $sentSign, $dodopayments_webhook_secret)) {
-                return response()->json(['error' => 'Invalid signature'], 401);
-            }
+        $dodoService = new \Fickrr\Services\DodoPaymentsService('', 'test');
+        if (!$dodoService->verifyWebhookSignature($postdata, $sentSign, $dodopayments_webhook_secret)) {
+            return response()->json(['error' => 'Invalid signature'], 401);
         }
         
         // Handle different event types
@@ -4409,7 +4422,11 @@ class ProfileController extends Controller
 			Members::droPhoto($token); 
 		   
 			$image = $request->file('user_photo');
-			$img_name = time() . '.'.$image->getClientOriginalExtension();
+			$photoError = \Fickrr\Helpers\SecureUpload::validateImage($image);
+			if ($photoError !== null) {
+				return back()->with('error', $photoError);
+			}
+			$img_name = \Fickrr\Helpers\SecureUpload::safeFilename(\Fickrr\Helpers\SecureUpload::extension($image));
 			$destinationPath = public_path('/storage/users');
 			$imagePath = $destinationPath. "/".  $img_name;
 			$image->move($destinationPath, $img_name);
@@ -4428,7 +4445,11 @@ class ProfileController extends Controller
 			Members::droBanner($token); 
 		   
 			$image = $request->file('user_banner');
-			$img_name = time() . '456.'.$image->getClientOriginalExtension();
+			$bannerError = \Fickrr\Helpers\SecureUpload::validateImage($image);
+			if ($bannerError !== null) {
+				return back()->with('error', $bannerError);
+			}
+			$img_name = \Fickrr\Helpers\SecureUpload::safeFilename(\Fickrr\Helpers\SecureUpload::extension($image));
 			$destinationPath = public_path('/storage/users');
 			$imagePath = $destinationPath. "/".  $img_name;
 			$image->move($destinationPath, $img_name);

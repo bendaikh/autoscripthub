@@ -32,8 +32,6 @@ class VerifyCsrfToken extends Middleware
 		'/subscription-iyzico/*',
 		'/coingate',
 		'/deposit-coingate',
-		'/admin/upload',
-		'/upload',
 		'/subscription-sslcommerz',
 		'/subscription-sslcommerz-failure',
 		'/subscription-sslcommerz-cancel',

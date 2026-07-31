@@ -806,9 +806,9 @@ class CommonController extends Controller
 		   }
 		}
         $headers = apache_request_headers();
-        $sentSign = $headers['x-cc-webhook-signature'];
+        $sentSign = $headers['x-cc-webhook-signature'] ?? ($headers['X-Cc-Webhook-Signature'] ?? '');
         $sig = hash_hmac('sha256', $postdata, $coinbase_secret_key);
-        if ($sentSign == $sig) {
+        if (hash_equals((string) $sig, (string) $sentSign)) {
             if ($res->event->type == 'charge:confirmed' && $check_details->payment_status == 'pending') 
 			{
 			    
@@ -4199,24 +4199,25 @@ class CommonController extends Controller
 	
 	
 	public function upload(Request $request){
-	
-        /*$fileName=$request->file('file')->getClientOriginalName();
-        $path=$request->file('file')->storeAs('uploads', $fileName, 'public');
-        return response()->json(['location'=>"/storage/$path"]); */
-		
-		/*$url = URL::to("/");
-		 $imgpath = request()->file('file')->store($url.'/public/storage/items/', 'public');
-        return json_encode(['location' => $imgpath]); 
-        
-        /*$imgpath = request()->file('file')->store('uploads', 'public'); 
-        return response()->json(['location' => "/storage/$imgpath"]);*/
+		if (!Auth::check()) {
+			return response()->json(['error' => 'Unauthorized'], 401);
+		}
+
+		$error = \Fickrr\Helpers\SecureUpload::validateImage($request->file('file'));
+		if ($error !== null) {
+			return response()->json(['error' => $error], $error === 'No file uploaded' ? 400 : 422);
+		}
+
 		$image = $request->file('file');
-			$img_name = time() . '.'.$image->getClientOriginalExtension();
-			$destinationPath = public_path('/storage/items');
-			$imagePath = $destinationPath. "/".  $img_name;
-			$image->move($destinationPath, $img_name);
-			$url = URL::to("/public/storage/items/".$img_name);
-       return response()->json(['location' => $url]);
+		$extension = \Fickrr\Helpers\SecureUpload::extension($image);
+		$img_name = \Fickrr\Helpers\SecureUpload::safeFilename($extension);
+		$destinationPath = public_path('/storage/items');
+		if (!is_dir($destinationPath)) {
+			mkdir($destinationPath, 0755, true);
+		}
+		$image->move($destinationPath, $img_name);
+		$url = URL::to("/public/storage/items/".$img_name);
+		return response()->json(['location' => $url]);
     }
 	
 	

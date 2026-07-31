@@ -9,6 +9,17 @@
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
+    # Block alternate PHP / script extensions (common webshell bypass)
+    RewriteRule \.(?i:phtml|php3|php4|php5|php7|php8|phar|cgi|pl|py|asp|aspx|jsp|shtml|htaccess)$ - [F,L]
+
+    # Never execute uploaded scripts under public/storage even if handler misconfigured
+    RewriteRule ^public/storage/.*\.(?i:php[0-9]?|phtml|phar)$ - [F,L]
+
+    # Block sensitive paths
+    RewriteRule ^(?:\.git|vendor|bootstrap|storage|node_modules|tests|database|config|resources|routes|private)(/|$) - [F,L]
+    RewriteRule ^(?:artisan|server\.php|composer\.(json|lock)|package(-lock)?\.json|webpack\.mix\.js|phpunit\.xml|\.env)(/|$) - [F,L]
+    RewriteRule ^(?:setup_dodopayments|fix_dodo_columns|finalize_dodo_setup|check_dodo_columns|use_config_instead_of_db|final_dodo_migration_fix|monarx-analyzer)\.php$ - [F,L]
+
     # Redirect Trailing Slashes If Not A Folder...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
@@ -29,6 +40,10 @@
     Order allow,deny
     Deny from all
 </Files>
+
+<FilesMatch "^(setup_dodopayments|fix_dodo_columns|finalize_dodo_setup|check_dodo_columns|use_config_instead_of_db|final_dodo_migration_fix|monarx-analyzer|server|artisan)\.php$">
+    Require all denied
+</FilesMatch>
 
 <Files composer.json>
     Order allow,deny

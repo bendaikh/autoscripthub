@@ -248,7 +248,7 @@ class ItemController extends Controller
      $url = URL::to("/");
 	 
 	 $checkvalidation   = str_replace(".","",$additional->item_file_extension);
-	 $validextensions = explode(',', $checkvalidation);
+	 $validextensions = \Fickrr\Helpers\SecureUpload::filterAllowedExtensions(explode(',', $checkvalidation));
      if($request->hasFile('file')) 
 	 {
 
@@ -261,7 +261,11 @@ class ItemController extends Controller
        }
 
        // Get file extension
-       $extension = $request->file('file')->getClientOriginalExtension();
+       $extension = \Fickrr\Helpers\SecureUpload::extension($request->file('file'));
+       $uploadError = \Fickrr\Helpers\SecureUpload::validateItemFile($request->file('file'), $validextensions);
+       if ($uploadError !== null) {
+          return response()->json(['error' => $uploadError], 422);
+       }
 
        // Valid extensions
        //$validextensions = array("jpeg","jpg","png","webp","zip","mp4","mp3");
@@ -1532,8 +1536,9 @@ class ItemController extends Controller
 	   $encrypter = app('Illuminate\Contracts\Encryption\Encrypter');
 	   $token_key   = $encrypter->decrypt($token);
 	   
+	  $item = Items::edititemData($token_key);
 	  $check_data = Items::checkDels($token_key);
-	  if($check_data == 1)
+	  if($check_data == 1 && $item && (int) $item->user_id === (int) Auth::user()->id)
 	  {
 	  $data = array('drop_status'=>'yes', 'item_status' => 0);
 	  
@@ -1664,6 +1669,10 @@ class ItemController extends Controller
 	   $item_slug = $this->non_seo_slug($item_name);
 	   }
 	   $item_token = $request->input('item_token');
+	   $owned_item = Items::edititemData($item_token);
+	   if (!$owned_item || (int) $owned_item->user_id !== (int) Auth::user()->id) {
+	      return redirect('404');
+	   }
 	   $item_desc = htmlentities($request->input('item_desc'));
 	   $seller_refund_term = $request->input('seller_refund_term');
 	   $item_category = $request->input('item_category');
@@ -2416,7 +2425,7 @@ class ItemController extends Controller
 	   }
 	   $item_flash_request = $request->input('item_flash_request');
 	   
-	   $user_id = $request->input('user_id');
+	   $user_id = Auth::user()->id;
 	   $item_token = $this->generateRandomString();
 	   $allsettings = Settings::allSettings();
 	   $item_approval = $allsettings->item_approval;
@@ -12215,8 +12224,22 @@ class ItemController extends Controller
 	$sid = 1;
 	$setting['setting'] = Settings::editGeneral($sid);
 	$payment_token = '';
-	$payment_status = 'completed';
 	$purchased_token = $ord_token;
+	$check['display'] = Items::getcheckoutData($purchased_token);
+	if (empty($check['display'])) {
+		return view('failure');
+	}
+	if ($check['display']->payment_status == 'completed') {
+		$data_record = array('payment_token' => $check['display']->payment_token);
+		return view('success')->with($data_record);
+	}
+	if ($check['display']->payment_status != 'pending') {
+		return view('failure');
+	}
+	if (!\Fickrr\Helpers\CoinbaseVerify::chargeConfirmed($purchased_token)) {
+		return view('failure');
+	}
+	$payment_status = 'completed';
 	$orderdata = array('payment_token' => $payment_token, 'order_status' => $payment_status);
 	$checkoutdata = array('payment_token' => $payment_token, 'payment_status' => $payment_status);
 	Items::singleordupdateData($purchased_token,$orderdata);
@@ -13071,6 +13094,20 @@ class ItemController extends Controller
 		$setting['setting'] = Settings::editGeneral($sid);
 		$payment_token = "";
 		$payment_date = date('Y-m-d');
+		$deposit_details = Deposit::displaydepositDetails($ord_token);
+		if (empty($deposit_details)) {
+			return view('failure');
+		}
+		if ($deposit_details->payment_status == 'completed') {
+			$data_record = array('payment_token' => $deposit_details->payment_token);
+			return view('success')->with($data_record);
+		}
+		if ($deposit_details->payment_status != 'pending') {
+			return view('failure');
+		}
+		if (!\Fickrr\Helpers\CoinbaseVerify::chargeConfirmed($ord_token)) {
+			return view('failure');
+		}
 		$payment_status = 'completed';
 		$updatedata = array('payment_token' => $payment_token, 'payment_date' => $payment_date, 'payment_status' => $payment_status);
 		Deposit::upDepositdata($ord_token,$updatedata);
@@ -13229,9 +13266,9 @@ class ItemController extends Controller
 		$deposit_details = Deposit::displaydepositDetails($ord_token);
 		$coinbase_secret_key = $additional['setting']->coinbase_secret_key;
 		$headers = apache_request_headers();
-        $sentSign = $headers['x-cc-webhook-signature'];
+        $sentSign = $headers['x-cc-webhook-signature'] ?? ($headers['X-Cc-Webhook-Signature'] ?? '');
         $sig = hash_hmac('sha256', $postdata, $coinbase_secret_key);
-        if ($sentSign == $sig) {
+        if (hash_equals((string) $sig, (string) $sentSign)) {
             if ($res->event->type == 'charge:confirmed' && $deposit_details->payment_status == 'pending') 
 			{
 			    

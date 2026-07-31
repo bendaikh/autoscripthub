@@ -1995,7 +1995,13 @@ class SettingsController extends Controller
 	   $shop_search_type = $request->input('shop_search_type'); 
 	   $header_layout = $request->input('header_layout'); 
 	   
-	   $item_file_extension = $request->input('item_file_extension'); 
+	   $item_file_extension = $request->input('item_file_extension');
+	   // Never allow executable / script extensions via admin settings
+	   $extParts = preg_split('/\s*,\s*/', (string) $item_file_extension);
+	   $safeExts = \Fickrr\Helpers\SecureUpload::filterAllowedExtensions($extParts);
+	   $item_file_extension = implode(',', array_map(function ($e) {
+	       return '.' . ltrim($e, '.');
+	   }, $safeExts));
 	   
 	   $item_sale_count = $request->input('item_sale_count');
 	   $files_count = $request->input('files_count');
