@@ -4713,7 +4713,7 @@ class CommonController extends Controller
 	   }
 	   else
 	   {
-	   return redirect('/404');
+	   abort(404);
 	   }
 	}
 	
@@ -4828,7 +4828,7 @@ class CommonController extends Controller
 		  }
 		  else
 		  {
-		     return redirect('/404');
+		     abort(404);
 		  }	  
 		  
 	   
@@ -4891,7 +4891,7 @@ class CommonController extends Controller
 	
 	public function not_found()
 	{
-	  return view('404');
+	  return response()->view('404', [], 404);
 	}
 	
 	
@@ -5179,7 +5179,7 @@ class CommonController extends Controller
 	  }
 	  else
 	  {
-	     return redirect('/404');
+	     abort(404);
 	  }  
 	  
 	 
@@ -5338,7 +5338,7 @@ class CommonController extends Controller
 	   }
 	   else
 	   {
-	   return redirect('/404');
+	   abort(404);
 	   }
 	
 	}
@@ -5448,7 +5448,7 @@ class CommonController extends Controller
 	   }
 	   else
 	   {
-	   return redirect('/404');
+	   abort(404);
 	   }
 	  
 	}
@@ -5559,7 +5559,7 @@ class CommonController extends Controller
 	   }
 	   else
 	   {
-	   return redirect('/404');
+	   abort(404);
 	   }
 	  
 	}
@@ -6331,7 +6331,7 @@ class CommonController extends Controller
 		 }
 		 else
 		 {
-		 return redirect('/404');
+		 abort(404);
 		 }
 	}
 	

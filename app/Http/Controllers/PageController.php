@@ -36,7 +36,7 @@ class PageController extends Controller
 	  }
 	  else
 	  {
-	   return redirect('/404');
+	   abort(404);
 	  }
 	
 	}

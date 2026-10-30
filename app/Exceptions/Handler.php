@@ -56,7 +56,13 @@ class Handler extends ExceptionHandler
                 {
                 
                 case 404:
-                return redirect()->guest('404');
+                // Real 404 status with the same 404 design; fall back to the old redirect if rendering fails
+                try {
+                    return response()->view('404', [], 404);
+                } catch (\Throwable $renderError) {
+                    \Log::warning("404 render fallback: " . $renderError->getMessage());
+                    return redirect()->guest('404');
+                }
                 break;
                 case '500':
                 return redirect()->guest('404');
