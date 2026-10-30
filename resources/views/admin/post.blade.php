@@ -79,7 +79,7 @@
                                         <tr class="allChecked">
                                             <td><input type="checkbox" name="post_id[]" value="{{ $post->post_id }}"/></td>
                                             <td>{{ $no }}</td>
-                                            <td>{{  mb_substr($post->post_title,0,20,'UTF-8').'...'; }} </td>
+                                            <td class="ash-cell-title" title="{{ $post->post_title }}">{{ $post->post_title }}</td>
                                             <td>@if($post->post_image != '') <img class="lazy" width="50" height="50" src="{{ url('/') }}/public/storage/post/{{ $post->post_image }}"  alt="{{ $post->post_title }}"/>@else <img class="lazy" width="50" height="50" src="{{ url('/') }}/public/img/no-image.png"  alt="{{ $post->post_title }}" />  @endif</td>
                                             <td>{{ $post->blog_category_name }}</td>
                                             <td><a href="{{ url('/admin') }}/comment/{{ $post->post_id }}" class="blue-color">{{ __('Comments') }} [{{ $comments->has($post->post_id) ? count($comments[$post->post_id]) : 0 }}]</a></td>

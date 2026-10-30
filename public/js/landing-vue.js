@@ -47,8 +47,7 @@
         return this.galleryMedia[this.activeShot] || null;
       },
       secondaryTarget: function () {
-        if (this.page.videoUrl) return 'showcase';
-        if (this.page.youtubeId) return 'demo';
+        if (this.page.videoUrl || this.page.youtubeId) return 'demo';
         if (this.galleryMedia.length) return 'showcase';
         return 'pricing';
       },

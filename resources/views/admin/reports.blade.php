@@ -140,7 +140,7 @@
                     <div class="h4 mb-0">
                         <span class="count">{{ $totalorder }}</span>
                     </div>
-                    <small class="text-muted text-uppercase font-weight-bold">{{ __('Total Orders') }}</small>
+                    <small class="text-muted text-uppercase font-weight-bold">{{ __('Total Orders (all statuses)') }}</small>
                     <div class="progress progress-xs mt-3 mb-0 bg-flat-color-8" style="width: 40%; height: 5px;"></div>
                 </div>
             </div>
@@ -152,7 +152,7 @@
                     <div class="h4 mb-0">
                         <span class="count">{{ $totalneworder }}</span>
                     </div>
-                    <small class="text-muted text-uppercase font-weight-bold">{{ __('Total New Orders') }}</small>
+                    <small class="text-muted text-uppercase font-weight-bold">{{ __('New Orders (last 3 months)') }}</small>
                     <div class="progress progress-xs mt-3 mb-0 bg-flat-color-8" style="width: 40%; height: 5px;"></div>
                 </div>
             </div>
@@ -164,7 +164,7 @@
                     <div class="h4 mb-0">
                         <span class="count">{{ $successorder }}</span>
                     </div>
-                    <small class="text-muted text-uppercase font-weight-bold">{{ __('Total Successful Order') }}</small>
+                    <small class="text-muted text-uppercase font-weight-bold">{{ __('Paid Orders') }}</small>
                     <div class="progress progress-xs mt-3 mb-0 bg-flat-color-5" style="width: 40%; height: 5px;"></div>
                 </div>
             </div>
@@ -177,7 +177,7 @@
                     <div class="h4 mb-0">
                         <span class="count">{{ $failedorder }}</span>
                     </div>
-                    <small class="text-muted text-uppercase font-weight-bold">{{ __('Total Not Successful Order') }}</small>
+                    <small class="text-muted text-uppercase font-weight-bold">{{ __('Pending Orders (unpaid)') }}</small>
                     <div class="progress progress-xs mt-3 mb-0 bg-flat-color-4" style="width: 40%; height: 5px;"></div>
                 </div>
             </div>
@@ -243,8 +243,8 @@
                                                 <option value="1">{{ __('Total Visit') }}</option>
                                                 <option value="2">{{ __('Total New Vendor') }}</option>
                                                 <option value="3">{{ __('Total New Items') }}</option>
-                                                <option value="4">{{ __('Total Successful Order') }}</option>
-                                                <option value="5">{{ __('Total Not Successful Order') }}</option>
+                                                <option value="4">{{ __('Paid Orders') }}</option>
+                                                <option value="5">{{ __('Pending Orders (unpaid)') }}</option>
                                                 <option value="6">{{ __('Total Amount') }}</option>
                                                 </select>
                                             </div>    

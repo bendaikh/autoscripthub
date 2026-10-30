@@ -90,7 +90,7 @@
                 'unreadCount' => $unread_count,
                 'adsStatuses' => [
                     ['value' => 'off', 'label' => __('Not on ads')],
-                    ['value' => 'published', 'label' => __('Published')],
+                    ['value' => 'published', 'label' => __('Running on ads')],
                     ['value' => 'paused', 'label' => __('Paused')],
                 ],
                 'labels' => [
@@ -116,10 +116,14 @@
                     'sourceUrl' => __('Product source'),
                     'noSourceUrl' => __('No product source link'),
                     'actions' => __('Actions'),
-                    'active' => __('Active'),
-                    'inactive' => __('Inactive'),
+                    'active' => __('Online'),
+                    'inactive' => __('Offline'),
+                    'activeHint' => __('Visible to visitors at its public URL.'),
+                    'inactiveHint' => __('Offline: the public URL returns 404 until you set the page to Active in Edit.'),
+                    'inactiveOnAds' => __('Ads point to an offline page'),
+                    'confirmDuplicate' => __('Duplicate ":name"? A copy will be created with its own URL.'),
                     'adsOff' => __('Not on ads'),
-                    'adsPublished' => __('Published'),
+                    'adsPublished' => __('Running on ads'),
                     'adsPaused' => __('Paused'),
                     'adsUpdateFailed' => __('Could not update ads status. Please try again.'),
                     'edit' => __('Edit'),
@@ -155,7 +159,7 @@
 
     @include('admin.javascript')
     <script src="{{ asset('admin/vendors/vue/vue.global.prod.js') }}"></script>
-    <script src="{{ asset('admin/assets/js/landing-admin-vue.js') }}?v=20260831-3"></script>
+    <script src="{{ asset('admin/assets/js/landing-admin-vue.js') }}?v=20261030-1"></script>
 </body>
 
 </html>

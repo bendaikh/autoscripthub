@@ -467,7 +467,8 @@ Route::group(['middleware' => ['is_admin', 'HtmlMinifier', 'cache', 'XSS']], fun
 	Route::post('/admin/edit-landing-page', ['as' => 'admin.update-landing-page','uses'=>'Admin\LandingPageController@update']);
 	Route::post('/admin/landing-pages/generate-ai', 'Admin\LandingPageController@generateWithAI')->name('admin.landing-pages.generate-ai');
 	Route::post('/admin/landing-pages/generate-ai-image', 'Admin\LandingPageController@generateAiImage')->name('admin.landing-pages.generate-ai-image');
-	Route::get('/admin/landing-pages/duplicate/{lp_id}', 'Admin\LandingPageController@duplicate')->name('admin.duplicate-landing-page');
+	Route::post('/admin/landing-pages/duplicate/{lp_id}', 'Admin\LandingPageController@duplicate')->name('admin.duplicate-landing-page');
+	Route::get('/admin/landing-pages/duplicate/{lp_id}', function () { return redirect()->route('admin.landing-pages'); });
 	Route::post('/admin/landing-pages/bulk-delete', 'Admin\LandingPageController@bulkDelete')->name('admin.landing-pages.bulk-delete');
 	Route::get('/admin/landing-pages/{lp_id}/analytics', 'Admin\LandingPageController@analytics')->name('admin.landing-pages.analytics');
 	Route::get('/admin/landing-pages/{lp_id}/analytics/live', 'Admin\LandingPageController@analyticsLive')->name('admin.landing-pages.analytics.live');

@@ -84,7 +84,8 @@
                     <div class="h4 mb-0">
                         <span class="count">{{ $totalorder }}</span>
                     </div>
-                    <small class="text-muted text-uppercase font-weight-bold">{{ __('Total Orders') }}</small>
+                    <small class="text-muted text-uppercase font-weight-bold" title="{{ __('All checkouts, including pending and failed payments') }}">{{ __('Total Orders (all statuses)') }}</small>
+                    <div class="small text-muted">{{ $successorder ?? 0 }} {{ __('paid') }}</div>
                     <div class="progress progress-xs mt-3 mb-0 bg-flat-color-3" style="width: 40%; height: 5px;"></div>
                 </div>
             </div>

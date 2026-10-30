@@ -63,7 +63,7 @@
     "Enter your email address": "Saisissez votre adresse e-mail",
     "PayPal": "PayPal",
     "the safer, easier way to pay": "le moyen plus sûr et plus simple de payer",
-    "Credit\/Debit Card": "Carte bancaire",
+    "Credit/Debit Card": "Carte bancaire",
     "Pay securely with your card": "Payez en toute sécurité avec votre carte",
     "No payment methods are currently available.": "Aucun mode de paiement n'est disponible pour le moment.",
     "Proceed to Payment": "Procéder au paiement",
@@ -245,5 +245,6 @@
     "Cut out the repetitive manual work": "Éliminez le travail manuel répétitif",
     "Let the system handle the routine steps.": "Laissez le système gérer les étapes routinières.",
     "All": "Tous",
-    "Send us a note and we will reply by email, usually within a few hours.": "Envoyez-nous un message et nous vous répondrons par e-mail, généralement en quelques heures."
+    "Send us a note and we will reply by email, usually within a few hours.": "Envoyez-nous un message et nous vous répondrons par e-mail, généralement en quelques heures.",
+    "Watch the product in a short video": "Découvrez le produit en vidéo"
 }

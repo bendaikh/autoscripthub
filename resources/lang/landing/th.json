@@ -63,7 +63,7 @@
     "Enter your email address": "กรอกที่อยู่อีเมลของคุณ",
     "PayPal": "PayPal",
     "the safer, easier way to pay": "วิธีชำระเงินที่ปลอดภัยและง่ายกว่า",
-    "Credit\/Debit Card": "บัตรเครดิต\/เดบิต",
+    "Credit/Debit Card": "บัตรเครดิต/เดบิต",
     "Pay securely with your card": "ชำระเงินอย่างปลอดภัยด้วยบัตรของคุณ",
     "No payment methods are currently available.": "ไม่มีวิธีชำระเงินที่พร้อมใช้งานในขณะนี้",
     "Proceed to Payment": "ดำเนินการชำระเงิน",
@@ -134,7 +134,7 @@
     "Is this a one-time payment?": "ชำระครั้งเดียวหรือไม่?",
     "Yes. You pay once for this product. There is no subscription and no recurring charge.": "ใช่ คุณจ่ายครั้งเดียวสำหรับผลิตภัณฑ์นี้ ไม่มีสมาชิกและไม่มีค่าใช้จ่ายซ้ำ",
     "Which payment methods can I use?": "ใช้วิธีชำระเงินอะไรได้บ้าง?",
-    "You can pay with PayPal or with a credit or debit card at checkout.": "คุณชำระด้วย PayPal หรือบัตรเครดิต\/เดบิตที่หน้าชำระเงิน",
+    "You can pay with PayPal or with a credit or debit card at checkout.": "คุณชำระด้วย PayPal หรือบัตรเครดิต/เดบิตที่หน้าชำระเงิน",
     "What is the extended licence?": "ใบอนุญาตแบบขยายคืออะไร?",
     "The extended licence is a higher-priced option for wider commercial use. Both options cover the same product.": "ใบอนุญาตแบบขยายเป็นออปชันที่ราคาสูงกว่าสำหรับการใช้งานเชิงพาณิชย์ที่กว้างขึ้น ทั้งสองออปชันครอบคลุมผลิตภัณฑ์เดียวกัน",
     "Can I ask a question before buying?": "ถามคำถามก่อนซื้อได้ไหม?",
@@ -245,5 +245,6 @@
     "Cut out the repetitive manual work": "ลดงานซ้ำๆ ที่ทำด้วยมือ",
     "Let the system handle the routine steps.": "ให้ระบบจัดการขั้นตอนประจำ",
     "All": "ทั้งหมด",
-    "Send us a note and we will reply by email, usually within a few hours.": "ส่งข้อความหาเรา แล้วเราจะตอบกลับทางอีเมล โดยปกติภายในไม่กี่ชั่วโมง"
+    "Send us a note and we will reply by email, usually within a few hours.": "ส่งข้อความหาเรา แล้วเราจะตอบกลับทางอีเมล โดยปกติภายในไม่กี่ชั่วโมง",
+    "Watch the product in a short video": "ชมวิดีโอแนะนำสินค้า"
 }

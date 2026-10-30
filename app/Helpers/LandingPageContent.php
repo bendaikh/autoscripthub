@@ -425,7 +425,7 @@ class LandingPageContent
                 'icon' => $match['icon'] ?? 'check',
                 'title' => trim($title),
                 'text' => trim($text),
-                'short' => $match ? self::t($match['short']) : Str::words(trim($title), 3, ''),
+                'short' => $match ? self::t($match['short']) : self::shortLabel($title),
                 'outcome' => $match ? self::t($match['outcome']) : '',
             ];
         }
@@ -692,6 +692,17 @@ class LandingPageContent
     }
 
     /** A plain-text lead paragraph pulled from the seller's own description. */
+    /**
+     * Short hero label from a feature title without cutting it mid-idea
+     * (e.g. "Plus de 10" from "Plus de 10 millions de pages").
+     */
+    protected static function shortLabel($title): string
+    {
+        // The full title is shown (it wraps in the hero); cutting it to a few
+        // words left labels like "Plus de 10" that read as truncated.
+        return trim((string) $title);
+    }
+
     protected static function shortDescription($page): string
     {
         $source = self::plainText($page->lp_description ?? '');

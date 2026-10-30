@@ -77,6 +77,21 @@
         $aboutHtml = $landing_page->lp_description;
     }
 
+    // Arabic-script currency symbols (e.g. "د.م.") read badly on FR/EN pages:
+    // there we show the ISO currency code after the amount instead (e.g. "290 MAD").
+    $lpPriceParts = function ($symbol, $currency) use ($lpLang) {
+        $symbol = (string) $symbol;
+        if ($lpLang !== 'ar' && preg_match('/\p{Arabic}/u', $symbol)) {
+            return ['', ' ' . ($currency ?: trim($symbol))];
+        }
+        return [$symbol, ''];
+    };
+    $lpMainCurrency = $price_data['currency'] ?? ($landing_page->lp_currency ?? 'USD');
+    [$lpPricePrefix, $lpPriceSuffix] = $lpPriceParts($price_data['symbol'] ?? '$', $lpMainCurrency);
+    $lpExtParts = ($extended_price_data && ($extended_price_data['price'] ?? 0) > 0)
+        ? $lpPriceParts($extended_price_data['symbol'], $extended_price_data['currency'] ?? $lpMainCurrency)
+        : ['', ''];
+
     $pagePayload = [
         'title' => $landing_page->lp_title,
         'titleName' => $titleName,
@@ -104,14 +119,17 @@
         'heroBg' => $heroBg,
         'gallery' => $galleryUrls,
         'videoUrl' => $videoUrl,
+        'videoPoster' => $bannerUrl,
         'youtubeId' => $youtubeId,
         'price' => [
-            'symbol' => $price_data['symbol'] ?? '$',
+            'symbol' => $lpPricePrefix,
+            'suffix' => $lpPriceSuffix,
             'amount' => (float) ($price_data['price'] ?? $landing_page->lp_price),
             'currency' => $price_data['currency'] ?? ($landing_page->lp_currency ?? 'USD'),
         ],
         'extended' => ($extended_price_data && ($extended_price_data['price'] ?? 0) > 0) ? [
-            'symbol' => $extended_price_data['symbol'],
+            'symbol' => $lpExtParts[0],
+            'suffix' => $lpExtParts[1],
             'amount' => (float) $extended_price_data['price'],
         ] : null,
         'reviews' => $content['reviews'] ?? [],
@@ -137,6 +155,7 @@
             'showcaseHeading' => $lpT('See it up close'),
             'showcaseSub' => $lpT('Real screens from the product you are buying'),
             'demoHeading' => $lpT('See it in action'),
+            'demoSub' => $lpT('Watch the product in a short video'),
             'outcomesHeading' => $lpT('What this changes for you'),
             'whatYouGetHeading' => $lpT('What you get after payment'),
             'pricingHeading' => $lpT('Simple, one-time pricing'),
@@ -212,7 +231,7 @@
                         <i :class="'fas fa-' + benefit.icon"></i>
                         <span>
                             <strong>@{{ benefit.short }}</strong>
-                            <em>@{{ benefit.title }}</em>
+                            <em v-if="benefit.title && benefit.title !== benefit.short">@{{ benefit.title }}</em>
                         </span>
                     </li>
                 </ul>
@@ -221,7 +240,7 @@
             <div class="lp-hero-offer">
                 <div class="lp-hero-price">
                     <span class="lp-hero-price-label">@{{ page.i18n.onlyPrice }}</span>
-                    <span class="lp-hero-price-value">@{{ page.price.symbol }}@{{ formatMoney(page.price.amount) }}</span>
+                    <span class="lp-hero-price-value">@{{ page.price.symbol }}@{{ formatMoney(page.price.amount) }}@{{ page.price.suffix }}</span>
                 </div>
                 <p class="lp-hero-payment">@{{ page.i18n.paymentNote }}</p>
                 <p class="lp-hero-payment lp-mobile-hide">@{{ page.i18n.hostingText }}</p>
@@ -291,6 +310,25 @@
                         <strong>@{{ item.title }}</strong>
                         <em>@{{ item.text }}</em>
                     </span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {{-- 2b. PRODUCT VIDEO (only when an uploaded video or YouTube URL exists) --}}
+    <section v-if="page.videoUrl || page.youtubeId" class="lp-section lp-video-section" id="demo">
+        <div class="lp-container">
+            <header class="lp-section-head">
+                <h2 class="lp-section-title">@{{ page.i18n.demoHeading }}</h2>
+                <p class="lp-section-sub">@{{ page.i18n.demoSub }}</p>
+            </header>
+            <div class="lp-video-frame" id="product-video">
+                <video v-if="page.videoUrl" class="lp-video-player" :src="page.videoUrl"
+                       :poster="page.videoPoster || null" controls playsinline preload="metadata"></video>
+                <div v-else class="lp-video">
+                    <iframe :src="'https://www.youtube.com/embed/' + page.youtubeId + '?rel=0&modestbranding=1'"
+                            :title="page.title" allowfullscreen loading="lazy"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
                 </div>
             </div>
         </div>
@@ -393,20 +431,6 @@
         </div>
     </section>
 
-    {{-- 5b. VIDEO (only when a video exists) --------------------------------}}
-    <section v-if="page.youtubeId" class="lp-section lp-section-tint" id="demo">
-        <div class="lp-container">
-            <header class="lp-section-head">
-                <h2 class="lp-section-title">@{{ page.i18n.demoHeading }}</h2>
-            </header>
-            <div class="lp-video" data-reveal>
-                <iframe :src="'https://www.youtube.com/embed/' + page.youtubeId + '?rel=0&modestbranding=1'"
-                        :title="page.title" allowfullscreen loading="lazy"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
-            </div>
-        </div>
-    </section>
-
     {{-- 6. OUTCOMES --------------------------------------------------------}}
     <section v-if="page.outcomes.length" class="lp-section" id="outcomes">
         <div class="lp-container">
@@ -458,7 +482,7 @@
                 <span class="lp-price-tag">@{{ page.i18n.lifetimeLabel }}</span>
                 <h3 class="lp-price-product">@{{ page.title }}</h3>
                 <div class="lp-price-amount">
-                    <span class="lp-price-value">@{{ page.price.symbol }}@{{ formatMoney(page.price.amount) }}</span>
+                    <span class="lp-price-value">@{{ page.price.symbol }}@{{ formatMoney(page.price.amount) }}@{{ page.price.suffix }}</span>
                     <span class="lp-price-currency">@{{ page.price.currency }}</span>
                 </div>
                 <p class="lp-price-note">@{{ page.i18n.paymentNote }}</p>
@@ -478,7 +502,7 @@
                 </p>
                 <p v-if="page.extended" class="lp-price-extended">
                     @{{ page.i18n.extendedNote }}
-                    <strong>@{{ page.extended.symbol }}@{{ formatMoney(page.extended.amount) }}</strong>
+                    <strong>@{{ page.extended.symbol }}@{{ formatMoney(page.extended.amount) }}@{{ page.extended.suffix }}</strong>
                 </p>
             </div>
         </div>
@@ -671,7 +695,7 @@
             <h2>@{{ page.i18n.finalHeading }}</h2>
             <p>@{{ page.tagline }}</p>
             <button type="button" class="lp-btn lp-btn-lg lp-btn-light" @click="openBuy">
-                <i class="fas fa-bolt"></i> @{{ page.cta }} — @{{ page.price.symbol }}@{{ formatMoney(page.price.amount) }}
+                <i class="fas fa-bolt"></i> @{{ page.cta }} — @{{ page.price.symbol }}@{{ formatMoney(page.price.amount) }}@{{ page.price.suffix }}
             </button>
             <p class="lp-final-note">
                 <i class="fas fa-lock"></i> @{{ page.i18n.paymentNote }}
@@ -702,7 +726,7 @@
                             $lpModalPrice = (float) ($price_data['price'] ?? 0);
                             $lpModalDecimals = abs($lpModalPrice - round($lpModalPrice)) < 0.00001 ? 0 : 2;
                         @endphp
-                        {{ $price_data['symbol'] }} {{ number_format($lpModalPrice, $lpModalDecimals) }}
+                        {{ $lpPricePrefix }}{{ $lpPricePrefix !== '' ? ' ' : '' }}{{ number_format($lpModalPrice, $lpModalDecimals) }}{{ $lpPriceSuffix }}
                     </div>
                 </div>
                 @php $landingPaymentMethods = $landing_payment_methods ?? []; @endphp

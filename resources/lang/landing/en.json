@@ -63,7 +63,7 @@
     "Enter your email address": "Enter your email address",
     "PayPal": "PayPal",
     "the safer, easier way to pay": "the safer, easier way to pay",
-    "Credit\/Debit Card": "Credit\/Debit Card",
+    "Credit/Debit Card": "Credit/Debit Card",
     "Pay securely with your card": "Pay securely with your card",
     "No payment methods are currently available.": "No payment methods are currently available.",
     "Proceed to Payment": "Proceed to Payment",
@@ -245,5 +245,6 @@
     "Cut out the repetitive manual work": "Cut out the repetitive manual work",
     "Let the system handle the routine steps.": "Let the system handle the routine steps.",
     "All": "All",
-    "Send us a note and we will reply by email, usually within a few hours.": "Send us a note and we will reply by email, usually within a few hours."
+    "Send us a note and we will reply by email, usually within a few hours.": "Send us a note and we will reply by email, usually within a few hours.",
+    "Watch the product in a short video": "Watch the product in a short video"
 }

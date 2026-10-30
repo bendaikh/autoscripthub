@@ -1079,3 +1079,12 @@ canvas {
         grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     }
 }
+
+/* Long names in admin tables wrap instead of being cut */
+.table td.ash-cell-title {
+    white-space: normal !important;
+    min-width: 200px;
+    max-width: 420px;
+    overflow-wrap: anywhere;
+    line-height: 1.4;
+}

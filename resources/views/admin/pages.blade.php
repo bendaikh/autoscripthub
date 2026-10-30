@@ -78,7 +78,7 @@
                                         <tr class="allChecked">
                                             <td><input type="checkbox" name="page_id[]" value="{{ $page->page_id }}"/></td>
                                             <td>{{ $no }}</td>
-                                            <td>{{  mb_substr($page->page_title,0,20,'UTF-8').'...'; }} </td>
+                                            <td class="ash-cell-title" title="{{ $page->page_title }}">{{ $page->page_title }}</td>
                                             <td>@if($page->main_menu == 1) <span class="badge badge-success">{{ __('Yes') }}</span> @else <span class="badge badge-danger">{{ __('No') }}</span> @endif</td>
                                             <td>@if($page->footer_menu == 1) <span class="badge badge-success">{{ __('Yes') }}</span> @else <span class="badge badge-danger">{{ __('No') }}</span> @endif</td>
                                             <td>{{ $page->menu_order }} </td>

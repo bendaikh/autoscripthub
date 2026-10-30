@@ -202,6 +202,23 @@
                 }).format(parsed);
             },
 
+            confirmDuplicate: function (item) {
+                var msg = (this.config.labels.confirmDuplicate || 'Duplicate ":name"?').replace(':name', item.title);
+                if (!window.confirm(msg)) {
+                    return;
+                }
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = item.duplicateUrl;
+                var token = document.createElement('input');
+                token.type = 'hidden';
+                token.name = '_token';
+                token.value = this.config.csrfToken;
+                form.appendChild(token);
+                document.body.appendChild(form);
+                form.submit();
+            },
+
             confirmDelete: function (item) {
                 var label = this.isPages ? item.title : item.email;
 
@@ -467,9 +484,10 @@
             '                            <span v-else class="landing-subtle">—</span>',
             '                        </td>',
             '                        <td>',
-            '                            <span :class="[\'landing-badge\', item.status ? \'landing-badge-success\' : \'landing-badge-muted\']">',
+            '                            <span :class="[\'landing-badge\', item.status ? \'landing-badge-success\' : \'landing-badge-muted\']" :title="item.status ? config.labels.activeHint : config.labels.inactiveHint">',
             '                                {{ item.status ? config.labels.active : config.labels.inactive }}',
             '                            </span>',
+            '                            <span v-if="!item.status && item.adsStatus === \'published\'" class="landing-subtle text-danger" :title="config.labels.inactiveHint"><i class="fa fa-exclamation-triangle"></i> {{ config.labels.inactiveOnAds }}</span>',
             '                        </td>',
             '                        <td>',
             '                            <label class="landing-ads-status" :class="[\'is-\' + (item.adsStatus || \'off\'), { \'is-saving\': isSavingAds(item.id) }]">',
@@ -487,7 +505,7 @@
             '                            </label>',
             '                        </td>',
             '                        <td>',
-            '                            <a :href="item.publicUrl" target="_blank" rel="noopener" class="landing-icon-button" :title="config.labels.publicUrl">',
+            '                            <a :href="item.publicUrl" target="_blank" rel="noopener" class="landing-icon-button" :class="{ \'is-disabled\': !item.status }" :title="item.status ? config.labels.publicUrl : config.labels.inactiveHint">',
             '                                <i class="fa fa-external-link"></i>',
             '                            </a>',
             '                        </td>',
@@ -510,7 +528,7 @@
             '                            <div class="landing-actions">',
             '                                <a :href="item.editUrl" class="landing-icon-button" :title="config.labels.edit"><i class="fa fa-pencil"></i></a>',
             '                                <a :href="item.analyticsUrl" class="landing-icon-button" :title="config.labels.analytics"><i class="fa fa-bar-chart"></i></a>',
-            '                                <a :href="item.duplicateUrl" class="landing-icon-button" :title="config.labels.duplicate"><i class="fa fa-copy"></i></a>',
+            '                                <button type="button" class="landing-icon-button" :title="config.labels.duplicate" @click="confirmDuplicate(item)"><i class="fa fa-copy"></i></button>',
             '                                <button type="button" class="landing-icon-button landing-icon-button-danger" :title="config.labels.delete" @click="confirmDelete(item)">',
             '                                    <i class="fa fa-trash"></i>',
             '                                </button>',
