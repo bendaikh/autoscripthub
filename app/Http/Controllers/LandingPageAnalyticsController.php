@@ -118,6 +118,11 @@ class LandingPageAnalyticsController extends Controller
             ]);
         }
 
+        // Heartbeat only refreshes the active visit timestamp.
+        if ($event === 'heartbeat') {
+            return response()->json(['success' => true]);
+        }
+
         DB::table('landing_page_events')->insert([
             'lp_id' => $lpId,
             'lpv_id' => $visitId ?: null,

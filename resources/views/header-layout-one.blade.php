@@ -74,16 +74,12 @@
       <div class="navbar-sticky">
         <div class="navbar navbar-expand-lg navbar-light bg-light">
           <div class="container">
-          @if($allsettings->site_logo != '')
-          <a class="navbar-brand d-none d-sm-block mr-4 order-lg-1" href="{{ URL::to('/') }}" style="min-width: 7rem;">
-             <img class="lazy" width="{{ $addition_settings->site_desktop_logo_width }}" height="{{ $addition_settings->site_desktop_logo_height }}" src="{{ url('/') }}/public/storage/settings/{{ $allsettings->site_logo }}"  alt="{{ $allsettings->site_title }}"/>
+          <a class="navbar-brand d-none d-sm-block mr-4 order-lg-1" href="{{ URL::to('/') }}" aria-label="{{ $allsettings->site_title }}">
+             @include('partials.brand', ['brandCompact' => false, 'brandLight' => false])
           </a>
-          @endif
-          @if($allsettings->site_logo != '')
-          <a class="navbar-brand d-sm-none mr-2 order-lg-1" href="{{ URL::to('/') }}" style="min-width: 4.625rem;">
-             <img class="lazy" width="{{ $addition_settings->site_mobile_logo_width }}" height="{{ $addition_settings->site_mobile_logo_height }}" src="{{ url('/') }}/public/storage/settings/{{ $allsettings->site_logo }}"  alt="{{ $allsettings->site_title }}"/>
+          <a class="navbar-brand d-sm-none mr-2 order-lg-1" href="{{ URL::to('/') }}" aria-label="{{ $allsettings->site_title }}">
+             @include('partials.brand', ['brandCompact' => true, 'brandLight' => false])
           </a>
-          @endif
             <div class="navbar-toolbar d-flex align-items-center order-lg-3">
               <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"><span class="navbar-toggler-icon"></span></button><a class="navbar-tool d-none d-lg-flex" href="#searchBox" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="searchBox"><span class="navbar-tool-tooltip">{{ __('Search') }}</span>
                 <div class="navbar-tool-icon-box"><i class="navbar-tool-icon dwg-search"></i></div></a>
@@ -95,11 +91,7 @@
                 @endif
                 @if (Auth::check())
                 <div class="navbar-tool dropdown ml-2">
-                <a class="navbar-tool-icon-box border remove-hyper dropdown-toggle" data-toggle="dropdown" @if(Auth::user()->id == 1) href="{{ url('/admin') }}" target="_blank" @else href="{{ URL::to('/user') }}/{{ Auth::user()->username }}" @endif>         @if(!empty(Auth::user()->user_photo))
-                <img class="lazy" width="32" height="32" src="{{ url('/') }}/public/storage/users/{{ Auth::user()->user_photo }}"  alt="{{ Auth::user()->name }}"/>
-                @else
-                <img class="lazy" width="32" height="32" src="{{ url('/') }}/public/img/no-user.png"  alt="{{ Auth::user()->name }}">
-                @endif
+                <a class="navbar-tool-icon-box border remove-hyper dropdown-toggle" data-toggle="dropdown" @if(Auth::user()->id == 1) href="{{ url('/admin') }}" target="_blank" @else href="{{ URL::to('/user') }}/{{ Auth::user()->username }}" @endif>         <img class="lazy rounded-circle" width="32" height="32" src="{{ Helper::user_avatar(Auth::user()->user_photo) }}" alt="{{ Auth::user()->name }}" onerror="this.onerror=null;this.src='{{ url('/') }}/public/img/no-user.png';"/>
                 </a>
                 <a class="navbar-tool-text ml-n1" @if(Auth::user()->id == 1) href="{{ url('/admin') }}" target="_blank" @else href="{{ URL::to('/user') }}/{{ Auth::user()->username }}" @endif>
                 <small>{{ Auth::user()->name }}</small>{{ Helper::price_format($allsettings->site_currency_position,Auth::user()->earnings,$currency_symbol,$multicurrency) }}
@@ -148,11 +140,7 @@
                       <div class="widget-cart-item pb-2 mb-2 border-bottom">
                         <div class="media align-items-center">
                         <a class="d-block mr-2" href="{{ url('/messages') }}/type/{{ $msg->username }}">
-                        @if($msg->user_photo!='')
-                        <img class="lazy rounded-circle" width="40" height="40" src="{{ url('/') }}/public/storage/users/{{ $msg->user_photo }}"  alt="{{ $msg->username }}"/>
-                        @else
-                        <img  class="lazy rounded-circle" width="40" height="40" src="{{ url('/') }}/public/img/no-image.png"  alt="{{ $msg->username }}"/>
-                        @endif
+                        <img class="lazy rounded-circle" width="40" height="40" src="{{ Helper::user_avatar($msg->user_photo) }}" alt="{{ $msg->username }}" onerror="this.onerror=null;this.src='{{ url('/') }}/public/img/no-user.png';"/>
                         </a>
                           <div class="media-body">
                             <h6 class="widget-product-title"><a href="{{ url('/messages') }}/type/{{ $msg->username }}">{{ $msg->username }}</a></h6>

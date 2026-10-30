@@ -42,9 +42,6 @@
 
           @if(in_array('post-details',$top_ads))
             <div class="mt-2 mb-3 pb-3" align="center">
-                <!-- Google AdSense Ad Unit -->
-           <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9233828084974503"
-                 crossorigin="anonymous"></script>
             <!-- autoscripthub first ad -->
             <ins class="adsbygoogle"
                  style="display:block"

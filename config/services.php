@@ -60,6 +60,19 @@ return [
 		'api_key' => env('DODOPAYMENTS_API_KEY'), // API key from DodoPayments dashboard
 		'product_id' => env('DODO_DEFAULT_PRODUCT_ID'), // default product to use in checkout sessions
 	],
+
+	'whop' => [
+		'mode' => env('WHOP_MODE', 'live'), // live or sandbox
+		'api_key' => env('WHOP_API_KEY'),
+		'company_id' => env('WHOP_COMPANY_ID'),
+		'webhook_secret' => env('WHOP_WEBHOOK_SECRET'),
+	],
+
+	'openai' => [
+		'api_key' => env('OPENAI_API_KEY'),
+		'model' => env('OPENAI_MODEL', 'gpt-4o-mini'),
+		'image_model' => env('OPENAI_IMAGE_MODEL', 'gpt-image-1'),
+	],
 	'paytm-wallet' => [
         'env' => env('PAYTM_ENVIRONMENT', 'local'), // values : (local | production)
         'merchant_id' => env('PAYTM_MERCHANT_ID'),

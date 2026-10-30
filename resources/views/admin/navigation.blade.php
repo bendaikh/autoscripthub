@@ -5,23 +5,20 @@
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#main-menu" aria-controls="main-menu" aria-expanded="false" aria-label="Toggle navigation">
                     <i class="fa fa-bars"></i>
                 </button>
-                @if($allsettings->site_logo != '')
-                <a class="navbar-brand" href="{{ url('/') }}"><img class="lazy" width="160" height="45" src="{{ url('/') }}/public/storage/settings/{{ $allsettings->site_logo }}"   alt="{{ $allsettings->site_title }}"/></a>
-                @else
-                <a class="navbar-brand" href="{{ url('/') }}">{{ substr($allsettings->site_title,0,10) }}</a>
-                @endif
-                @if($allsettings->site_favicon != '')
-                <a class="navbar-brand hidden" href="{{ url('/') }}"><img class="lazy" width="24" height="24" src="{{ url('/') }}/public/storage/settings/{{ $allsettings->site_favicon }}"   alt="{{ $allsettings->site_title }}"/></a>
-                @else
-                <a class="navbar-brand hidden" href="{{ url('/') }}">{{ substr($allsettings->site_title,0,1) }}</a>
-                @endif
+                @php $brandLight = true; @endphp
+                <a class="navbar-brand admin-sidebar-brand" href="{{ url('/admin') }}">
+                    @include('partials.brand', ['brandLight' => true])
+                </a>
+                <a class="navbar-brand hidden admin-sidebar-brand admin-sidebar-brand--collapsed" href="{{ url('/admin') }}">
+                    @include('partials.brand', ['brandLight' => true, 'brandCompact' => true])
+                </a>
                 <code>{{ Helper::Current_Version() }}</code>
             </div>
             @if($custom_settings->$dg_ver == 1)
             <div id="main-menu" class="main-menu collapse navbar-collapse">
                 <ul class="nav navbar-nav">
                     @if(in_array('dashboard',$avilable))
-                    <li class="active">
+                    <li>
                         <a href="{{ url('/admin') }}"> <i class="menu-icon fa fa-dashboard"></i>{{ __('Dashboard') }} </a>
                     </li>
                     @endif
@@ -143,12 +140,25 @@
                         <a href="{{ url('/admin/pages') }}"> <i class="menu-icon fa fa-file-text-o"></i>{{ __('Pages') }} </a>
                     </li>
                     @endif
-                    <li>
-                        <a href="{{ url('/admin/landing-pages') }}"> <i class="menu-icon fa fa-rocket"></i>{{ __('Landing Pages') }} </a>
+                    <li class="menu-item-has-children dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="menu-icon fa fa-rocket"></i>{{ __('Landing Pages') }}
+                        </a>
+                        <ul class="sub-menu children dropdown-menu">
+                            <li><i class="fa fa-file-text-o"></i><a href="{{ url('/admin/landing-pages') }}">{{ __('Pages') }}</a></li>
+                            <li><i class="fa fa-users"></i><a href="{{ url('/admin/landing-customers') }}">{{ __('Customers') }}</a></li>
+                            <li><i class="fa fa-money"></i><a href="{{ url('/admin/landing-pages/ad-costs') }}">{{ __('Ads Costs') }}</a></li>
+                            <li><i class="fa fa-line-chart"></i><a href="{{ url('/admin/landing-pages/revenue') }}">{{ __('Revenue') }}</a></li>
+                            <li><i class="fa fa-bullseye"></i><a href="{{ url('/admin/landing-pages/pixels') }}">{{ __('Pixel Connect') }}</a></li>
+                        </ul>
                     </li>
+                    @if(in_array('settings',$avilable))
                     <li>
-                        <a href="{{ url('/admin/landing-customers') }}"> <i class="menu-icon fa fa-users"></i>{{ __('Landing Customers') }} </a>
+                        <a href="{{ url('/admin/ai-api-connection') }}">
+                            <i class="menu-icon fa fa-magic"></i>{{ __('AI API Connection') }}
+                        </a>
                     </li>
+                    @endif
                     <li class="menu-item-has-children dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> 
                             <i class="menu-icon fa fa-envelope"></i>{{ __('Email Marketing') }}

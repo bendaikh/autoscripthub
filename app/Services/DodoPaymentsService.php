@@ -23,6 +23,146 @@ class DodoPaymentsService
             $this->baseUrl = 'https://test.dodopayments.com';
         }
     }
+
+    /**
+     * Normalize Dodo Checkout SDK mode ('test' or 'live').
+     */
+    public static function sdkMode($mode)
+    {
+        if ($mode === 'live' || $mode === 1 || $mode === '1') {
+            return 'live';
+        }
+
+        return 'test';
+    }
+
+    /**
+     * Extract checkout session URL from Dodo API response.
+     */
+    public static function sessionCheckoutUrl($response)
+    {
+        if (!$response || !is_array($response)) {
+            return null;
+        }
+
+        return $response['checkout_url'] ?? $response['url'] ?? $response['payment_url'] ?? null;
+    }
+
+    /**
+     * Derive a display name from the customer's email (digital goods checkout).
+     */
+    public static function customerNameFromEmail($email)
+    {
+        $local = strstr((string) $email, '@', true);
+        if ($local === false) {
+            $local = (string) $email;
+        }
+        $local = trim(preg_replace('/[^\w\s.\-]/', ' ', $local));
+
+        return $local !== '' ? $local : 'Customer';
+    }
+
+    /**
+     * Generic US billing address for digital products (same approach as Whop).
+     */
+    public static function digitalBillingAddress()
+    {
+        return [
+            'country' => 'US',
+            'street' => '3500 S Dupont Hwy',
+            'city' => 'Dover',
+            'state' => 'DE',
+            'zipcode' => '19901',
+        ];
+    }
+
+    /**
+     * Pre-fill customer details and skip contact step for card-only checkout.
+     */
+    public static function applyCardOnlyCheckoutOptions(array $sessionData, $customerEmail, $customerName = null)
+    {
+        $email = trim((string) $customerEmail);
+        $name = trim((string) ($customerName ?? ''));
+        if ($name === '' && $email !== '') {
+            $name = self::customerNameFromEmail($email);
+        }
+
+        $customer = $sessionData['customer'] ?? [];
+        if ($email !== '') {
+            $customer['email'] = $email;
+        }
+        if ($name !== '') {
+            $customer['name'] = $name;
+        }
+        $sessionData['customer'] = $customer;
+        $sessionData['billing_address'] = self::digitalBillingAddress();
+        $sessionData['confirm'] = true;
+        $sessionData['allowed_payment_method_types'] = ['credit', 'debit', 'apple_pay', 'google_pay'];
+        $sessionData['feature_flags'] = array_merge([
+            'allow_phone_number_collection' => false,
+            'allow_tax_id' => false,
+            'allow_discount_code' => false,
+            'allow_customer_editing_email' => false,
+            'allow_customer_editing_name' => false,
+            'allow_customer_editing_country' => false,
+            'allow_customer_editing_street' => false,
+            'allow_customer_editing_city' => false,
+            'allow_customer_editing_state' => false,
+            'allow_customer_editing_zipcode' => false,
+        ], $sessionData['feature_flags'] ?? []);
+
+        return $sessionData;
+    }
+
+    /**
+     * Append query params so Dodo checkout shows card fields only.
+     */
+    public static function cardOnlyCheckoutUrl($checkoutUrl, $customerEmail, $customerName = null)
+    {
+        if (!$checkoutUrl) {
+            return null;
+        }
+
+        $email = trim((string) $customerEmail);
+        $name = trim((string) ($customerName ?? ''));
+        if ($name === '' && $email !== '') {
+            $name = self::customerNameFromEmail($email);
+        }
+        $billing = self::digitalBillingAddress();
+
+        $query = [
+            'email' => $email,
+            'fullName' => $name,
+            'country' => $billing['country'],
+            'addressLine' => $billing['street'],
+            'city' => $billing['city'],
+            'state' => $billing['state'],
+            'zipCode' => $billing['zipcode'],
+            'disableFullName' => 'true',
+            'disableFirstName' => 'true',
+            'disableLastName' => 'true',
+            'disableEmail' => 'true',
+            'disableCountry' => 'true',
+            'disableAddressLine' => 'true',
+            'disableCity' => 'true',
+            'disableState' => 'true',
+            'disableZipCode' => 'true',
+            'showDiscounts' => 'false',
+        ];
+
+        $parts = parse_url($checkoutUrl);
+        $existing = [];
+        if (!empty($parts['query'])) {
+            parse_str($parts['query'], $existing);
+        }
+        $merged = array_merge($existing, $query);
+        $scheme = $parts['scheme'] ?? 'https';
+        $host = $parts['host'] ?? '';
+        $port = isset($parts['port']) ? ':' . $parts['port'] : '';
+        $path = $parts['path'] ?? '';
+
+        return $scheme . '://' . $host . $port . $path . '?' . http_build_query($merged);
+    }
     
     /**
      * Create a product in Dodo Payments (one-time price)

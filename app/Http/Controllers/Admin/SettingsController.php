@@ -2567,9 +2567,9 @@ class SettingsController extends Controller
 		$setting['setting'] = Settings::editGeneral($sid);
 		$additional['setting'] = Settings::editAdditional();
 		/*$payment_option = array('paypal','wallet','2checkout','paystack','localbank','razorpay','payhere','payumoney', 'iyzico','flutterwave', 'coingate','ipay','payfast','coinpayments','mercadopago','stripe');*/
-		$payment_option = array('paypal','wallet','2checkout','paystack','localbank','razorpay','payhere','payumoney', 'iyzico','flutterwave', 'coingate','ipay','payfast','coinpayments','sslcommerz','instamojo','aamarpay','mollie','robokassa','mercadopago','midtrans','coinbase','cashfree','nowpayments','dodopayments','stripe');
+		$payment_option = array('paypal','wallet','2checkout','paystack','localbank','razorpay','payhere','payumoney', 'iyzico','flutterwave', 'coingate','ipay','payfast','coinpayments','sslcommerz','instamojo','aamarpay','mollie','robokassa','mercadopago','midtrans','coinbase','cashfree','nowpayments','dodopayments','whop','stripe');
 		/*$vendor_payment_option = array('paypal','2checkout','razorpay','payhere','payumoney', 'iyzico','flutterwave', 'coingate','ipay','payfast','coinpayments','mercadopago','stripe');*/
-		$vendor_payment_option = array('paypal','wallet','2checkout','razorpay','payhere','payumoney', 'iyzico','flutterwave', 'coingate','ipay','payfast','coinpayments','instamojo','aamarpay','mollie','robokassa','mercadopago','midtrans','coinbase','cashfree','nowpayments','dodopayments','stripe');
+		$vendor_payment_option = array('paypal','wallet','2checkout','razorpay','payhere','payumoney', 'iyzico','flutterwave', 'coingate','ipay','payfast','coinpayments','instamojo','aamarpay','mollie','robokassa','mercadopago','midtrans','coinbase','cashfree','nowpayments','dodopayments','whop','stripe');
 		$get_payment = explode(',', $setting['setting']->payment_option);
 		$get_withdraw = explode(',', $setting['setting']->withdraw_option);
 		$get_vendor_payment = explode(',', $setting['setting']->vendor_payment_option);
@@ -2741,6 +2741,21 @@ class SettingsController extends Controller
 	   // Update .env file for DodoPayments settings
 	   $this->updateEnvFile('DODOPAYMENTS_MODE', $dodopayments_mode);
 	   $this->updateEnvFile('DODOPAYMENTS_API_KEY', $dodopayments_api_key);
+
+	   $whop_mode = $request->input('whop_mode', 'live');
+	   $whop_api_key = $request->input('whop_api_key');
+	   $whop_company_id = $request->input('whop_company_id');
+	   $whop_webhook_secret = $request->input('whop_webhook_secret');
+	   $this->updateEnvFile('WHOP_MODE', $whop_mode);
+	   if ($whop_api_key !== null && $whop_api_key !== '') {
+	       $this->updateEnvFile('WHOP_API_KEY', $whop_api_key);
+	   }
+	   if ($whop_company_id !== null && $whop_company_id !== '') {
+	       $this->updateEnvFile('WHOP_COMPANY_ID', $whop_company_id);
+	   }
+	   if ($whop_webhook_secret !== null && $whop_webhook_secret !== '') {
+	       $this->updateEnvFile('WHOP_WEBHOOK_SECRET', $whop_webhook_secret);
+	   }
 	   
 	   $flutterwave_default_currency = $request->input('flutterwave_default_currency');
 	   
@@ -2801,6 +2816,61 @@ class SettingsController extends Controller
 	
 	/* payment settings */
 	
+	/* AI API Connection (OpenAI) */
+
+	public function ai_api_connection()
+	{
+		$sid = 1;
+		$setting['setting'] = Settings::editGeneral($sid);
+		$ai['setting'] = Settings::editAiSettings();
+		if ($this->custom() != 0) {
+			return view('admin.ai-api-connection', [
+				'setting' => $setting,
+				'sid' => $sid,
+				'ai' => $ai,
+			]);
+		}
+		return redirect('/admin/license');
+	}
+
+	public function update_ai_api_connection(Request $request)
+	{
+		$request->validate([
+			'openai_enabled' => 'required|in:0,1',
+			'openai_model' => 'nullable|string|max:100',
+			'openai_image_model' => 'nullable|string|max:100',
+			'openai_generate_images' => 'required|in:0,1',
+		]);
+
+		$apiKey = trim((string) $request->input('openai_api_key', ''));
+		$existing = Settings::editAiSettings();
+		if ($apiKey === '' && !empty($existing->openai_api_key)) {
+			$apiKey = $existing->openai_api_key;
+		}
+
+		$ai_data = [
+			'openai_api_key' => $apiKey,
+			'openai_model' => $request->input('openai_model', 'gpt-4o-mini'),
+			'openai_image_model' => $request->input('openai_image_model', 'dall-e-3'),
+			'openai_enabled' => (int) $request->input('openai_enabled', 0),
+			'openai_generate_images' => (int) $request->input('openai_generate_images', 1),
+		];
+		Settings::updateAiSettings($ai_data);
+
+		$this->updateEnvFile('OPENAI_API_KEY', $apiKey);
+		$this->updateEnvFile('OPENAI_MODEL', $ai_data['openai_model']);
+		$this->updateEnvFile('OPENAI_IMAGE_MODEL', $ai_data['openai_image_model']);
+
+		return redirect()->back()->with('success', 'AI API Connection updated successfully.');
+	}
+
+	public function test_ai_api_connection(Request $request)
+	{
+		$service = new \Fickrr\Services\OpenAIService();
+		$result = $service->testConnection();
+		return response()->json($result);
+	}
+
 	/**
 	 * Update .env file with new values
 	 */

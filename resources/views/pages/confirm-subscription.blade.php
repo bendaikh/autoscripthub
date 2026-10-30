@@ -58,7 +58,7 @@
                         @foreach($get_payment as $payment)
                         <div class="lebel">
                            <input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="auto-width" value="{{ $payment }}" @if($no == 1) checked @endif data-bvalidator="required">
-                           <label for="opt1-{{ $payment }}" >{{ $payment }} @if($payment == 'wallet') ({{ Helper::price_format($allsettings->site_currency_position,Auth::user()->earnings,$currency_symbol,$multicurrency) }}) @endif</label>      
+                           <label for="opt1-{{ $payment }}" >@if($payment == 'whop') {{ __('Debit/Credit Card') }} @else {{ $payment }} @endif @if($payment == 'wallet') ({{ Helper::price_format($allsettings->site_currency_position,Auth::user()->earnings,$currency_symbol,$multicurrency) }}) @endif</label>      
                         </div>
                         @if($payment == 'stripe')
                         @if($stripe_type == 'charges')

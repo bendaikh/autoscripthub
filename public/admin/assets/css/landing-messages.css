@@ -1,0 +1,278 @@
+.landing-messages .lm-hero {
+    background: linear-gradient(135deg, #0f766e 0%, #0d9488 45%, #14b8a6 100%);
+}
+
+.landing-messages .lm-stat-icon {
+    align-items: center;
+    border-radius: 10px;
+    color: #fff;
+    display: inline-flex;
+    height: 36px;
+    justify-content: center;
+    margin-bottom: 14px;
+    width: 36px;
+}
+
+.landing-messages .lm-stat-icon.unread {
+    background: linear-gradient(135deg, #fb7185, #ef4444);
+}
+
+.landing-messages .lm-stat-icon.read {
+    background: linear-gradient(135deg, #34d399, #10b981);
+}
+
+.landing-messages .lm-stat-icon.replied {
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+}
+
+.landing-messages .lm-stat-icon.total {
+    background: linear-gradient(135deg, #818cf8, #6366f1);
+}
+
+.landing-messages .lm-filter-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.landing-messages .lm-filter-tab {
+    background: #f8fafc;
+    border: 1px solid var(--landing-border, #e6ebf5);
+    border-radius: 999px;
+    color: #475569;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 14px;
+    transition: all 0.15s ease;
+}
+
+.landing-messages .lm-filter-tab:hover {
+    background: #eef2ff;
+    border-color: #c7d2fe;
+    color: #4338ca;
+}
+
+.landing-messages .lm-filter-tab.is-active {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    border-color: transparent;
+    box-shadow: 0 5px 12px rgba(79, 70, 229, 0.22);
+    color: #fff;
+}
+
+.landing-messages .lm-filter-count {
+    background: rgba(255, 255, 255, 0.22);
+    border-radius: 999px;
+    display: inline-block;
+    font-size: 11px;
+    margin-left: 6px;
+    min-width: 20px;
+    padding: 2px 7px;
+    text-align: center;
+}
+
+.landing-messages .lm-filter-tab:not(.is-active) .lm-filter-count {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+.landing-messages .lm-row-unread td {
+    background: #fffbeb;
+}
+
+.landing-messages .lm-row-unread td:first-child {
+    box-shadow: inset 3px 0 0 #f59e0b;
+}
+
+.landing-messages .lm-contact-name {
+    display: block;
+    font-weight: 700;
+}
+
+.landing-messages .lm-contact-email,
+.landing-messages .lm-contact-phone {
+    color: var(--landing-muted, #7c8aa5);
+    display: block;
+    font-size: 12px;
+}
+
+.landing-messages .lm-message-preview {
+    color: #475569;
+    display: -webkit-box;
+    font-size: 13px;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-height: 1.45;
+    max-width: 280px;
+    overflow: hidden;
+}
+
+.landing-messages .lm-page-link {
+    color: #4338ca;
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    max-width: 180px;
+}
+
+.landing-messages .lm-page-link:hover {
+    text-decoration: underline;
+}
+
+.landing-messages .lm-status {
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 10px;
+    white-space: nowrap;
+}
+
+.landing-messages .lm-status-unread {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.landing-messages .lm-status-read {
+    background: #d1fae5;
+    color: #047857;
+}
+
+.landing-messages .lm-status-replied {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.landing-messages .lm-date {
+    color: #64748b;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.landing-messages .lm-modal .modal-content {
+    border: 0;
+    border-radius: 16px;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+    overflow: hidden;
+}
+
+.landing-messages .lm-modal .modal-header {
+    background: linear-gradient(135deg, #312e81 0%, #4f46e5 55%, #7c3aed 100%);
+    border: 0;
+    color: #fff;
+    padding: 20px 24px;
+}
+
+.landing-messages .lm-modal .modal-title {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.landing-messages .lm-modal .close {
+    color: #fff;
+    opacity: 0.85;
+    text-shadow: none;
+}
+
+.landing-messages .lm-modal .modal-body {
+    padding: 24px;
+}
+
+.landing-messages .lm-modal-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-bottom: 18px;
+}
+
+.landing-messages .lm-modal-field label {
+    color: #64748b;
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+}
+
+.landing-messages .lm-modal-field div,
+.landing-messages .lm-modal-field a {
+    color: #0f172a;
+    font-size: 14px;
+}
+
+.landing-messages .lm-modal-message {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    color: #334155;
+    line-height: 1.6;
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 16px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.landing-messages .lm-modal .modal-footer {
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    gap: 8px;
+    padding: 16px 24px;
+}
+
+.landing-messages .lm-modal .modal-footer .btn {
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    min-height: 40px;
+    padding: 0 16px;
+}
+
+.landing-messages #lpMessagesTable_wrapper .dataTables_filter input {
+    border: 1px solid var(--landing-border, #e6ebf5);
+    border-radius: 10px;
+    height: 40px;
+    margin-left: 8px;
+    outline: none;
+    padding: 0 12px;
+}
+
+.landing-messages #lpMessagesTable_wrapper .dataTables_filter input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.landing-messages #lpMessagesTable_wrapper .dataTables_length select {
+    border: 1px solid var(--landing-border, #e6ebf5);
+    border-radius: 8px;
+    height: 34px;
+    margin: 0 8px;
+}
+
+.landing-messages #lpMessagesTable_wrapper .dataTables_info,
+.landing-messages #lpMessagesTable_wrapper .dataTables_paginate {
+    color: #64748b;
+    font-size: 13px;
+    padding-top: 14px;
+}
+
+.landing-messages #lpMessagesTable_wrapper .paginate_button {
+    border-radius: 8px !important;
+    margin: 0 2px;
+}
+
+.landing-messages .modal {
+    z-index: 99999;
+}
+
+.landing-messages .modal-backdrop {
+    z-index: 99998;
+}
+
+@media (max-width: 767px) {
+    .landing-messages .lm-modal-grid {
+        grid-template-columns: 1fr;
+    }
+}

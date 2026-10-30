@@ -1993,6 +1993,95 @@ class ProfileController extends Controller
 		return view('success')->with($result_data);
 	}
 	
+	public function whop_success($ordtoken, Request $request)
+	{
+	    $multicurrency = $this->multicurrency();
+	    $encrypter = app('Illuminate\Contracts\Encryption\Encrypter');
+	    $ord_token   = $encrypter->decrypt($ordtoken);
+
+		if ($request->input('status') === 'error') {
+			return redirect('/failure')->with('unsuccess', __('Subscription payment failed or was canceled. Please try again.'));
+		}
+
+		$payment_token = $request->input('payment_id', $request->input('receipt_id', ''));
+		if (empty($payment_token)) {
+			return redirect('/pending')->with('unsuccess', __('Subscription payment is pending. Please wait for confirmation.'));
+		}
+
+		$whopService = \Fickrr\Services\WhopPaymentsService::fromConfig();
+		try {
+			$paymentDetails = $whopService->getPayment($payment_token);
+			if (!$paymentDetails || !isset($paymentDetails['status'])) {
+				return redirect('/failure')->with('unsuccess', __('Payment verification failed. Please contact support.'));
+			}
+			if (!\Fickrr\Services\WhopPaymentsService::isSuccessfulStatus($paymentDetails['status'] ?? '')) {
+				if (strtolower($paymentDetails['status'] ?? '') === 'failed') {
+					return redirect('/failure')->with('unsuccess', __('Subscription payment failed. Please try again with a different payment method.'));
+				}
+				return redirect('/pending')->with('unsuccess', __('Subscription payment is pending. Please wait for confirmation.'));
+			}
+		} catch (\Exception $e) {
+			\Log::error('Whop Subscription: Exception during payment verification', [
+				'payment_id' => $payment_token,
+				'error' => $e->getMessage(),
+				'order_token' => $ord_token
+			]);
+			return redirect('/failure')->with('unsuccess', __('Payment verification error. Please contact support.'));
+		}
+
+		$purchased_token = $ord_token;
+		$subscr_id = Auth::user()->user_subscr_id;
+		$subscr['view'] = Subscription::editsubData($subscr_id);
+		$subscri_date = $subscr['view']->subscr_duration;
+		$user_subscr_item_level = $subscr['view']->subscr_item_level;
+		$user_subscr_item = $subscr['view']->subscr_item;
+		$user_subscr_download_item = $subscr['view']->subscr_download_item;
+		$user_subscr_space_level = $subscr['view']->subscr_space_level;
+		$user_subscr_space = $subscr['view']->subscr_space;
+		$user_subscr_space_type = $subscr['view']->subscr_space_type;
+		$user_subscr_type = $subscr['view']->subscr_name;
+		$subscr_value = "+".$subscri_date;
+		$subscr_date = date('Y-m-d', strtotime($subscr_value));
+		$user_id = Auth::user()->id;
+		$payment_status = 'completed';
+		if(Auth::user()->user_type == 'customer')
+		{
+		  $user_type = 'vendor';
+		}
+		else
+		{
+		  $user_type = Auth::user()->user_type;
+		}
+		$checkoutdata = array('user_subscr_type' => $user_subscr_type, 'user_subscr_date' => $subscr_date, 'user_subscr_item_level' => $user_subscr_item_level, 'user_subscr_item' => $user_subscr_item, 'user_subscr_download_item' => $user_subscr_download_item,  'user_subscr_space_level' => $user_subscr_space_level, 'user_subscr_space' => $user_subscr_space, 'user_subscr_space_type' => $user_subscr_space_type, 'user_type' => $user_type, 'user_subscr_payment_status' => $payment_status);
+		Subscription::confirmsubscriData($user_id,$checkoutdata);
+		$sid = 1;
+		$setting['setting'] = Settings::editGeneral($sid);
+		$currency = $multicurrency;
+		$subscr_price = $subscr['view']->subscr_price;
+		$admin_name = $setting['setting']->sender_name;
+		$admin_email = $setting['setting']->sender_email;
+		$buyer_name = Auth::user()->name;
+		$buyer_email = Auth::user()->email;
+		$buyer_data = array('user_subscr_type' => $user_subscr_type, 'user_subscr_date' => $subscr_date, 'subscr_duration' =>  $subscri_date, 'subscr_price' => $subscr_price, 'currency' => $currency); 
+		$checktemp = EmailTemplate::checkTemplate(20);
+		if($checktemp != 0)
+		{
+			$template_view['mind'] = EmailTemplate::viewTemplate(20);
+			$template_subject = $template_view['mind']->et_subject;
+		}
+		else
+		{
+			$template_subject = "Subscription Upgrade";
+		}
+		Mail::send('subscription_mail', $buyer_data , function($message) use ($admin_name, $admin_email, $buyer_name, $buyer_email, $template_subject) {
+			$message->to($buyer_email, $buyer_name)
+			->subject($template_subject);
+			$message->from($admin_email,$admin_name);
+		});
+		$result_data = array('payment_token' => $payment_token);
+		return view('success')->with($result_data);
+	}
+	
 	/* dodopayments */
 	
 	/* cashfree */
@@ -2616,17 +2705,68 @@ class ProfileController extends Controller
               'payment_type' => 'subscription'
           ]
       ];
+      $checkoutData = \Fickrr\Services\DodoPaymentsService::applyCardOnlyCheckoutOptions(
+          $checkoutData,
+          $order_email,
+          $user_name
+      );
 	      
 	      // Create checkout session
 	      $response = $dodoService->createCheckoutSession($checkoutData);
 		      
-      if ($response && (isset($response['checkout_url']) || isset($response['url']))) {
+      $checkoutUrl = \Fickrr\Services\DodoPaymentsService::cardOnlyCheckoutUrl(
+          \Fickrr\Services\DodoPaymentsService::sessionCheckoutUrl($response),
+          $order_email,
+          $user_name
+      );
+      if ($checkoutUrl) {
 		          // Update subscription data
 		          Subscription::savesubscriData($updatedata);
-		          
-		          // Redirect to Dodo Payments checkout
-          $redirectUrl = $response['checkout_url'] ?? $response['url'];
-          return redirect($redirectUrl);
+
+          $data = [
+              'dodo_checkout_url' => $checkoutUrl,
+              'dodo_mode' => \Fickrr\Services\DodoPaymentsService::sdkMode($dodopayments_mode),
+              'dodo_item_name' => $user_subscr_type,
+              'dodo_amount_label' => isset($price) ? $price . ' ' . $site_currency : '',
+              'dodo_cancel_url' => url('/subscription'),
+          ];
+          return view('dodo-embedded-checkout')->with($data);
+		      } else {
+		          return redirect()->back()->with('unsuccess', __('Payment initialization failed. Please try again.'));
+		      }
+		  }
+		  else if($payment_method == 'whop')
+		  {
+	      $whopService = \Fickrr\Services\WhopPaymentsService::fromConfig();
+	      if (!$whopService->isConfigured()) {
+	          return redirect()->back()->with('unsuccess', __('Whop is not configured. Please check your payment settings.'));
+	      }
+	      $whop_success = $website_url.'/subscription-whop/'.$encrypter->encrypt($purchase_token);
+	      $response = $whopService->createCheckoutConfiguration(
+	          $price,
+	          $site_currency,
+	          $user_subscr_type,
+	          $whop_success,
+	          [
+	              'purchase_token' => (string) $purchase_token,
+	              'subscription_type' => (string) $user_subscr_type,
+	              'user_id' => (string) $user_id,
+	              'payment_type' => 'subscription',
+	          ]
+	      );
+	      $sessionId = \Fickrr\Services\WhopPaymentsService::extractSessionId($response);
+	      $planId = \Fickrr\Services\WhopPaymentsService::extractPlanId($response);
+	      if ($sessionId && $planId) {
+		          Subscription::savesubscriData($updatedata);
+	          return view('whop-embedded-checkout')->with([
+	              'whop_session_id' => $sessionId,
+	              'whop_plan_id' => $planId,
+	              'whop_return_url' => $whop_success,
+	              'whop_item_name' => $user_subscr_type,
+	              'whop_amount_label' => isset($price) ? $price . ' ' . $site_currency : '',
+	              'whop_cancel_url' => url('/subscription'),
+	              'whop_prefill_email' => $order_email ?? '',
+	          ]);
 		      } else {
 		          return redirect()->back()->with('unsuccess', __('Payment initialization failed. Please try again.'));
 		      }

@@ -59,6 +59,7 @@ class VerifyCsrfToken extends Middleware
 		'/webhooks/coinbase-checkout',
 		'/webhooks/coinbase-deposit',
 		'/webhooks/coinbase-subscription',
+		'/webhooks/whop',
 		'paytm/status',
         '/landing/track',
 		

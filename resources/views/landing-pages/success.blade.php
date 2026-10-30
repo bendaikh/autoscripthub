@@ -7,23 +7,7 @@
     
     <title>{{ __('Purchase Successful') }} - {{ $landing_page->lp_title }}</title>
     
-    <!-- Meta Pixel Code -->
-    <script>
-    !function(f,b,e,v,n,t,s)
-    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s)}(window, document,'script',
-    'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '4153934531541650');
-    fbq('track', 'PageView');
-    </script>
-    <noscript><img height="1" width="1" style="display:none"
-    src="https://www.facebook.com/tr?id=4153934531541650&ev=PageView&noscript=1"
-    /></noscript>
-    <!-- End Meta Pixel Code -->
+    @include('landing-pages.partials.pixels')
     
     <!-- Favicon -->
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
@@ -235,6 +219,11 @@
             }
         }
     </style>
+    <script>
+    if (window.top && window.top !== window.self) {
+        window.top.location.href = window.location.href;
+    }
+    </script>
 </head>
 <body>
     <div class="success-container">
@@ -346,6 +335,7 @@
             // Track purchase completed for internal analytics
             if (typeof window.lpTrack === 'function') {
                 window.lpTrack('purchase_completed', {
+                    content_name: @json($landing_page->lp_title),
                     value: {{ $order->amount }},
                     currency: "{{ $order->currency }}",
                     order_id: "{{ $order->order_token }}",
@@ -353,16 +343,6 @@
                 });
             }
 
-            // Track Purchase event when success page loads
-            if (typeof fbq !== 'undefined') {
-                fbq('track', 'Purchase', {
-                    content_name: '{{ $landing_page->lp_title }}',
-                    content_category: 'Landing Page',
-                    value: {{ $order->amount }},
-                    currency: '{{ $order->currency }}',
-                    order_id: '{{ $order->order_token }}'
-                });
-            }
         });
     </script>
 </body>

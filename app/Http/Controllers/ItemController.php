@@ -13009,6 +13009,124 @@ class ItemController extends Controller
 	return view('success')->with($result_data);
 	}
 	
+	public function whop_success($ordtoken, Request $request)
+	{
+	$encrypter = app('Illuminate\Contracts\Encryption\Encrypter');
+	$ord_token   = $encrypter->decrypt($ordtoken);
+	$sid = 1;
+	$setting['setting'] = Settings::editGeneral($sid);
+
+	if ($request->input('status') === 'error') {
+		return redirect('/failure')->with('unsuccess', __('Payment failed or was canceled. Please try again.'));
+	}
+
+	$existing = Items::getcheckoutData($ord_token);
+	if ($existing && ($existing->payment_status == 'completed')) {
+		return view('success')->with(array('payment_token' => $existing->payment_token));
+	}
+
+	$payment_token = $request->input('payment_id', $request->input('receipt_id', ''));
+	if (empty($payment_token)) {
+		return redirect('/pending')->with('unsuccess', __('Payment is pending. Please wait for confirmation.'));
+	}
+
+	$whopService = \Fickrr\Services\WhopPaymentsService::fromConfig();
+	try {
+		$paymentDetails = $whopService->getPayment($payment_token);
+		if (!$paymentDetails || !isset($paymentDetails['status'])) {
+			\Log::error('Whop: Failed to retrieve payment details', [
+				'payment_id' => $payment_token,
+				'order_token' => $ord_token
+			]);
+			return redirect('/failure')->with('unsuccess', __('Payment verification failed. Please contact support.'));
+		}
+
+		if (!\Fickrr\Services\WhopPaymentsService::isSuccessfulStatus($paymentDetails['status'] ?? '')) {
+			if (strtolower($paymentDetails['status'] ?? '') === 'failed') {
+				$orderdata = array('payment_token' => $payment_token, 'order_status' => 'failed');
+				$checkoutdata = array('payment_token' => $payment_token, 'payment_status' => 'failed');
+				Items::singleordupdateData($ord_token,$orderdata);
+				Items::singlecheckoutData($ord_token,$checkoutdata);
+				return redirect('/failure')->with('unsuccess', __('Payment failed. Please try again with a different payment method.'));
+			}
+			return redirect('/pending')->with('unsuccess', __('Payment is pending. Please wait for confirmation.'));
+		}
+	} catch (\Exception $e) {
+		\Log::error('Whop: Exception during payment verification', [
+			'payment_id' => $payment_token,
+			'error' => $e->getMessage(),
+			'order_token' => $ord_token
+		]);
+		return redirect('/failure')->with('unsuccess', __('Payment verification error. Please contact support.'));
+	}
+
+	$payment_status = 'completed';
+	$purchased_token = $ord_token;
+	$orderdata = array('payment_token' => $payment_token, 'order_status' => $payment_status);
+	$checkoutdata = array('payment_token' => $payment_token, 'payment_status' => $payment_status);
+	Items::singleordupdateData($purchased_token,$orderdata);
+	Items::singlecheckoutData($purchased_token,$checkoutdata);
+	
+	$token = $purchased_token;
+	$check['display'] = Items::getcheckoutData($token);
+	$currency = $this->site_currency();
+	$admin_name = $setting['setting']->sender_name;
+	$admin_email = $setting['setting']->sender_email;
+	$customer['info'] = Members::singlevendorData($check['display']->user_id);
+	$buyer_name = $customer['info']->name;
+	$buyer_email = $customer['info']->email;
+	$amount = $check['display']->total;
+	$order_id = $check['display']->purchase_token;
+	$payment_type = $check['display']->payment_type;
+	$payment_date = $check['display']->payment_date;
+	$payment_status = $check['display']->payment_status;
+	$record_customer = array('buyer_name' => $buyer_name, 'buyer_email' => $buyer_email, 'amount' => $amount, 'total_price' => $amount, 'order_id' => $order_id, 'currency' => $currency, 'payment_type' => $payment_type, 'payment_date' => $payment_date, 'payment_status' => $payment_status);
+	$checktemp = EmailTemplate::checkTemplate(21);
+	if($checktemp != 0)
+	{
+		$template_view['mind'] = EmailTemplate::viewTemplate(21);
+		$template_subject = $template_view['mind']->et_subject;
+	}
+	else
+	{
+		$template_subject = "Purchase details";
+	}
+	Mail::send('admin.buyer_payment_mail', $record_customer , function($message) use ($admin_name, $admin_email, $buyer_name, $buyer_email, $template_subject) {
+		$message->to($buyer_email, $buyer_name)
+		->subject($template_subject);
+		$message->from($admin_email,$admin_name);
+	});
+
+	$result['view'] = Items::singleorderToken($purchased_token);
+	if($result['view']->item_user_id != 0)
+	{
+		 $vendor['view'] = Members::singlevendorData($result['view']->item_user_id);
+		 $vendor_name = $vendor['view']->name;
+		 $vendor_email = $vendor['view']->email;
+		 $vendor_amount = $result['view']->vendor_amount;
+		 $order_id = $result['view']->purchase_token;
+		 $record_vendor = array('vendor_name' => $vendor_name, 'vendor_email' => $vendor_email, 'vendor_amount' => $vendor_amount, 'order_id' => $order_id, 'currency' => $currency, 'payment_type' => $payment_type, 'payment_date' => $payment_date, 'payment_status' => $payment_status);
+		 $checktemp_vendor = EmailTemplate::checkTemplate(14);
+		 if($checktemp_vendor != 0)
+		 {
+		 $template_view_vendor['mind'] = EmailTemplate::viewTemplate(14);
+		 $template_subject_vendor = $template_view_vendor['mind']->et_subject;
+		 }
+		 else
+		 {
+		 $template_subject_vendor = "Vendor sale Notification";
+		 }
+		 Mail::send('admin.vendor_payment_mail', $record_vendor , function($message) use ($admin_name, $admin_email, $vendor_name, $vendor_email, $template_subject_vendor) {
+		 $message->to($vendor_email, $vendor_name)
+		 ->subject($template_subject_vendor);
+		 $message->from($admin_email,$admin_name);
+		 });
+	}
+
+	$result_data = array('payment_token' => $payment_token);
+	return view('success')->with($result_data);
+	}
+	
 	/* dodopayments checkout success */
 	
 	public function deposit_nowpayments_success($ordtoken, Request $request)

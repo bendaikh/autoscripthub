@@ -60,6 +60,8 @@
                                 <form action="{{ url('/admin/add-landing-page') }}" method="post" enctype="multipart/form-data">
                                     {{ csrf_field() }}
 
+                                    @include('admin.landing-pages.partials.ai-generate')
+
                                     <div class="row">
                                         <div class="col-md-8">
                                             <!-- Basic Information -->
@@ -71,11 +73,37 @@
                                                 @endif
                                             </div>
 
+                                            @include('admin.landing-pages.partials.url-slug')
+
                                             <div class="form-group">
-                                                <label>{{ __('Description') }} <span class="text-danger">*</span></label>
-                                                <textarea name="lp_description" id="description" class="form-control summernote" rows="8" required>{{ old('lp_description') }}</textarea>
+                                                <label>{{ __('Tagline') }}</label>
+                                                <input type="text" name="lp_tagline" class="form-control" value="{{ old('lp_tagline') }}" placeholder="{{ __('Short compelling subtitle for the hero') }}">
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>{{ __('CTA Button Text') }}</label>
+                                                <input type="text" name="lp_cta_text" class="form-control" value="{{ old('lp_cta_text', 'Buy Now') }}" placeholder="Buy Now">
+                                            </div>
+
+                                            @include('admin.landing-pages.partials.accent-color')
+
+                                            @include('admin.landing-pages.partials.product-kind')
+
+                                            <div class="form-group">
+                                                <label>{{ __('Hero Description') }} <span class="text-danger">*</span></label>
+                                                <textarea name="lp_description" id="hero_description" class="form-control" rows="3" maxlength="220" required>{{ old('lp_description') }}</textarea>
+                                                <small class="form-text text-muted">{{ __('Short text under the title in the hero section — about 200 characters max.') }}</small>
                                                 @if ($errors->has('lp_description'))
                                                 <span class="text-danger">{{ $errors->first('lp_description') }}</span>
+                                                @endif
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>{{ __('About This Product') }}</label>
+                                                <textarea name="lp_about_description" id="about_description" class="form-control summernote" rows="8">{{ old('lp_about_description') }}</textarea>
+                                                <small class="form-text text-muted">{{ __('Longer content for the “About this product” section. Fill this in before Generate with AI — the AI uses these details as the product source of truth (not the short hero description).') }}</small>
+                                                @if ($errors->has('lp_about_description'))
+                                                <span class="text-danger">{{ $errors->first('lp_about_description') }}</span>
                                                 @endif
                                             </div>
 
@@ -119,6 +147,8 @@
                                                 </button>
                                             </div>
 
+                                            @include('admin.landing-pages.partials.reviews')
+
                                             <!-- Banner Image -->
                                             <div class="form-group">
                                                 <label>{{ __('Banner Image') }} (1920x800 recommended)</label>
@@ -128,33 +158,17 @@
                                                 @endif
                                             </div>
 
-                                            <!-- Gallery Images with Descriptions -->
+                                            <!-- Gallery Images -->
                                             <div class="form-group">
                                                 <label>{{ __('Gallery Images') }}</label>
-                                                <div id="gallery-container">
-                                                    <div class="gallery-item-input mb-3 p-3" style="border: 1px solid #e0e0e0; border-radius: 5px; background: #fafafa;">
-                                                        <div class="row">
-                                                            <div class="col-md-5">
-                                                                <label>{{ __('Image') }}</label>
-                                                                <input type="file" name="gallery_images[]" class="form-control" accept="image/*">
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <label>{{ __('Description') }}</label>
-                                                                <textarea name="gallery_descriptions[]" class="form-control" rows="2" placeholder="Enter image description..."></textarea>
-                                                            </div>
-                                                            <div class="col-md-1 d-flex align-items-end">
-                                                                <button type="button" class="btn btn-danger btn-sm" onclick="removeGalleryInput(this)">
-                                                                    <i class="fa fa-times"></i>
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <button type="button" class="btn btn-sm btn-primary mt-2" onclick="addGalleryInput()">
-                                                    <i class="fa fa-plus"></i> {{ __('Add Image') }}
-                                                </button>
-                                                <small class="form-text text-muted">Each image can have its own description shown on the landing page</small>
+                                                <input type="file" name="gallery_images[]" class="form-control" accept="image/jpeg,image/png,image/gif,image/webp" multiple>
+                                                <small class="form-text text-muted">{{ __('Select multiple screenshots or system images at once.') }}</small>
+                                                @if ($errors->has('gallery_images.*'))
+                                                <span class="text-danger">{{ $errors->first('gallery_images.*') }}</span>
+                                                @endif
                                             </div>
+
+                                            @include('admin.landing-pages.partials.product-video')
 
                                             <!-- Product Delivery Method -->
                                             <div class="form-group">
@@ -197,6 +211,8 @@
                                         </div>
 
                                         <div class="col-md-4">
+                                            @include('admin.landing-pages.partials.market-settings')
+
                                             <!-- Pricing -->
                                             <div class="form-group">
                                                 <label>{{ __('Regular Price') }} <span class="text-danger">*</span></label>
@@ -308,45 +324,6 @@
                 button.closest('.feature-item').remove();
             } else {
                 alert('{{ __("At least one feature field is required") }}');
-            }
-        }
-
-        function addGalleryInput() {
-            const container = document.getElementById('gallery-container');
-            const newItem = document.createElement('div');
-            newItem.className = 'gallery-item-input mb-3 p-3';
-            newItem.style.border = '1px solid #e0e0e0';
-            newItem.style.borderRadius = '5px';
-            newItem.style.background = '#fafafa';
-            newItem.innerHTML = `
-                <div class="row">
-                    <div class="col-md-5">
-                        <label>{{ __('Image') }}</label>
-                        <input type="file" name="gallery_images[]" class="form-control" accept="image/*">
-                    </div>
-                    <div class="col-md-6">
-                        <label>{{ __('Description') }}</label>
-                        <textarea name="gallery_descriptions[]" class="form-control" rows="2" placeholder="Enter image description..."></textarea>
-                    </div>
-                    <div class="col-md-1 d-flex align-items-end">
-                        <button type="button" class="btn btn-danger btn-sm" onclick="removeGalleryInput(this)">
-                            <i class="fa fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
-            container.appendChild(newItem);
-        }
-
-        function removeGalleryInput(button) {
-            const container = document.getElementById('gallery-container');
-            if (container.children.length > 1) {
-                button.closest('.gallery-item-input').remove();
-            } else {
-                // Clear the inputs instead of removing
-                const item = button.closest('.gallery-item-input');
-                item.querySelector('input[type="file"]').value = '';
-                item.querySelector('textarea').value = '';
             }
         }
 

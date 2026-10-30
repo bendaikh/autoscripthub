@@ -1,7 +1,7 @@
 <script src="{{ asset('admin/vendors/jquery/dist/jquery.min.js') }}"></script>
 <script src="{{ asset('admin/vendors/popper.js/dist/umd/popper.min.js') }}"></script>
 <script src="{{ asset('admin/vendors/bootstrap/dist/js/bootstrap.min.js') }}"></script>
-<script src="{{ asset('admin/assets/js/main.js') }}"></script>
+<script src="{{ asset('admin/assets/js/main.js') }}?v=20260829-1"></script>
 <script src="{{ asset('admin/assets/js/jquery.min.js') }}"></script>
 <script src="{{ asset('admin/vendors/chart.js/dist/Chart.bundle.min.js') }}"></script>
 <!--<script src="{{ asset('admin/assets/js/init-scripts/chart-js/chartjs-init.js') }}"></script>-->
@@ -50,8 +50,8 @@
 		CKEDITOR.replace( 'summary-ckeditor3' );
 		
     </script><?php */?>
-<script src="{{url('vendor/tinymce/jquery.tinymce.min.js')}}"></script>
-<script src="{{url('vendor/tinymce/tinymce.min.js')}}"></script>
+<script src="{{ asset('vendor/tinymce/jquery.tinymce.min.js') }}"></script>
+<script src="{{ asset('vendor/tinymce/tinymce.min.js') }}"></script>
 <script>
   tinymce.init({
     

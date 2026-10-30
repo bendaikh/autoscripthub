@@ -50,6 +50,35 @@ class Settings extends Model
 		  ->first();
 		return $value;
 	  }
+
+	public static function editAiSettings(){
+		$value = DB::table('ai_settings')->where('id', 1)->first();
+		if (!$value) {
+			DB::table('ai_settings')->insert([
+				'id' => 1,
+				'openai_model' => 'gpt-4o-mini',
+				'openai_image_model' => 'gpt-image-1',
+				'openai_enabled' => 0,
+				'openai_generate_images' => 1,
+				'created_at' => now(),
+				'updated_at' => now(),
+			]);
+			$value = DB::table('ai_settings')->where('id', 1)->first();
+		}
+		return $value;
+	}
+
+	public static function updateAiSettings($data){
+		$data['updated_at'] = now();
+		$exists = DB::table('ai_settings')->where('id', 1)->exists();
+		if ($exists) {
+			DB::table('ai_settings')->where('id', 1)->update($data);
+		} else {
+			$data['id'] = 1;
+			$data['created_at'] = now();
+			DB::table('ai_settings')->insert($data);
+		}
+	}
 	  
 	  public static function updatePWAData($data){
 		DB::table('pwa_settings')

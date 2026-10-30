@@ -1,1365 +1,895 @@
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() == 'ar' ? 'rtl' : 'ltr' }}">
+@php
+    \Fickrr\Helpers\LandingPageI18n::usePage($landing_page);
+    $lpT = [\Fickrr\Helpers\LandingPageI18n::class, 't'];
+    $lpLang = \Fickrr\Helpers\LandingPageI18n::locale();
+    $lpProductKind = $content['productKind'] ?? 'script';
+@endphp
+<html lang="{{ $lpLang }}" dir="{{ $lpLang === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    
-    <!-- SEO Meta Tags -->
     <title>{{ $landing_page->lp_meta_title ?? $landing_page->lp_title }}</title>
     <meta name="description" content="{{ $landing_page->lp_meta_description ?? strip_tags(substr($landing_page->lp_description, 0, 160)) }}">
     <meta name="keywords" content="{{ $landing_page->lp_meta_keywords ?? $landing_page->lp_title }}">
-    
-    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="product">
     <meta property="og:title" content="{{ $landing_page->lp_title }}">
-    <meta property="og:description" content="{{ strip_tags(substr($landing_page->lp_description, 0, 200)) }}">
+    <meta property="og:description" content="{{ $landing_page->lp_tagline ?? strip_tags(substr($landing_page->lp_description, 0, 200)) }}">
     @if($landing_page->lp_banner_image)
     <meta property="og:image" content="{{ asset('storage/landing-pages/' . $landing_page->lp_banner_image) }}">
     @endif
-    
-    <!-- Meta Pixel Code -->
-    <script>
-    !function(f,b,e,v,n,t,s)
-    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s)}(window, document,'script',
-    'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '4153934531541650');
-    fbq('track', 'PageView');
-    </script>
-    <noscript><img height="1" width="1" style="display:none"
-    src="https://www.facebook.com/tr?id=4153934531541650&ev=PageView&noscript=1"
-    /></noscript>
-    <!-- End Meta Pixel Code -->
-    
-    <!-- Favicon -->
+    @include('landing-pages.partials.pixels')
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
-    
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    @if(app()->getLocale() == 'ar')
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    @if($lpLang === 'ar')
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
     @endif
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: {{ app()->getLocale() == 'ar' ? "'Noto Sans Arabic', 'Inter', sans-serif" : "'Inter', sans-serif" }};
-            color: #333;
-            background-color: #fff;
-            overflow-x: hidden;
-        }
-
-        @if(app()->getLocale() == 'ar')
-        html[dir="rtl"] body {
-            direction: rtl;
-            text-align: right;
-        }
-
-        html[dir="rtl"] .btn-secondary-custom {
-            margin-left: 0;
-            margin-right: 15px;
-        }
-
-        html[dir="rtl"] .price-extended {
-            margin-left: 0;
-            margin-right: 15px;
-        }
-
-        html[dir="rtl"] .price-currency {
-            margin-right: 0;
-            margin-left: 5px;
-        }
-
-        html[dir="rtl"] .description-content ul,
-        html[dir="rtl"] .description-content ol {
-            padding-left: 0;
-            padding-right: 30px;
-        }
-
-        html[dir="rtl"] .chat-icon {
-            right: auto;
-            left: 30px;
-        }
-
-        html[dir="rtl"] .chat-badge {
-            right: auto;
-            left: -5px;
-        }
-
-        html[dir="rtl"] .payment-option input[type="radio"] {
-            margin-right: 0;
-            margin-left: 15px;
-        }
-
-        html[dir="rtl"] .landing-lang-switcher {
-            margin-left: 0;
-            margin-right: 15px;
-        }
-
-        @media (max-width: 768px) {
-            html[dir="rtl"] .chat-icon {
-                right: auto;
-                left: 20px;
-            }
-        }
-        @endif
-
-        .landing-lang-switcher .dropdown-toggle {
-            color: #667eea;
-            font-weight: 600;
-            text-decoration: none;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 8px 14px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .landing-lang-switcher .dropdown-toggle:hover {
-            text-decoration: none;
-            color: #764ba2;
-            border-color: #667eea;
-        }
-
-        .landing-lang-switcher .dropdown-menu {
-            min-width: 140px;
-        }
-        
-        /* Hero Section */
-        .hero-section {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px 0 80px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .hero-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
-            opacity: 0.5;
-        }
-        
-        .hero-content {
-            position: relative;
-            z-index: 10;
-        }
-        
-        .hero-title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 25px;
-            line-height: 1.2;
-        }
-        
-        .hero-subtitle {
-            font-size: 1.3rem;
-            margin-bottom: 40px;
-            opacity: 0.95;
-            font-weight: 400;
-        }
-        
-        .hero-banner {
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-            margin-top: 30px;
-        }
-        
-        .hero-banner img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-        
-        /* CTA Buttons */
-        .btn-primary-custom {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            color: white;
-            padding: 18px 40px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 50px;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-            text-decoration: none;
-            display: inline-block;
-        }
-        
-        .btn-primary-custom:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
-            color: white;
-            text-decoration: none;
-        }
-        
-        .btn-secondary-custom {
-            background: white;
-            border: 2px solid #667eea;
-            color: #667eea;
-            padding: 18px 40px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 50px;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            margin-left: 15px;
-        }
-        
-        .btn-secondary-custom:hover {
-            background: #667eea;
-            color: white;
-            transform: translateY(-3px);
-            text-decoration: none;
-        }
-        
-        /* Price Display */
-        .price-display {
-            display: flex;
-            align-items: baseline;
-            margin: 30px 0;
-        }
-        
-        .price-currency {
-            font-size: 1.8rem;
-            font-weight: 600;
-            margin-right: 5px;
-        }
-        
-        .price-amount {
-            font-size: 3.5rem;
-            font-weight: 800;
-        }
-        
-        .price-extended {
-            font-size: 1.2rem;
-            color: rgba(255, 255, 255, 0.7);
-            text-decoration: line-through;
-            margin-left: 15px;
-        }
-        
-        /* Features Section */
-        .features-section {
-            padding: 80px 0;
-            background: #f8f9fa;
-        }
-        
-        .section-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-            color: #2d3748;
-            text-align: center;
-        }
-        
-        .section-subtitle {
-            font-size: 1.2rem;
-            color: #718096;
-            text-align: center;
-            margin-bottom: 60px;
-        }
-        
-        .feature-card {
-            background: white;
-            padding: 40px 30px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
-            margin-bottom: 30px;
-            transition: all 0.3s ease;
-            border: 1px solid #e2e8f0;
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-        
-        .feature-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-            color: white;
-            font-size: 1.5rem;
-        }
-        
-        .feature-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: #2d3748;
-        }
-        
-        .feature-description {
-            color: #718096;
-            line-height: 1.6;
-        }
-        
-        /* Description Section */
-        .description-section {
-            padding: 80px 0;
-            background: white;
-        }
-        
-        .description-content {
-            font-size: 1.1rem;
-            line-height: 1.8;
-            color: #4a5568;
-        }
-        
-        .description-content h1,
-        .description-content h2,
-        .description-content h3,
-        .description-content h4 {
-            margin-top: 30px;
-            margin-bottom: 15px;
-            color: #2d3748;
-            font-weight: 600;
-        }
-        
-        .description-content p {
-            margin-bottom: 15px;
-        }
-        
-        .description-content ul,
-        .description-content ol {
-            margin-bottom: 20px;
-            padding-left: 30px;
-        }
-        
-        /* Gallery Section */
-        .gallery-section {
-            padding: 80px 0;
-            background: #f8f9fa;
-        }
-        
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 30px;
-            margin-top: 20px;
-        }
-        
-        .gallery-item {
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            background: white;
-        }
-        
-        .gallery-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-        }
-        
-        .gallery-item img {
-            width: 100%;
-            height: auto;
-            min-height: 280px;
-            max-height: 600px;
-            object-fit: contain;
-            object-position: center;
-            display: block;
-            background: #f8f9fa;
-        }
-        
-        .gallery-item-content {
-            padding: 20px;
-        }
-        
-        .gallery-item-description {
-            color: #4a5568;
-            font-size: 1rem;
-            line-height: 1.6;
-            margin: 0;
-        }
-        
-        /* Video Section */
-        .video-section {
-            padding: 80px 0;
-            background: white;
-        }
-        
-        .video-container {
-            max-width: 900px;
-            margin: 0 auto;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
-            background: #000;
-        }
-        
-        .video-wrapper {
-            position: relative;
-            padding-bottom: 56.25%; /* 16:9 aspect ratio */
-            height: 0;
-            overflow: hidden;
-        }
-        
-        .video-wrapper iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-        
-        /* Trust/Security Section */
-        .trust-section {
-            padding: 60px 0;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-top: 1px solid #e2e8f0;
-        }
-        
-        .trust-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-        }
-        
-        .trust-item {
-            text-align: center;
-            padding: 30px 20px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-        }
-        
-        .trust-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        }
-        
-        .trust-icon {
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            color: white;
-            font-size: 1.8rem;
-        }
-        
-        .trust-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 10px;
-        }
-        
-        .trust-description {
-            color: #718096;
-            font-size: 0.95rem;
-            line-height: 1.5;
-            margin: 0;
-        }
-        
-        .payment-icons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .payment-icons img {
-            height: 30px;
-            opacity: 0.8;
-            transition: opacity 0.3s;
-        }
-        
-        .payment-icons img:hover {
-            opacity: 1;
-        }
-        
-        .payment-icons i {
-            font-size: 2rem;
-            color: #718096;
-            transition: color 0.3s;
-        }
-        
-        .payment-icons i:hover {
-            color: #667eea;
-        }
-        
-        @media (max-width: 768px) {
-            .gallery-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .trust-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        /* CTA Section */
-        .cta-section {
-            padding: 100px 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            text-align: center;
-        }
-        
-        .cta-title {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-        }
-        
-        .cta-subtitle {
-            font-size: 1.3rem;
-            margin-bottom: 40px;
-            opacity: 0.9;
-        }
-        
-        .cta-section .btn-primary-custom {
-            background: white;
-            color: #667eea;
-        }
-        
-        .cta-section .btn-primary-custom:hover {
-            background: #f8f9fa;
-        }
-        
-        /* Navbar */
-        .landing-navbar {
-            background: white;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            padding: 15px 0;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-        
-        .navbar-brand-custom {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #667eea;
-            text-decoration: none;
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .hero-title {
-                font-size: 1.8rem;
-            }
-            
-            .hero-subtitle {
-                font-size: 1.1rem;
-            }
-            
-            .btn-primary-custom,
-            .btn-secondary-custom {
-                padding: 15px 30px;
-                font-size: 1rem;
-                display: block;
-                margin: 10px 0;
-                text-align: center;
-            }
-            
-            .price-amount {
-                font-size: 2.5rem;
-            }
-            
-            .section-title {
-                font-size: 2rem;
-            }
-            
-            .cta-title {
-                font-size: 2rem;
-            }
-        }
-        
-        /* Alert Messages */
-        .alert {
-            border-radius: 10px;
-            border: none;
-            padding: 15px 20px;
-            margin-bottom: 20px;
-        }
-
-        /* Chat Icon */
-        .chat-icon {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.8rem;
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-            cursor: pointer;
-            z-index: 1000;
-            transition: all 0.3s ease;
-            animation: pulse 2s infinite;
-        }
-
-        .chat-icon:hover {
-            transform: scale(1.1);
-            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6);
-        }
-
-        @keyframes pulse {
-            0% {
-                box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-            }
-            50% {
-                box-shadow: 0 5px 30px rgba(102, 126, 234, 0.7);
-            }
-            100% {
-                box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-            }
-        }
-
-        .chat-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #ff4444;
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            font-weight: bold;
-        }
-
-        /* Chat Modal */
-        .chat-modal-content {
-            border-radius: 15px;
-            border: none;
-            overflow: hidden;
-        }
-
-        .chat-modal-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 20px 30px;
-        }
-
-        .chat-modal-body {
-            padding: 30px;
-        }
-
-        .chat-form-group {
-            margin-bottom: 20px;
-        }
-
-        .chat-form-group label {
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 8px;
-            display: block;
-        }
-
-        .chat-form-group input,
-        .chat-form-group textarea {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-        }
-
-        .chat-form-group input:focus,
-        .chat-form-group textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .chat-submit-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            width: 100%;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .chat-submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .chat-submit-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        @media (max-width: 768px) {
-            .chat-icon {
-                bottom: 20px;
-                right: 20px;
-                width: 50px;
-                height: 50px;
-                font-size: 1.5rem;
-            }
-        }
-    </style>
+    @php $lpCssFile = base_path('public/css/landing-vue.css'); @endphp
+    <link rel="stylesheet" href="{{ url('/public/css/landing-vue.css') }}?v={{ file_exists($lpCssFile) ? filemtime($lpCssFile) : 1 }}">
 </head>
-<body>
-    <!-- Navbar -->
-    <nav class="landing-navbar">
-        <div class="container">
-            <div class="d-flex justify-content-between align-items-center">
-                <a href="{{ url('/') }}" class="navbar-brand-custom">
-                    @if(isset($setting->site_logo) && $setting->site_logo)
-                        <img src="{{ url('/') }}/public/storage/settings/{{ $setting->site_logo }}" alt="{{ $setting->site_title }}" style="height: 40px;">
-                    @else
-                        {{ $setting->site_title ?? 'Home' }}
-                    @endif
-                </a>
-                <div class="d-flex align-items-center">
-                    <div class="dropdown landing-lang-switcher">
-                        <a class="dropdown-toggle" href="javascript:void(0);" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="fas fa-globe"></i> {{ __('Language') }}
-                        </a>
-                        <div class="dropdown-menu {{ app()->getLocale() == 'ar' ? 'dropdown-menu-left' : 'dropdown-menu-right' }}">
-                            @foreach($available_locales as $locale_name => $available_locale)
-                            <a class="dropdown-item {{ app()->getLocale() == $available_locale ? 'active font-weight-bold' : '' }}" href="{{ url('/language/' . $available_locale) }}">{{ $locale_name }}</a>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </nav>
+@php
+    $youtubeId = '';
+    if (!empty($landing_page->lp_youtube_url)) {
+        $u = $landing_page->lp_youtube_url;
+        if (preg_match('/(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([^\&\?\/]+)/', $u, $m)) {
+            $youtubeId = $m[1];
+        }
+    }
 
-    <!-- Alert Messages -->
-    @if(Session::has('success'))
-    <div class="container mt-4">
-        <div class="alert alert-success">
-            <i class="fas fa-check-circle mr-2"></i> {{ Session::get('success') }}
-        </div>
+    $galleryUrls = collect($gallery_images ?? [])
+        ->map(function ($img) { return asset('storage/landing-pages/' . $img->lpg_image); })
+        ->values()
+        ->all();
+
+    $videoUrl = !empty($landing_page->lp_product_video)
+        ? asset('storage/landing-pages/' . $landing_page->lp_product_video)
+        : null;
+
+    $bannerUrl = $landing_page->lp_banner_image
+        ? asset('storage/landing-pages/' . $landing_page->lp_banner_image)
+        : null;
+
+    // Screenshots belong in the product frame; the banner works better as hero atmosphere.
+    $heroShot = $galleryUrls[0] ?? $bannerUrl;
+    $heroSide = $galleryUrls[1] ?? null;
+    $heroBg = $bannerUrl && $heroShot !== $bannerUrl ? $bannerUrl : null;
+
+    // Product name (before a dash) can be accented; the rest of the title stays intact.
+    $fullTitle = trim($landing_page->lp_title);
+    $titleName = $fullTitle;
+    $titleRest = '';
+    if (preg_match('/^(.+?)\s+[—–-]\s+(.+)$/u', $fullTitle, $titleParts)) {
+        $titleName = trim($titleParts[1]);
+        $titleRest = trim($titleParts[2]);
+    }
+
+    $included = $content['whatYouGetItems'];
+    if (!$included) {
+        $included = collect($content['featureCards'])->pluck('title')->take(6)->all();
+    }
+
+    $aboutHtml = $landing_page->lp_about_description ?? '';
+    if ($aboutHtml === '' && mb_strlen(\Fickrr\Helpers\LandingPageContent::plainText($landing_page->lp_description ?? '')) > \Fickrr\Helpers\LandingPageContent::DESCRIPTION_MAX_CHARS) {
+        $aboutHtml = $landing_page->lp_description;
+    }
+
+    $pagePayload = [
+        'title' => $landing_page->lp_title,
+        'titleName' => $titleName,
+        'titleRest' => $titleRest,
+        'tagline' => $landing_page->lp_tagline ?: $content['shortDescription'],
+        'shortDescription' => $content['shortDescription'],
+        'badge' => $content['badge'],
+        'cta' => $landing_page->lp_cta_text ?: ($lpProductKind === 'sheet' || $lpProductKind === 'product'
+            ? $lpT('Get Instant Download')
+            : $lpT('Get Instant Access')),
+        'descriptionHtml' => $aboutHtml,
+        'whatYouGetHtml' => $landing_page->lp_what_you_get,
+        'whatYouGetItems' => $content['whatYouGetItems'],
+        'included' => array_values($included),
+        'heroBenefits' => $content['heroBenefits'],
+        'featuresHeading' => $content['featuresHeading'],
+        'featureCards' => $content['featureCards'],
+        'outcomes' => $content['outcomes'],
+        'problem' => $content['problem'],
+        'trust' => $content['trust'],
+        'stats' => $content['stats'],
+        'faq' => $content['faq'],
+        'heroShot' => $heroShot,
+        'heroSide' => $heroSide,
+        'heroBg' => $heroBg,
+        'gallery' => $galleryUrls,
+        'videoUrl' => $videoUrl,
+        'youtubeId' => $youtubeId,
+        'price' => [
+            'symbol' => $price_data['symbol'] ?? '$',
+            'amount' => (float) ($price_data['price'] ?? $landing_page->lp_price),
+            'currency' => $price_data['currency'] ?? ($landing_page->lp_currency ?? 'USD'),
+        ],
+        'extended' => ($extended_price_data && ($extended_price_data['price'] ?? 0) > 0) ? [
+            'symbol' => $extended_price_data['symbol'],
+            'amount' => (float) $extended_price_data['price'],
+        ] : null,
+        'reviews' => $content['reviews'] ?? [],
+        'productKind' => $content['productKind'] ?? 'script',
+        'i18n' => [
+            'onlyPrice' => $lpT('Only'),
+            'paymentNote' => ($lpProductKind === 'sheet' || $lpProductKind === 'product')
+                ? $lpT('One-time payment • Instant download')
+                : $lpT('One-time payment • Instant access'),
+            'instantAccess' => $lpProductKind === 'sheet'
+                ? $lpT('Download the spreadsheet as soon as your payment is confirmed')
+                : ($lpProductKind === 'product'
+                    ? $lpT('Download your files as soon as your payment is confirmed')
+                    : $lpT('Instant access as soon as your payment is confirmed')),
+            'hostingHeading' => $content['hosting']['heading'],
+            'hostingText' => $content['hosting']['text'],
+            'watchDemo' => $lpT('Watch the demo'),
+            'seeScreens' => $lpT('See the screens'),
+            'seePricing' => $lpT('See what you get'),
+            'problemLead' => $lpT('Before'),
+            'solutionLead' => $lpT('After'),
+            'aboutHeading' => $lpT('About this product'),
+            'showcaseHeading' => $lpT('See it up close'),
+            'showcaseSub' => $lpT('Real screens from the product you are buying'),
+            'demoHeading' => $lpT('See it in action'),
+            'outcomesHeading' => $lpT('What this changes for you'),
+            'whatYouGetHeading' => $lpT('What you get after payment'),
+            'pricingHeading' => $lpT('Simple, one-time pricing'),
+            'pricingSub' => $lpT('Pay once and keep access to the product'),
+            'lifetimeLabel' => $lpT('Full access'),
+            'extendedNote' => $lpT('An extended licence is also available — send us a message for details.'),
+            'includedLabel' => $lpT("What's included"),
+            'faqHeading' => $lpT('Questions before you buy'),
+            'finalHeading' => $lpT('Ready to get started?'),
+            'featuresIncluded' => $lpT('features included'),
+            'secureNote' => $lpT('Secure checkout with PayPal or card'),
+            'prev' => $lpT('Previous'),
+            'next' => $lpT('Next'),
+            'close' => $lpT('Close'),
+            'reviewsHeading' => $lpT('Reviews for this item'),
+            'reviewsCountLabel' => $lpT('reviews'),
+            'reviewsAiLead' => $lpT('What buyers say, summarized by AI:'),
+            'itemQuality' => $lpT('Item quality'),
+            'shippingLabel' => ($lpProductKind === 'sheet' || $lpProductKind === 'product') ? $lpT('Delivery') : $lpT('Shipping'),
+            'serviceLabel' => $lpT('Customer service'),
+            'recommendLabel' => $lpT('Buyers recommend'),
+            'thisItem' => $lpT('This item'),
+            'sellerResponse' => $lpT('Response from seller'),
+            'playVideo' => $lpT('Play video'),
+        ],
+    ];
+@endphp
+<body class="lp-body @if($lpLang === 'ar') is-rtl @endif"
+      style="--lp-accent: {{ $content['accent'] }}; --lp-accent-dark: {{ $content['accentDark'] }}; --lp-accent-rgb: {{ $content['accentRgb'] }};">
+
+<header class="lp-topbar">
+    <div class="lp-container lp-topbar-inner">
+        <a href="{{ url('/') }}" class="lp-logo" aria-label="AutoScriptHub">
+            @include('partials.brand', ['brandCompact' => false, 'brandLight' => true])
+        </a>
+    </div>
+</header>
+
+<div id="lp-vue-app" v-cloak>
+    @if(Session::has('success') || Session::has('error') || Session::has('info'))
+    <div class="lp-container lp-alerts">
+        @if(Session::has('success'))
+        <div class="alert alert-success">{{ Session::get('success') }}</div>
+        @endif
+        @if(Session::has('error'))
+        <div class="alert alert-danger">{{ Session::get('error') }}</div>
+        @endif
+        @if(Session::has('info'))
+        <div class="alert alert-info">{{ Session::get('info') }}</div>
+        @endif
     </div>
     @endif
 
-    @if(Session::has('error'))
-    <div class="container mt-4">
-        <div class="alert alert-danger">
-            <i class="fas fa-exclamation-circle mr-2"></i> {{ Session::get('error') }}
-        </div>
-    </div>
-    @endif
+    {{-- 1. HERO --------------------------------------------------------------}}
+    <section class="lp-hero">
+        <div v-if="page.heroBg" class="lp-hero-bg" :style="{ backgroundImage: 'url(' + page.heroBg + ')' }"></div>
+        <div class="lp-hero-glow"></div>
+        <div class="lp-container lp-hero-grid">
+            <div class="lp-hero-copy">
+                <span class="lp-badge lp-mobile-hide">
+                    <i class="fas fa-{{ $content['categoryIcon'] }}"></i> @{{ page.badge }}
+                </span>
+                <h1 class="lp-hero-title">
+                    <span class="lp-accent-text">@{{ page.titleName }}</span><span v-if="page.titleRest"> — @{{ page.titleRest }}</span>
+                </h1>
+                <p class="lp-hero-tagline">@{{ page.tagline }}</p>
+                <p v-if="page.shortDescription && page.shortDescription !== page.tagline" class="lp-hero-lead lp-mobile-hide">
+                    @{{ page.shortDescription }}
+                </p>
 
-    @if(Session::has('info'))
-    <div class="container mt-4">
-        <div class="alert alert-info">
-            <i class="fas fa-info-circle mr-2"></i> {{ Session::get('info') }}
-        </div>
-    </div>
-    @endif
-
-    <!-- Hero Section -->
-    <section class="hero-section">
-        <div class="container">
-            <div class="row align-items-center hero-content">
-                <div class="col-lg-6">
-                    <h1 class="hero-title">{{ $landing_page->lp_title }}</h1>
-                    <p class="hero-subtitle">{{ strip_tags(substr($landing_page->lp_description, 0, 200)) }}...</p>
-                    
-                    <div class="price-display">
-                        <span class="price-currency">{{ $price_data['symbol'] ?? '$' }}</span>
-                        <span class="price-amount">{{ number_format($price_data['price'] ?? $landing_page->lp_price, 2) }}</span>
-                        @if($extended_price_data && $extended_price_data['price'] > 0)
-                        <span class="price-extended">{{ $extended_price_data['symbol'] }} {{ number_format($extended_price_data['price'], 2) }}</span>
-                        @endif
-                    </div>
-                    
-                    <div class="hero-actions">
-                        <button type="button" class="btn-primary-custom" onclick="showPaymentModal(); trackBuyNowClick();">
-                            <i class="fas fa-shopping-cart mr-2"></i> {{ __('Buy Now') }}
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="col-lg-6">
-                    @if(!empty($landing_page->lp_youtube_url))
-                    <div class="hero-banner" style="border-radius: 20px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); overflow: hidden; margin-top: 30px; background: #000;">
-                        <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;">
-                            @php
-                                $youtube_url = $landing_page->lp_youtube_url;
-                                $video_id = '';
-                                
-                                // Extract video ID from various YouTube URL formats
-                                if (preg_match('/youtube\.com\/watch\?v=([^\&\?\/]+)/', $youtube_url, $matches)) {
-                                    $video_id = $matches[1];
-                                } elseif (preg_match('/youtube\.com\/embed\/([^\&\?\/]+)/', $youtube_url, $matches)) {
-                                    $video_id = $matches[1];
-                                } elseif (preg_match('/youtube\.com\/v\/([^\&\?\/]+)/', $youtube_url, $matches)) {
-                                    $video_id = $matches[1];
-                                } elseif (preg_match('/youtu\.be\/([^\&\?\/]+)/', $youtube_url, $matches)) {
-                                    $video_id = $matches[1];
-                                }
-                            @endphp
-                            @if($video_id)
-                            <iframe 
-                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
-                                src="https://www.youtube.com/embed/{{ $video_id }}?rel=0&modestbranding=1" 
-                                title="{{ __('Product Video Demo') }}" 
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                                allowfullscreen>
-                            </iframe>
-                            @else
-                            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; background: #333;">
-                                <p>{{ __('Invalid YouTube URL') }}</p>
-                            </div>
-                            @endif
-                        </div>
-                    </div>
-                    @elseif($landing_page->lp_banner_image)
-                    <div class="hero-banner">
-                        <img src="{{ asset('storage/landing-pages/' . $landing_page->lp_banner_image) }}" alt="{{ $landing_page->lp_title }}">
-                    </div>
-                    @endif
-                </div>
+                <ul v-if="page.heroBenefits.length" class="lp-hero-benefits lp-mobile-hide">
+                    <li v-for="(benefit, idx) in page.heroBenefits" :key="idx">
+                        <i :class="'fas fa-' + benefit.icon"></i>
+                        <span>
+                            <strong>@{{ benefit.short }}</strong>
+                            <em>@{{ benefit.title }}</em>
+                        </span>
+                    </li>
+                </ul>
             </div>
-        </div>
-    </section>
 
-    <!-- Gallery Section -->
-    @if(count($gallery_images) > 0)
-    <section class="gallery-section">
-        <div class="container">
-            <div class="gallery-grid">
-                @foreach($gallery_images as $image)
-                <div class="gallery-item">
-                    <img src="{{ asset('storage/landing-pages/' . $image->lpg_image) }}" alt="{{ $image->lpg_description ?? __('Product Image') }}">
-                    @if(!empty($image->lpg_description))
-                    <div class="gallery-item-content">
-                        <p class="gallery-item-description">{{ $image->lpg_description }}</p>
-                    </div>
-                    @endif
+            <div class="lp-hero-offer">
+                <div class="lp-hero-price">
+                    <span class="lp-hero-price-label">@{{ page.i18n.onlyPrice }}</span>
+                    <span class="lp-hero-price-value">@{{ page.price.symbol }}@{{ formatMoney(page.price.amount) }}</span>
                 </div>
-                @endforeach
-            </div>
-        </div>
-    </section>
-    @endif
+                <p class="lp-hero-payment">@{{ page.i18n.paymentNote }}</p>
+                <p class="lp-hero-payment lp-mobile-hide">@{{ page.i18n.hostingText }}</p>
 
-    <!-- Features Section -->
-    @if(count($features) > 0)
-    <section class="features-section">
-        <div class="container">
-            <h2 class="section-title">{{ __('Key Features') }}</h2>
-            <p class="section-subtitle">{{ __('Everything you need to succeed') }}</p>
-            
-            <div class="row">
-                @foreach($features as $index => $feature)
-                @if(!empty($feature))
-                <div class="col-md-6 col-lg-4">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            @php
-                                $icons = ['fas fa-star', 'fas fa-rocket', 'fas fa-shield-alt', 'fas fa-cog', 'fas fa-check-circle', 'fas fa-bolt', 'fas fa-crown', 'fas fa-gem', 'fas fa-heart'];
-                                $icon = $icons[$index % count($icons)];
-                            @endphp
-                            <i class="{{ $icon }}"></i>
-                        </div>
-                        <h3 class="feature-title">{{ $feature }}</h3>
-                        <p class="feature-description">{{ __('Experience the power of this amazing feature that helps you achieve your goals faster and more efficiently.') }}</p>
-                    </div>
-                </div>
-                @endif
-                @endforeach
-            </div>
-        </div>
-    </section>
-    @endif
-
-    <!-- Description Section -->
-    <section class="description-section">
-        <div class="container">
-            <div class="description-content">
-                {!! $landing_page->lp_description !!}
-            </div>
-        </div>
-    </section>
-
-    <!-- What You'll Get Section -->
-    @if(!empty($landing_page->lp_what_you_get))
-    <section class="what-you-get-section" style="padding: 80px 0; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
-        <div class="container">
-            <h2 class="section-title">{{ __('What You\'ll Get After Payment') }}</h2>
-            <p class="section-subtitle">{{ __('Here\'s exactly what you\'ll receive when you complete your purchase') }}</p>
-            <div class="what-you-get-content" style="max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);">
-                <div class="description-content">
-                    {!! $landing_page->lp_what_you_get !!}
-                </div>
-            </div>
-        </div>
-    </section>
-    @endif
-
-    <!-- CTA Section -->
-    <section class="cta-section">
-        <div class="container">
-            <h2 class="cta-title">{{ __('Ready to Get Started?') }}</h2>
-            <p class="cta-subtitle">{{ __('Join thousands of satisfied customers today!') }}</p>
-            <div class="price-display justify-content-center">
-                <span class="price-currency">{{ $price_data['symbol'] }}</span>
-                <span class="price-amount">{{ number_format($price_data['price'], 2) }}</span>
-            </div>
-            <button type="button" class="btn-primary-custom" onclick="showPaymentModal(); trackBuyNowClick();">
-                <i class="fas fa-shopping-cart mr-2"></i> {{ __('Purchase Now') }}
-            </button>
-        </div>
-    </section>
-
-    <!-- Trust & Security Section -->
-    <section class="trust-section">
-        <div class="container">
-            <div class="trust-grid">
-                <!-- Secure Payments -->
-                <div class="trust-item">
-                    <div class="trust-icon">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <h3 class="trust-title">{{ __('Secure Payments') }}</h3>
-                    <p class="trust-description">{{ __('Your payment information is protected with industry-standard SSL encryption. All transactions are 100% secure.') }}</p>
-                    <div class="payment-icons">
-                        <i class="fab fa-cc-visa"></i>
-                        <i class="fab fa-cc-mastercard"></i>
-                        <i class="fab fa-cc-amex"></i>
-                        <i class="fab fa-paypal"></i>
-                    </div>
-                </div>
-                
-                <!-- PayPal Protection -->
-                <div class="trust-item">
-                    <div class="trust-icon">
-                        <i class="fab fa-paypal"></i>
-                    </div>
-                    <h3 class="trust-title">{{ __('PayPal Protected') }}</h3>
-                    <p class="trust-description">{{ __('Pay safely with PayPal\'s Buyer Protection. Your purchase is protected and you can shop with confidence.') }}</p>
-                </div>
-                
-                <!-- Money Back Guarantee -->
-                <div class="trust-item">
-                    <div class="trust-icon">
-                        <i class="fas fa-undo-alt"></i>
-                    </div>
-                    <h3 class="trust-title">{{ __('Refund Policy') }}</h3>
-                    <p class="trust-description">{{ __('Not satisfied? We offer hassle-free refunds. Your satisfaction is our priority and we stand behind our products.') }}</p>
-                </div>
-                
-                <!-- Customer Support -->
-                <div class="trust-item">
-                    <div class="trust-icon">
-                        <i class="fas fa-headset"></i>
-                    </div>
-                    <h3 class="trust-title">{{ __('Premium Support') }}</h3>
-                    <p class="trust-description">{{ __('Get help when you need it. Our dedicated support team is here to assist you with any questions or concerns.') }}</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer style="background: #2d3748; color: white; padding: 40px 0; text-align: center;">
-        <div class="container">
-            <p>&copy; {{ date('Y') }} {{ $setting->site_title ?? 'Your Site' }}. {{ __('All rights reserved.') }}</p>
-            <p class="mt-2">
-                <a href="{{ url('/') }}" style="color: white; margin: 0 15px;">{{ __('Home') }}</a>
-                <a href="{{ url('/contact') }}" style="color: white; margin: 0 15px;">{{ __('Contact') }}</a>
-                @if(isset($setting->site_email))
-                <a href="mailto:{{ $setting->site_email }}" style="color: white; margin: 0 15px;">{{ $setting->site_email }}</a>
-                @endif
-            </p>
-        </div>
-    </footer>
-
-    <!-- Chat Icon -->
-    <div class="chat-icon" onclick="showChatModal()" title="{{ __('Send us a message') }}">
-        <i class="fas fa-comments"></i>
-    </div>
-
-    <!-- Chat Modal -->
-    <div class="modal fade" id="chatModal" tabindex="-1" role="dialog" aria-labelledby="chatModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content chat-modal-content">
-                <div class="modal-header chat-modal-header">
-                    <h5 class="modal-title" id="chatModalLabel">
-                        <i class="fas fa-comments mr-2"></i> {{ __('Send us a Message') }}
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('Close') }}" style="color: white;">
-                        <span aria-hidden="true">&times;</span>
+                <div class="lp-hero-actions">
+                    <button type="button" class="lp-btn lp-btn-lg" @click="openBuy">
+                        <i class="fas fa-bolt"></i> @{{ page.cta }}
+                    </button>
+                    <button type="button" class="lp-btn-ghost lp-mobile-hide" @click="scrollTo(secondaryTarget)">
+                        <i :class="'fas fa-' + (page.youtubeId ? 'play' : 'images')"></i> @{{ secondaryLabel }}
                     </button>
                 </div>
-                <div class="modal-body chat-modal-body">
-                    <form id="chatForm" action="{{ url('/landing/' . $landing_page->lp_slug . '/send-message') }}" method="POST">
+
+                <p class="lp-hero-assurance lp-mobile-hide">
+                    <i class="fas fa-lock"></i> @{{ page.i18n.instantAccess }}
+                </p>
+            </div>
+
+            <div class="lp-hero-media">
+                <div v-if="heroShotUrl || (activeItem && activeItem.type === 'video')" class="lp-hero-stage"
+                     @touchstart="onTouchStart" @touchend="onTouchEnd">
+                    <button v-if="shotCount() > 1" type="button" class="lp-hero-nav lp-hero-prev"
+                            :aria-label="page.i18n.prev" @click="prevShot">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="lp-shot lp-shot-lg" @click="openHeroLightbox">
+                        <div class="lp-shot-bar">
+                            <span></span><span></span><span></span>
+                        </div>
+                        <video v-if="activeItem && activeItem.type === 'video'" :src="activeItem.url"
+                               :poster="activeItem.thumb || ''" controls playsinline></video>
+                        <img v-else :src="heroShotUrl" :alt="page.title">
+                    </div>
+                    <button v-if="shotCount() > 1" type="button" class="lp-hero-nav lp-hero-next"
+                            :aria-label="page.i18n.next" @click="nextShot">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div v-else class="lp-shot lp-shot-lg lp-shot-empty">
+                    <i :class="'fas fa-{{ $content['categoryIcon'] }}'"></i>
+                </div>
+                <div v-if="shotCount() > 1" class="lp-thumbs lp-hero-thumbs">
+                    <button v-for="(item, idx) in galleryMedia" :key="'hero-thumb-' + idx" type="button"
+                            class="lp-thumb" :class="{ active: idx === activeShot, 'is-video': item.type === 'video' }"
+                            @click="activeShot = idx">
+                        <img :src="item.thumb || item.url" :alt="page.title + ' — ' + (idx + 1)">
+                        <span v-if="item.type === 'video'" class="lp-thumb-play" :aria-label="page.i18n.playVideo">
+                            <i class="fas fa-play"></i>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {{-- 2. TRUST / QUICK BENEFITS -------------------------------------------}}
+    <section class="lp-trust">
+        <div class="lp-container">
+            <div class="lp-trust-strip">
+                <div v-for="(stat, idx) in page.stats" :key="'s' + idx" class="lp-trust-item">
+                    <span class="lp-trust-stat">@{{ stat.value }}</span>
+                    <span class="lp-trust-text"><strong>@{{ stat.label }}</strong></span>
+                </div>
+                <div v-for="(item, idx) in page.trust" :key="'t' + idx" class="lp-trust-item">
+                    <span class="lp-trust-icon"><i :class="'fas fa-' + item.icon"></i></span>
+                    <span class="lp-trust-text">
+                        <strong>@{{ item.title }}</strong>
+                        <em>@{{ item.text }}</em>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {{-- 3. PROBLEM -> SOLUTION ----------------------------------------------}}
+    <section class="lp-section" id="about">
+        <div class="lp-container">
+            <div class="lp-switch" data-reveal>
+                <article class="lp-switch-card lp-switch-problem">
+                    <span class="lp-switch-tag">@{{ page.i18n.problemLead }}</span>
+                    <h2>@{{ page.problem.heading }}</h2>
+                    <ul>
+                        <li v-for="(item, idx) in page.problem.items" :key="idx">
+                            <i class="fas fa-times"></i> @{{ item }}
+                        </li>
+                    </ul>
+                </article>
+                <div class="lp-switch-arrow"><i class="fas fa-arrow-right"></i></div>
+                <article class="lp-switch-card lp-switch-solution">
+                    <span class="lp-switch-tag">@{{ page.i18n.solutionLead }}</span>
+                    <h2>@{{ page.problem.solutionHeading }}</h2>
+                    <ul>
+                        <li v-for="(item, idx) in solutionPoints" :key="idx">
+                            <i class="fas fa-check"></i> @{{ item }}
+                        </li>
+                    </ul>
+                </article>
+            </div>
+
+            <div v-if="page.descriptionHtml" class="lp-about" data-reveal>
+                <h2 class="lp-section-title">@{{ page.i18n.aboutHeading }}</h2>
+                <div class="lp-prose" v-html="page.descriptionHtml"></div>
+            </div>
+        </div>
+    </section>
+
+    {{-- 4. FEATURES ---------------------------------------------------------}}
+    <section v-if="page.featureCards.length" class="lp-section lp-section-tint" id="features">
+        <div class="lp-container">
+            <header class="lp-section-head">
+                <h2 class="lp-section-title">@{{ page.featuresHeading }}</h2>
+                <p class="lp-section-sub">@{{ page.featureCards.length }} @{{ page.i18n.featuresIncluded }}</p>
+            </header>
+            <div class="lp-feature-grid">
+                <article v-for="(card, idx) in page.featureCards" :key="idx" class="lp-feature-card" data-reveal>
+                    <span class="lp-feature-icon"><i :class="'fas fa-' + card.icon"></i></span>
+                    <h3>@{{ card.title }}</h3>
+                    <p v-if="card.text">@{{ card.text }}</p>
+                </article>
+            </div>
+            <div class="lp-section-cta">
+                <button type="button" class="lp-btn" @click="openBuy">
+                    <i class="fas fa-bolt"></i> @{{ page.cta }}
+                </button>
+            </div>
+        </div>
+    </section>
+
+    {{-- 5. PRODUCT SHOWCASE ------------------------------------------------}}
+    <section v-if="galleryMedia.length" class="lp-section" id="showcase">
+        <div class="lp-container">
+            <header class="lp-section-head">
+                <h2 class="lp-section-title">@{{ page.i18n.showcaseHeading }}</h2>
+                <p class="lp-section-sub">@{{ page.i18n.showcaseSub }}</p>
+            </header>
+
+            <div class="lp-stage" data-reveal>
+                <button v-if="galleryMedia.length > 1" type="button" class="lp-stage-nav lp-stage-prev"
+                        :aria-label="page.i18n.prev" @click="prevShot">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+
+                <div class="lp-stage-viewport"
+                     @touchstart="onTouchStart" @touchend="onTouchEnd">
+                    <div class="lp-shot lp-shot-stage" @click="openHeroLightbox">
+                        <div class="lp-shot-bar"><span></span><span></span><span></span></div>
+                        <video v-if="activeItem && activeItem.type === 'video'" :src="activeItem.url"
+                               :poster="activeItem.thumb || ''" controls playsinline></video>
+                        <img v-else-if="activeItem" :src="activeItem.url" :alt="page.title + ' — ' + (activeShot + 1)">
+                    </div>
+                </div>
+
+                <button v-if="galleryMedia.length > 1" type="button" class="lp-stage-nav lp-stage-next"
+                        :aria-label="page.i18n.next" @click="nextShot">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <div v-if="galleryMedia.length > 1" class="lp-thumbs">
+                <button v-for="(item, idx) in galleryMedia" :key="idx" type="button"
+                        class="lp-thumb" :class="{ active: idx === activeShot, 'is-video': item.type === 'video' }"
+                        @click="activeShot = idx">
+                    <img :src="item.thumb || item.url" :alt="page.title + ' — ' + (idx + 1)">
+                    <span v-if="item.type === 'video'" class="lp-thumb-play" :aria-label="page.i18n.playVideo">
+                        <i class="fas fa-play"></i>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    {{-- 5b. VIDEO (only when a video exists) --------------------------------}}
+    <section v-if="page.youtubeId" class="lp-section lp-section-tint" id="demo">
+        <div class="lp-container">
+            <header class="lp-section-head">
+                <h2 class="lp-section-title">@{{ page.i18n.demoHeading }}</h2>
+            </header>
+            <div class="lp-video" data-reveal>
+                <iframe :src="'https://www.youtube.com/embed/' + page.youtubeId + '?rel=0&modestbranding=1'"
+                        :title="page.title" allowfullscreen loading="lazy"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+            </div>
+        </div>
+    </section>
+
+    {{-- 6. OUTCOMES --------------------------------------------------------}}
+    <section v-if="page.outcomes.length" class="lp-section" id="outcomes">
+        <div class="lp-container">
+            <header class="lp-section-head">
+                <h2 class="lp-section-title">@{{ page.i18n.outcomesHeading }}</h2>
+            </header>
+            <div class="lp-outcome-grid">
+                <article v-for="(item, idx) in page.outcomes" :key="idx" class="lp-outcome" data-reveal>
+                    <span class="lp-outcome-icon"><i :class="'fas fa-' + item.icon"></i></span>
+                    <h3>@{{ item.title }}</h3>
+                    <p>@{{ item.text }}</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    {{-- 7. WHAT YOU GET AFTER PURCHASE ------------------------------------}}
+    <section v-if="page.whatYouGetItems.length || page.whatYouGetHtml" class="lp-section lp-section-dark" id="delivery">
+        <div class="lp-container lp-delivery">
+            <div class="lp-delivery-copy" data-reveal>
+                <span class="lp-badge lp-badge-solid"><i class="fas fa-box-open"></i> @{{ page.i18n.whatYouGetHeading }}</span>
+                <h2>@{{ page.title }}</h2>
+                <p>@{{ page.i18n.hostingText }}</p>
+                <p>@{{ page.i18n.instantAccess }}</p>
+                <button type="button" class="lp-btn lp-btn-lg" @click="openBuy">
+                    <i class="fas fa-bolt"></i> @{{ page.cta }}
+                </button>
+            </div>
+            <div class="lp-delivery-card" data-reveal>
+                <ul v-if="page.whatYouGetItems.length" class="lp-check-list">
+                    <li v-for="(item, idx) in page.whatYouGetItems" :key="idx">
+                        <i class="fas fa-check-circle"></i> @{{ item }}
+                    </li>
+                </ul>
+                <div v-else class="lp-prose lp-prose-light" v-html="page.whatYouGetHtml"></div>
+            </div>
+        </div>
+    </section>
+
+    {{-- 9. PRICING / OFFER -------------------------------------------------}}
+    <section class="lp-section lp-section-tint" id="pricing">
+        <div class="lp-container">
+            <header class="lp-section-head">
+                <h2 class="lp-section-title">@{{ page.i18n.pricingHeading }}</h2>
+                <p class="lp-section-sub">@{{ page.i18n.pricingSub }}</p>
+            </header>
+
+            <div class="lp-price-card" data-reveal>
+                <span class="lp-price-tag">@{{ page.i18n.lifetimeLabel }}</span>
+                <h3 class="lp-price-product">@{{ page.title }}</h3>
+                <div class="lp-price-amount">
+                    <span class="lp-price-value">@{{ page.price.symbol }}@{{ formatMoney(page.price.amount) }}</span>
+                    <span class="lp-price-currency">@{{ page.price.currency }}</span>
+                </div>
+                <p class="lp-price-note">@{{ page.i18n.paymentNote }}</p>
+
+                <ul v-if="page.included.length" class="lp-check-list lp-check-list-center">
+                    <li v-for="(item, idx) in page.included" :key="idx">
+                        <i class="fas fa-check-circle"></i> @{{ item }}
+                    </li>
+                </ul>
+
+                <button type="button" class="lp-btn lp-btn-lg lp-btn-block" @click="openBuy">
+                    <i class="fas fa-bolt"></i> @{{ page.cta }}
+                </button>
+
+                <p class="lp-price-secure">
+                    <i class="fas fa-lock"></i> @{{ page.i18n.secureNote }}
+                </p>
+                <p v-if="page.extended" class="lp-price-extended">
+                    @{{ page.i18n.extendedNote }}
+                    <strong>@{{ page.extended.symbol }}@{{ formatMoney(page.extended.amount) }}</strong>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    {{-- 9b. REVIEWS --------------------------------------------------------}}
+    <section v-if="page.reviews && page.reviews.items && page.reviews.items.length" class="lp-section lp-section-tint lp-reviews-section" id="reviews">
+        <div class="lp-container">
+            <header class="lp-section-head">
+                <span class="lp-reviews-badge"><i class="fas fa-star"></i> @{{ page.reviews.rating }} / 5 · @{{ page.reviews.count }} @{{ page.i18n.reviewsCountLabel }}</span>
+                <h2 class="lp-section-title">@{{ page.i18n.reviewsHeading }}</h2>
+                <p v-if="page.reviews.highlights && page.reviews.highlights.length" class="lp-reviews-ai-lead">@{{ page.i18n.reviewsAiLead }}</p>
+            </header>
+
+            <div v-if="page.reviews.highlights && page.reviews.highlights.length" class="lp-reviews-highlights">
+                <span v-for="(tag, idx) in page.reviews.highlights" :key="'hl' + idx" class="lp-review-chip">
+                    <i class="fas fa-check-circle"></i> @{{ tag }}
+                </span>
+            </div>
+
+            <div class="lp-reviews-hero" data-reveal>
+                <div class="lp-reviews-score-card">
+                    <div class="lp-reviews-score-main">
+                        <span class="lp-reviews-score-num">@{{ page.reviews.rating }}</span>
+                        <div class="lp-reviews-score-meta">
+                            <span class="lp-stars lp-stars-lg">@{{ starString(Math.round(page.reviews.rating)) }}</span>
+                            <em>@{{ page.reviews.count }} @{{ page.i18n.reviewsCountLabel }}</em>
+                        </div>
+                    </div>
+                    <div class="lp-reviews-recommend">
+                        <i class="fas fa-thumbs-up"></i>
+                        <strong>@{{ page.reviews.recommend }}%</strong>
+                        <span>@{{ page.i18n.recommendLabel }}</span>
+                    </div>
+                </div>
+                <div class="lp-reviews-metrics">
+                    <div class="lp-metric">
+                        <div class="lp-metric-head">
+                            <span>@{{ page.i18n.itemQuality }}</span>
+                            <b>@{{ page.reviews.quality }}</b>
+                        </div>
+                        <div class="lp-metric-bar"><span class="lp-metric-fill" :style="{ width: (page.reviews.quality / 5 * 100) + '%' }"></span></div>
+                    </div>
+                    <div class="lp-metric">
+                        <div class="lp-metric-head">
+                            <span>@{{ page.i18n.shippingLabel }}</span>
+                            <b>@{{ page.reviews.shipping }}</b>
+                        </div>
+                        <div class="lp-metric-bar"><span class="lp-metric-fill" :style="{ width: (page.reviews.shipping / 5 * 100) + '%' }"></span></div>
+                    </div>
+                    <div class="lp-metric">
+                        <div class="lp-metric-head">
+                            <span>@{{ page.i18n.serviceLabel }}</span>
+                            <b>@{{ page.reviews.service }}</b>
+                        </div>
+                        <div class="lp-metric-bar"><span class="lp-metric-fill" :style="{ width: (page.reviews.service / 5 * 100) + '%' }"></span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="reviewThemes.length" class="lp-review-filters" data-reveal>
+                <button type="button" class="lp-filter-pill" :class="{ active: !reviewFilter }" @click="reviewFilter = ''">{{ $lpT('All') }}</button>
+                <button v-for="theme in reviewThemes" :key="theme" type="button" class="lp-filter-pill"
+                        :class="{ active: reviewFilter === theme }" @click="reviewFilter = (reviewFilter === theme ? '' : theme)">
+                    @{{ theme }}
+                </button>
+            </div>
+
+            <div class="lp-review-grid">
+                <article v-for="(review, idx) in filteredReviews" :key="'rv' + idx" class="lp-review-card" data-reveal>
+                    <div class="lp-review-quote" aria-hidden="true"><i class="fas fa-quote-left"></i></div>
+                    <header class="lp-review-head">
+                        <span class="lp-stars lp-stars-sm">@{{ starString(review.stars) }}</span>
+                        <span v-if="review.theme" class="lp-review-theme-tag">@{{ review.theme }}</span>
+                    </header>
+                    <p class="lp-review-text">@{{ review.text }}</p>
+                    <footer class="lp-review-foot">
+                        <span class="lp-review-avatar">@{{ (review.name || 'B').charAt(0).toUpperCase() }}</span>
+                        <div class="lp-review-author">
+                            <strong>@{{ review.name }}</strong>
+                            <span v-if="review.date">@{{ review.date }}</span>
+                        </div>
+                        <span class="lp-review-verified"><i class="fas fa-check-circle"></i> @{{ page.i18n.thisItem }}</span>
+                    </footer>
+                    <div v-if="review.response" class="lp-review-response">
+                        <span class="lp-review-avatar lp-review-avatar-seller"><i class="fas fa-store"></i></span>
+                        <div>
+                            <strong>@{{ page.i18n.sellerResponse }}</strong>
+                            <p>@{{ review.response }}</p>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    {{-- 10. FAQ ------------------------------------------------------------}}
+    <section v-if="page.faq.length" class="lp-section" id="faq">
+        <div class="lp-container lp-faq-wrap">
+            <header class="lp-section-head">
+                <h2 class="lp-section-title">@{{ page.i18n.faqHeading }}</h2>
+            </header>
+            <div class="lp-faq">
+                <article v-for="(item, idx) in page.faq" :key="idx" class="lp-faq-item" :class="{ open: openFaq === idx }">
+                    <button type="button" class="lp-faq-q" @click="toggleFaq(idx)" :aria-expanded="openFaq === idx ? 'true' : 'false'">
+                        <span>@{{ item.q }}</span>
+                        <i class="fas" :class="openFaq === idx ? 'fa-minus' : 'fa-plus'"></i>
+                    </button>
+                    <div class="lp-faq-a" v-show="openFaq === idx"><p>@{{ item.a }}</p></div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    {{-- 11. CONTACT --------------------------------------------------------}}
+    <section class="lp-section lp-section-tint" id="contact">
+        <div class="lp-container">
+            <div class="lp-contact-grid">
+                <div class="lp-contact-copy">
+                    <span class="lp-badge"><i class="fas fa-envelope"></i> {{ $lpT('Get in touch') }}</span>
+                    <h2 class="lp-section-title">{{ $lpT('Have a question before you buy?') }}</h2>
+                    <p>{{ $lpT('Send us a note and we will reply by email, usually within a few hours.') }}</p>
+                </div>
+                <div class="lp-contact-card">
+                    <div class="lp-contact-card-head">
+                        <span class="lp-contact-card-icon"><i class="fas fa-paper-plane"></i></span>
+                        <div>
+                            <h3>{{ $lpT('Send us a message') }}</h3>
+                            <p>{{ $lpT('We usually reply within a few hours.') }}</p>
+                        </div>
+                    </div>
+                    <div id="lpContactAlert" class="lp-contact-alert" style="display:none;"></div>
+                    <form id="lpContactForm" action="{{ url('/landing/' . $landing_page->lp_slug . '/send-message') }}" method="POST">
                         @csrf
                         <input type="hidden" name="lp_id" value="{{ $landing_page->lp_id }}">
-                        
-                        <div class="chat-form-group">
-                            <label for="lpm_name">{{ __('Your Name') }} <span style="color: red;">*</span></label>
-                            <input type="text" name="lpm_name" id="lpm_name" class="form-control" required placeholder="{{ __('Enter your name') }}">
+                        <div class="lp-contact-row">
+                            <div class="lp-contact-field">
+                                <label for="lpm_name">{{ $lpT('Your Name') }} *</label>
+                                <span class="lp-contact-input">
+                                    <i class="fas fa-user"></i>
+                                    <input type="text" name="lpm_name" id="lpm_name" required placeholder="{{ $lpT('Jane Smith') }}">
+                                </span>
+                            </div>
+                            <div class="lp-contact-field">
+                                <label for="lpm_email">{{ $lpT('Your Email') }} *</label>
+                                <span class="lp-contact-input">
+                                    <i class="fas fa-envelope"></i>
+                                    <input type="email" name="lpm_email" id="lpm_email" required placeholder="you@email.com">
+                                </span>
+                            </div>
                         </div>
-
-                        <div class="chat-form-group">
-                            <label for="lpm_email">{{ __('Your Email') }} <span style="color: red;">*</span></label>
-                            <input type="email" name="lpm_email" id="lpm_email" class="form-control" required placeholder="{{ __('Enter your email') }}">
+                        <div class="lp-contact-row">
+                            <div class="lp-contact-field">
+                                <label for="lpm_phone">{{ $lpT('Phone (optional)') }}</label>
+                                <span class="lp-contact-input">
+                                    <i class="fas fa-phone"></i>
+                                    <input type="text" name="lpm_phone" id="lpm_phone" placeholder="{{ $lpT('WhatsApp or mobile') }}">
+                                </span>
+                            </div>
+                            <div class="lp-contact-field">
+                                <label for="lpm_subject">{{ $lpT('Subject (optional)') }}</label>
+                                <span class="lp-contact-input">
+                                    <i class="fas fa-tag"></i>
+                                    <input type="text" name="lpm_subject" id="lpm_subject" placeholder="{{ $lpT('Hosting, licence, features…') }}">
+                                </span>
+                            </div>
                         </div>
-
-                        <div class="chat-form-group">
-                            <label for="lpm_phone">{{ __('Phone Number (Optional)') }}</label>
-                            <input type="text" name="lpm_phone" id="lpm_phone" class="form-control" placeholder="{{ __('Enter your phone number') }}">
+                        <div class="lp-contact-field">
+                            <label for="lpm_message">{{ $lpT('Your message') }} *</label>
+                            <span class="lp-contact-input lp-contact-input-area">
+                                <i class="fas fa-comment-dots"></i>
+                                <textarea name="lpm_message" id="lpm_message" rows="5" required placeholder="{{ $lpT('Ask about hosting, features, licence, or anything else…') }}"></textarea>
+                            </span>
                         </div>
-
-                        <div class="chat-form-group">
-                            <label for="lpm_subject">{{ __('Subject (Optional)') }}</label>
-                            <input type="text" name="lpm_subject" id="lpm_subject" class="form-control" placeholder="{{ __('Enter subject') }}">
-                        </div>
-
-                        <div class="chat-form-group">
-                            <label for="lpm_message">{{ __('Message') }} <span style="color: red;">*</span></label>
-                            <textarea name="lpm_message" id="lpm_message" class="form-control" rows="5" required placeholder="{{ __('Enter your message...') }}"></textarea>
-                        </div>
-
-                        <button type="submit" class="chat-submit-btn" id="chatSubmitBtn">
-                            <i class="fas fa-paper-plane mr-2"></i> {{ __('Send Message') }}
+                        <button type="submit" class="lp-btn lp-btn-block lp-contact-submit" id="lpContactSubmitBtn">
+                            <i class="fas fa-paper-plane"></i> {{ $lpT('Send Message') }}
                         </button>
+                        <p class="lp-contact-fineprint">
+                            <i class="fas fa-shield-alt"></i> {{ $lpT('Your details stay private. We only use them to reply to you.') }}
+                        </p>
                     </form>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- Payment Modal -->
-    <div class="modal fade" id="paymentModal" tabindex="-1" role="dialog" aria-labelledby="paymentModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content" style="border-radius: 15px; border: none; overflow: hidden;">
-                <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
-                    <h5 class="modal-title" id="paymentModalLabel">
-                        <i class="fas fa-lock mr-2"></i> {{ __('Choose Payment Method') }}
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('Close') }}" style="color: white;">
-                        <span aria-hidden="true">&times;</span>
+    {{-- 12. FINAL CTA ------------------------------------------------------}}
+    <section class="lp-final">
+        <div class="lp-container lp-final-inner">
+            <h2>@{{ page.i18n.finalHeading }}</h2>
+            <p>@{{ page.tagline }}</p>
+            <button type="button" class="lp-btn lp-btn-lg lp-btn-light" @click="openBuy">
+                <i class="fas fa-bolt"></i> @{{ page.cta }} — @{{ page.price.symbol }}@{{ formatMoney(page.price.amount) }}
+            </button>
+            <p class="lp-final-note">
+                <i class="fas fa-lock"></i> @{{ page.i18n.paymentNote }}
+            </p>
+        </div>
+    </section>
+
+    <div v-if="lightbox !== null && galleryMedia[lightbox]" class="lp-lightbox" @click.self="lightbox = null">
+        <button type="button" class="lp-lightbox-close" :aria-label="page.i18n.close" @click="lightbox = null">&times;</button>
+        <video v-if="galleryMedia[lightbox].type === 'video'" :src="galleryMedia[lightbox].url" controls autoplay playsinline></video>
+        <img v-else :src="galleryMedia[lightbox].url" :alt="page.title">
+    </div>
+</div>
+
+{{-- Payment modal kept outside Vue for Bootstrap/jQuery compatibility --}}
+<div class="modal fade" id="paymentModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered lp-payment-dialog" role="document">
+        <div class="modal-content lp-modal">
+            <div class="modal-header lp-modal-header">
+                <h5 class="modal-title"><i class="fas fa-lock mr-2"></i> {{ $lpT('Choose Payment Method') }}</h5>
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff;"><span>&times;</span></button>
+            </div>
+            <div class="modal-body lp-modal-body">
+                <div class="text-center mb-4">
+                    <h3 class="lp-modal-product">{{ $landing_page->lp_title }}</h3>
+                    <div class="lp-modal-price">
+                        @php
+                            $lpModalPrice = (float) ($price_data['price'] ?? 0);
+                            $lpModalDecimals = abs($lpModalPrice - round($lpModalPrice)) < 0.00001 ? 0 : 2;
+                        @endphp
+                        {{ $price_data['symbol'] }} {{ number_format($lpModalPrice, $lpModalDecimals) }}
+                    </div>
+                </div>
+                @php $landingPaymentMethods = $landing_payment_methods ?? []; @endphp
+                <form id="paymentForm" action="{{ url('/landing/' . $landing_page->lp_slug . '/process-payment') }}" method="POST">
+                    @csrf
+                    <div id="lpPaymentSelect">
+                    <div id="lpPaymentError" class="alert alert-danger" style="display:none;"></div>
+                    <div class="form-group">
+                        <label for="customer_email" style="font-weight:600;">{{ $lpT('Email Address') }} *</label>
+                        <input type="email" name="customer_email" id="customer_email" class="form-control lp-modal-input" required
+                               placeholder="{{ $lpT('Enter your email address') }}">
+                    </div>
+                    @if(in_array('paypal', $landingPaymentMethods, true))
+                    <div class="payment-option" onclick="selectPayment('paypal')">
+                        <div class="d-flex align-items-center">
+                            <input type="radio" name="payment_method" id="paypal_radio" value="paypal">
+                            <div>
+                                <h5><i class="fab fa-paypal" style="color:#0070ba;"></i> {{ $lpT('PayPal') }}</h5>
+                                <p>{{ $lpT('the safer, easier way to pay') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+                    @if(in_array('dodopayments', $landingPaymentMethods, true))
+                    <div class="payment-option" onclick="selectPayment('dodopayments')">
+                        <div class="d-flex align-items-center">
+                            <input type="radio" name="payment_method" id="dodopayments_radio" value="dodopayments">
+                            <div>
+                                <h5><i class="fas fa-credit-card"></i> {{ $lpT('Credit/Debit Card') }}</h5>
+                                <p>{{ $lpT('Pay securely with your card') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+                    @if(in_array('whop', $landingPaymentMethods, true))
+                    <div class="payment-option" onclick="selectPayment('whop')">
+                        <div class="d-flex align-items-center">
+                            <input type="radio" name="payment_method" id="whop_radio" value="whop">
+                            <div>
+                                <h5><i class="fas fa-credit-card"></i> {{ $lpT('Credit/Debit Card') }}</h5>
+                                <p>{{ $lpT('Pay securely with your card') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+                    @if(empty($landingPaymentMethods))
+                    <p class="text-danger mb-3">{{ $lpT('No payment methods are currently available.') }}</p>
+                    @endif
+                    <button type="submit" id="paymentBtn" class="lp-modal-submit" disabled>
+                        <i class="fas fa-lock mr-2"></i> {{ $lpT('Proceed to Payment') }}
                     </button>
-                </div>
-                <div class="modal-body" style="padding: 40px 30px;">
-                    <div class="text-center mb-4">
-                        <h3 style="font-weight: 600; color: #2d3748;">{{ $landing_page->lp_title }}</h3>
-                        <div style="font-size: 2rem; font-weight: 700; color: #667eea; margin-top: 15px;">
-                            {{ $price_data['symbol'] }} {{ number_format($price_data['price'], 2) }}
-                        </div>
                     </div>
-
-                    <form id="paymentForm" action="{{ url('/landing/' . $landing_page->lp_slug . '/process-payment') }}" method="POST">
-                        @csrf
-                        
-                        <!-- Email Field (Mandatory) -->
-                        <div class="form-group">
-                            <label for="customer_email" style="font-weight: 600; color: #2d3748;">
-                                <i class="fas fa-envelope mr-2"></i>{{ __('Email Address') }} <span style="color: red;">*</span>
-                            </label>
-                            <input type="email" name="customer_email" id="customer_email" class="form-control" 
-                                   placeholder="{{ __('Enter your email address') }}" required
-                                   style="padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem;">
-                            <small style="color: #718096;">{{ __('We\'ll send your purchase details to this email') }}</small>
-                        </div>
-                        
-                        <!-- PayPal Option -->
-                        <div class="payment-option" onclick="selectPayment('paypal')" style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 15px; cursor: pointer; transition: all 0.3s;">
-                            <div class="d-flex align-items-center">
-                                <input type="radio" name="payment_method" id="paypal_radio" value="paypal" style="width: 20px; height: 20px; margin-right: 15px;">
-                                <div class="flex-grow-1">
-                                    <h5 style="margin: 0; font-weight: 600; color: #2d3748;">
-                                        <i class="fab fa-paypal" style="color: #0070ba; font-size: 1.5rem;"></i> {{ __('PayPal') }}
-                                    </h5>
-                                    <p style="margin: 5px 0 0 0; color: #718096; font-size: 0.9rem;">{{ __('the safer, easier way to pay') }}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- DodoPayments (Card) Option -->
-                        <div class="payment-option" onclick="selectPayment('dodopayments')" style="border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 20px; cursor: pointer; transition: all 0.3s;">
-                            <div class="d-flex align-items-center">
-                                <input type="radio" name="payment_method" id="dodopayments_radio" value="dodopayments" style="width: 20px; height: 20px; margin-right: 15px;">
-                                <div class="flex-grow-1">
-                                    <h5 style="margin: 0; font-weight: 600; color: #2d3748;">
-                                        <i class="fas fa-credit-card" style="color: #667eea; font-size: 1.5rem;"></i> {{ __('Credit/Debit Card') }}
-                                    </h5>
-                                    <p style="margin: 5px 0 0 0; color: #718096; font-size: 0.9rem;">{{ __('Pay securely with your card') }}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button type="submit" id="paymentBtn" class="btn btn-block" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; font-size: 1.1rem; font-weight: 600; border-radius: 10px; border: none; transition: all 0.3s;" disabled>
-                            <i class="fas fa-lock mr-2"></i> {{ __('Proceed to Payment') }}
-                        </button>
-                    </form>
-
-                    <div class="text-center mt-3" style="color: #718096; font-size: 0.85rem;">
-                        <i class="fas fa-shield-alt mr-1"></i> {{ __('Secure payment • SSL encrypted') }}
+                    <div id="lpCheckoutEmbedWrap" style="display:none;">
+                        <div id="lpCheckoutEmbedError" class="alert alert-danger" style="display:none;"></div>
+                        <iframe id="lpCheckoutEmbed" title="{{ $lpT('Secure Checkout') }}"></iframe>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Landing Page Analytics -->
-    <script>
-        window.LP_ANALYTICS_CONFIG = {
-            endpoint: "{{ url('/landing/track') }}",
-            lpId: {{ (int) $landing_page->lp_id }},
-            lpSlug: "{{ $landing_page->lp_slug }}",
-            pageType: "landing"
-        };
-    </script>
-    <script src="{{ asset('js/lp-analytics.js') }}"></script>
-    
-    <!-- Payment Modal Scripts -->
-    <script>
-        function showPaymentModal() {
-            $('#paymentModal').modal('show');
-            if (typeof window.lpTrack === 'function') {
-                window.lpTrack('payment_modal_opened');
+<script type="application/json" id="lp-page-data">{!! json_encode($pagePayload, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES) !!}</script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url('/public/admin/vendors/vue/vue.global.prod.js') }}"></script>
+@php $lpJsFile = base_path('public/js/landing-vue.js'); @endphp
+<script src="{{ url('/public/js/landing-vue.js') }}?v={{ file_exists($lpJsFile) ? filemtime($lpJsFile) : 1 }}"></script>
+<script>
+window.LP_ANALYTICS_CONFIG = {
+    endpoint: "{{ url('/landing/track') }}",
+    lpId: {{ (int) $landing_page->lp_id }},
+    lpSlug: "{{ $landing_page->lp_slug }}",
+    contentName: @json($landing_page->lp_title),
+    pageType: "landing"
+};
+</script>
+<script src="{{ url('/public/js/lp-analytics.js') }}"></script>
+<script>
+function resetPaymentModal() {
+    $('#lpPaymentSelect').show();
+    $('#lpCheckoutEmbedWrap').hide();
+    $('#lpCheckoutEmbed').attr('src', 'about:blank');
+    $('#lpCheckoutEmbedError').hide().text('');
+    $('.lp-payment-dialog').removeClass('lp-payment-dialog-wide');
+    $('#paymentModal .modal-title').html('<i class="fas fa-lock mr-2"></i> {{ $lpT("Choose Payment Method") }}');
+    $('#paymentBtn').prop('disabled', false);
+}
+function showPaymentModal() {
+    resetPaymentModal();
+    $('#paymentModal').modal('show');
+    var methods = $('.payment-option input[name="payment_method"]');
+    if (methods.length === 1) {
+        selectPayment(methods.val());
+    }
+    if (typeof window.lpTrack === 'function') window.lpTrack('payment_modal_opened');
+}
+function selectPayment(method) {
+    $('.payment-option').removeClass('selected');
+    $('input[value="' + method + '"]').closest('.payment-option').addClass('selected');
+    $('input[value="' + method + '"]').prop('checked', true);
+    checkFormValidity();
+    if (typeof window.lpTrack === 'function') window.lpTrack('payment_method_selected', { method: method });
+}
+function checkFormValidity() {
+    var email = $('#customer_email').val();
+    var paymentMethod = $('input[name="payment_method"]:checked').val();
+    $('#paymentBtn').prop('disabled', !(email && email.includes('@') && paymentMethod));
+}
+function showEmbeddedCheckout(embedUrl) {
+    $('#lpPaymentSelect').hide();
+    $('.lp-payment-dialog').addClass('lp-payment-dialog-wide');
+    $('#paymentModal .modal-title').html('<i class="fas fa-lock mr-2"></i> {{ $lpT("Secure Checkout") }}');
+    $('#lpCheckoutEmbedWrap').show();
+    $('#lpCheckoutEmbed').attr('src', embedUrl);
+}
+function trackBuyNowClick() {
+    if (typeof window.lpTrack === 'function') window.lpTrack('buy_now_click');
+}
+$('#customer_email').on('input', checkFormValidity);
+$('#paymentModal').on('hidden.bs.modal', resetPaymentModal);
+$('#paymentForm').on('submit', function (e) {
+    var method = $('input[name="payment_method"]:checked').val();
+    if (typeof window.lpTrack === 'function') window.lpTrack('initiate_checkout', { method: method || null, has_email: !!$('#customer_email').val() });
+    if (method === 'paypal') {
+        return true;
+    }
+    e.preventDefault();
+    var submitBtn = $('#paymentBtn');
+    var originalText = submitBtn.html();
+    submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i> {{ $lpT("Please wait...") }}');
+    $('#lpPaymentError').hide().text('');
+    $('#lpCheckoutEmbedError').hide().text('');
+    $.ajax({
+        url: $(this).attr('action'),
+        method: 'POST',
+        data: $(this).serialize(),
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        success: function (response) {
+            if (response && response.embed_url) {
+                showEmbeddedCheckout(response.embed_url);
+                submitBtn.prop('disabled', false).html(originalText);
+                return;
             }
-            // Track Lead event when payment modal is opened
-            if (typeof fbq !== 'undefined') {
-                fbq('track', 'Lead', {
-                    content_name: '{{ $landing_page->lp_title }}',
-                    content_category: 'Landing Page'
-                });
-            }
+            submitBtn.prop('disabled', false).html(originalText);
+            $('#lpPaymentError').text(response.message || '{{ $lpT('An error occurred. Please try again.') }}').show();
+        },
+        error: function (xhr) {
+            submitBtn.prop('disabled', false).html(originalText);
+            var errorMessage = '{{ $lpT('An error occurred. Please try again.') }}';
+            if (xhr.responseJSON && xhr.responseJSON.message) errorMessage = xhr.responseJSON.message;
+            $('#lpPaymentError').text(errorMessage).show();
         }
-
-        function selectPayment(method) {
-            // Remove active class from all options
-            $('.payment-option').css({
-                'border-color': '#e2e8f0',
-                'background': 'white'
-            });
-            
-            // Add active class to selected option
-            $('input[value="' + method + '"]').closest('.payment-option').css({
-                'border-color': '#667eea',
-                'background': '#f7fafc'
-            });
-            
-            // Check the radio button
-            $('input[value="' + method + '"]').prop('checked', true);
-            
-            // Enable submit button if email is filled
-            checkFormValidity();
-
-            if (typeof window.lpTrack === 'function') {
-                window.lpTrack('payment_method_selected', { method: method });
-            }
-        }
-        
-        // Track Buy Now button click
-        function trackBuyNowClick() {
-            if (typeof window.lpTrack === 'function') {
-                window.lpTrack('buy_now_click');
-            }
-            if (typeof fbq !== 'undefined') {
-                fbq('track', 'Lead', {
-                    content_name: '{{ $landing_page->lp_title }}',
-                    content_category: 'Landing Page',
-                    value: {{ $price_data['price'] ?? $landing_page->lp_price }},
-                    currency: '{{ $price_data['currency'] ?? $landing_page->lp_currency }}'
-                });
-            }
-        }
-        
-        // Check form validity
-        function checkFormValidity() {
-            const email = $('#customer_email').val();
-            const paymentMethod = $('input[name="payment_method"]:checked').val();
-            
-            if (email && email.includes('@') && paymentMethod) {
-                $('#paymentBtn').prop('disabled', false);
+    });
+});
+$('#lpContactForm').on('submit', function (e) {
+    e.preventDefault();
+    if (typeof window.lpTrack === 'function') window.lpTrack('chat_message_submitted', { has_email: !!$('#lpm_email').val() });
+    var submitBtn = $('#lpContactSubmitBtn');
+    var alertBox = $('#lpContactAlert');
+    var originalText = submitBtn.html();
+    submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> {{ $lpT('Sending...') }}');
+    alertBox.hide().removeClass('lp-contact-alert-error').text('');
+    $.ajax({
+        url: $(this).attr('action'),
+        method: 'POST',
+        data: $(this).serialize(),
+        success: function (response) {
+            submitBtn.prop('disabled', false).html(originalText);
+            if (response.success) {
+                if (typeof window.lpTrack === 'function') window.lpTrack('chat_message_sent');
+                $('#lpContactForm')[0].reset();
+                alertBox.addClass('lp-contact-alert-success').text(response.message).fadeIn();
+                document.getElementById('contact').scrollIntoView({ behavior: 'smooth', block: 'start' });
             } else {
-                $('#paymentBtn').prop('disabled', true);
+                alertBox.addClass('lp-contact-alert-error').text(response.message || '{{ $lpT('An error occurred. Please try again.') }}').fadeIn();
             }
+        },
+        error: function (xhr) {
+            submitBtn.prop('disabled', false).html(originalText);
+            var errorMessage = '{{ $lpT('An error occurred. Please try again.') }}';
+            if (xhr.responseJSON && xhr.responseJSON.message) errorMessage = xhr.responseJSON.message;
+            alertBox.addClass('lp-contact-alert-error').text(errorMessage).fadeIn();
         }
-        
-        // Track when payment form is submitted
-        $('#paymentForm').on('submit', function() {
-            if (typeof window.lpTrack === 'function') {
-                const paymentMethod = $('input[name="payment_method"]:checked').val();
-                window.lpTrack('initiate_checkout', { method: paymentMethod || null, has_email: !!$('#customer_email').val() });
-            }
-            if (typeof fbq !== 'undefined') {
-                const email = $('#customer_email').val();
-                const paymentMethod = $('input[name="payment_method"]:checked').val();
-                
-                fbq('track', 'InitiateCheckout', {
-                    content_name: '{{ $landing_page->lp_title }}',
-                    content_category: 'Landing Page',
-                    value: {{ $price_data['price'] ?? $landing_page->lp_price }},
-                    currency: '{{ $price_data['currency'] ?? $landing_page->lp_currency }}',
-                    num_items: 1
-                });
-            }
-        });
-
-        // Hover effects
-        $(document).ready(function() {
-            // Validate email input
-            $('#customer_email').on('input', function() {
-                checkFormValidity();
-            });
-            
-            $('.payment-option').hover(
-                function() {
-                    if (!$(this).find('input').is(':checked')) {
-                        $(this).css('border-color', '#cbd5e0');
-                    }
-                },
-                function() {
-                    if (!$(this).find('input').is(':checked')) {
-                        $(this).css('border-color', '#e2e8f0');
-                    }
-                }
-            );
-        });
-
-        // Smooth scroll for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
-
-        // Auto-hide alerts after 5 seconds
-        setTimeout(function() {
-            $('.alert').fadeOut('slow');
-        }, 5000);
-
-        // Chat Modal Functions
-        function showChatModal() {
-            $('#chatModal').modal('show');
-            if (typeof window.lpTrack === 'function') {
-                window.lpTrack('chat_opened');
-            }
-        }
-
-        // Handle chat form submission
-        $('#chatForm').on('submit', function(e) {
-            e.preventDefault();
-
-            if (typeof window.lpTrack === 'function') {
-                window.lpTrack('chat_message_submitted', { has_email: !!$('#lpm_email').val() });
-            }
-            
-            const submitBtn = $('#chatSubmitBtn');
-            const originalText = submitBtn.html();
-            
-            // Disable button and show loading
-            submitBtn.prop('disabled', true);
-            submitBtn.html('<i class="fas fa-spinner fa-spin mr-2"></i> {{ __('Sending...') }}');
-            
-            // Submit form via AJAX
-            $.ajax({
-                url: $(this).attr('action'),
-                method: 'POST',
-                data: $(this).serialize(),
-                success: function(response) {
-                    if (response.success) {
-                        if (typeof window.lpTrack === 'function') {
-                            window.lpTrack('chat_message_sent');
-                        }
-                        // Show success message
-                        $('#chatModal').modal('hide');
-                        $('body').append('<div class="alert alert-success" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;"><i class="fas fa-check-circle mr-2"></i> ' + response.message + '</div>');
-                        
-                        // Reset form
-                        $('#chatForm')[0].reset();
-                        
-                        // Hide alert after 5 seconds
-                        setTimeout(function() {
-                            $('.alert-success').fadeOut('slow', function() {
-                                $(this).remove();
-                            });
-                        }, 5000);
-                    } else {
-                        alert(response.message || '{{ __('An error occurred. Please try again.') }}');
-                        submitBtn.prop('disabled', false);
-                        submitBtn.html(originalText);
-                    }
-                },
-                error: function(xhr) {
-                    let errorMessage = '{{ __('An error occurred. Please try again.') }}';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        errorMessage = xhr.responseJSON.message;
-                    } else if (xhr.responseJSON && xhr.responseJSON.errors) {
-                        const errors = Object.values(xhr.responseJSON.errors).flat();
-                        errorMessage = errors.join('\n');
-                    }
-                    alert(errorMessage);
-                    submitBtn.prop('disabled', false);
-                    submitBtn.html(originalText);
-                }
-            });
-        });
-
-        // Reset form when modal is closed
-        $('#chatModal').on('hidden.bs.modal', function() {
-            $('#chatForm')[0].reset();
-            $('#chatSubmitBtn').prop('disabled', false);
-            $('#chatSubmitBtn').html('<i class="fas fa-paper-plane mr-2"></i> {{ __('Send Message') }}');
-        });
-    </script>
+    });
+});
+setTimeout(function () { $('.lp-alerts .alert').fadeOut('slow'); }, 5000);
+</script>
 </body>
 </html>
-

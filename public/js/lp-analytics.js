@@ -84,6 +84,11 @@
 
   function track(eventName, props, opts) {
     if (!lpId) return;
+    props = props || {};
+    opts = opts || {};
+    if (!props.content_name && cfg.contentName) {
+      props.content_name = cfg.contentName;
+    }
     var payload = {
       lp_id: lpId,
       visitor_id: visitorId,
@@ -96,8 +101,14 @@
     // attach utm only when present
     for (var k in utm) payload[k] = utm[k];
 
-    if (opts && opts.useBeacon) payload._useBeacon = true;
+    if (opts.useBeacon) payload._useBeacon = true;
     postJSON(endpoint, payload);
+
+    if (!opts.silent && typeof window.lpTrackAds === 'function') {
+      try {
+        window.lpTrackAds(eventName, props || {});
+      } catch (e) {}
+    }
   }
 
   // Expose helpers globally for inline onclick hooks
@@ -156,6 +167,15 @@
     });
     window.addEventListener('pagehide', sendExit);
     window.addEventListener('beforeunload', sendExit);
+  } catch (e) {}
+
+  // Keep active sessions visible in live analytics while the page is open.
+  try {
+    setInterval(function () {
+      if (document.visibilityState === 'visible') {
+        track('heartbeat', { page_type: cfg.pageType || 'landing' }, { silent: true });
+      }
+    }, 45000);
   } catch (e) {}
 })();
 

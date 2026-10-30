@@ -1,126 +1,161 @@
 <!doctype html>
-<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang=""> <![endif]-->
-<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8" lang=""> <![endif]-->
-<!--[if IE 8]>         <html class="no-js lt-ie9" lang=""> <![endif]-->
-<!--[if gt IE 8]><!-->
 <html class="no-js" lang="en">
-<!--<![endif]-->
 
 <head>
     @include('admin.stylesheet')
+    <link rel="stylesheet" href="{{ asset('admin/assets/css/landing-admin.css') }}?v=20260831-3">
 </head>
 
 <body>
     @include('admin.navigation')
 
-    <!-- Right Panel -->
     <div id="right-panel" class="right-panel">
         @include('admin.header')
 
-        <div class="breadcrumbs">
-            <div class="col-sm-4">
-                <div class="page-header float-left">
-                    <div class="page-title">
-                        <h1>{{ __('Landing Pages') }}</h1>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-8">
-                <div class="page-header float-right">
-                    <div class="page-title">
-                        <ol class="breadcrumb text-right">
-                            <a href="{{ route('admin.landing-page-messages') }}" class="btn btn-info btn-sm mr-2">
-                                <i class="fa fa-comments"></i> {{ __('View Messages') }}
-                                @php
-                                    $unread_count = \Fickrr\Models\LandingPageMessage::getUnreadCount();
-                                @endphp
-                                @if($unread_count > 0)
-                                <span class="badge badge-danger">{{ $unread_count }}</span>
-                                @endif
-                            </a>
-                            <a href="{{ route('admin.add-landing-page') }}" class="btn btn-success btn-sm">
-                                <i class="fa fa-plus"></i> {{ __('Add Landing Page') }}
-                            </a>
-                        </ol>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
         @include('admin.warning')
-        
+
+        @php
+            $unread_count = \Fickrr\Models\LandingPageMessage::getUnreadCount();
+
+            $landing_page_items = [];
+            $country_options_map = [];
+
+            foreach ($landing_pages as $page) {
+                $targetCountry = strtoupper(trim((string) ($page->lp_target_country ?? '')));
+                $targetCountryName = $targetCountry !== ''
+                    ? \Fickrr\Helpers\Helper::countryNameFromCode($targetCountry)
+                    : '';
+                $targetCountryFlag = $targetCountry !== ''
+                    ? \Fickrr\Helpers\Helper::countryFlagEmoji($targetCountry)
+                    : '';
+
+                if ($targetCountry !== '' && !isset($country_options_map[$targetCountry])) {
+                    $country_options_map[$targetCountry] = [
+                        'code' => $targetCountry,
+                        'name' => $targetCountryName,
+                        'flag' => $targetCountryFlag,
+                        'label' => trim($targetCountryFlag . ' ' . $targetCountryName . ' (' . $targetCountry . ')'),
+                    ];
+                }
+
+                $adsStatus = strtolower(trim((string) ($page->lp_ads_status ?? 'off')));
+                if (!in_array($adsStatus, ['off', 'published', 'paused'], true)) {
+                    $adsStatus = 'off';
+                }
+
+                $sourceUrl = trim((string) ($page->lp_source_url ?? ''));
+                if ($sourceUrl !== '' && !preg_match('#^https?://#i', $sourceUrl)) {
+                    $sourceUrl = '';
+                }
+
+                $landing_page_items[] = [
+                    'id' => $page->lp_id,
+                    'title' => $page->lp_title,
+                    'slug' => $page->lp_slug,
+                    'price' => (float) $page->lp_price,
+                    'currency' => $page->lp_currency ?: 'USD',
+                    'status' => (bool) $page->lp_status,
+                    'adsStatus' => $adsStatus,
+                    'sourceUrl' => $sourceUrl,
+                    'targetCountry' => $targetCountry,
+                    'targetCountryName' => $targetCountryName,
+                    'targetCountryFlag' => $targetCountryFlag,
+                    'publicUrl' => url('/landing/' . $page->lp_slug),
+                    'editUrl' => route('admin.edit-landing-page', $page->lp_id),
+                    'analyticsUrl' => route('admin.landing-pages.analytics', $page->lp_id),
+                    'duplicateUrl' => route('admin.duplicate-landing-page', $page->lp_id),
+                    'adsStatusUrl' => route('admin.landing-pages.ads-status', $page->lp_id),
+                    'deleteUrl' => url('/admin/landing-pages/' . $page->lp_id),
+                ];
+            }
+
+            $country_options = array_values($country_options_map);
+            usort($country_options, function ($a, $b) {
+                return strcasecmp($a['name'], $b['name']);
+            });
+
+            $landing_admin_config = [
+                'type' => 'pages',
+                'section' => __('Landing Pages'),
+                'title' => __('Landing Pages'),
+                'description' => __('Create, manage, and measure your product landing pages.'),
+                'emptyMessage' => __('No landing pages yet.'),
+                'currency' => 'USD',
+                'items' => $landing_page_items,
+                'countries' => $country_options,
+                'createUrl' => route('admin.add-landing-page'),
+                'messagesUrl' => route('admin.landing-page-messages'),
+                'bulkDeleteUrl' => route('admin.landing-pages.bulk-delete'),
+                'csrfToken' => csrf_token(),
+                'unreadCount' => $unread_count,
+                'adsStatuses' => [
+                    ['value' => 'off', 'label' => __('Not on ads')],
+                    ['value' => 'published', 'label' => __('Published')],
+                    ['value' => 'paused', 'label' => __('Paused')],
+                ],
+                'labels' => [
+                    'messages' => __('Messages'),
+                    'create' => __('New Landing Page'),
+                    'tableTitle' => __('All Landing Pages'),
+                    'searchPlaceholder' => __('Search pages...'),
+                    'filterCountry' => __('Target country'),
+                    'allCountries' => __('All countries'),
+                    'filterAds' => __('Ads status'),
+                    'allAdsStatuses' => __('All ads statuses'),
+                    'noResults' => __('No matching results'),
+                    'totalPages' => __('Total Pages'),
+                    'activePages' => __('Active Pages'),
+                    'inactivePages' => __('Inactive Pages'),
+                    'totalValue' => __('Catalog Value'),
+                    'page' => __('Page'),
+                    'price' => __('Price'),
+                    'country' => __('Country'),
+                    'status' => __('Status'),
+                    'ads' => __('Ads'),
+                    'publicUrl' => __('Public URL'),
+                    'sourceUrl' => __('Product source'),
+                    'noSourceUrl' => __('No product source link'),
+                    'actions' => __('Actions'),
+                    'active' => __('Active'),
+                    'inactive' => __('Inactive'),
+                    'adsOff' => __('Not on ads'),
+                    'adsPublished' => __('Published'),
+                    'adsPaused' => __('Paused'),
+                    'adsUpdateFailed' => __('Could not update ads status. Please try again.'),
+                    'edit' => __('Edit'),
+                    'analytics' => __('Analytics'),
+                    'duplicate' => __('Duplicate'),
+                    'delete' => __('Delete'),
+                    'selectAll' => __('Select all on this page'),
+                    'selected' => __('selected'),
+                    'bulkDelete' => __('Delete selected'),
+                    'confirmBulkDelete' => __('Delete :count selected landing page(s)? This cannot be undone.'),
+                    'noneSelected' => __('Select at least one landing page to delete.'),
+                    'confirmDelete' => __('Delete ":name"? This action cannot be undone.'),
+                    'showing' => __('Showing'),
+                    'of' => __('of'),
+                    'rowsPerPage' => __('Rows per page'),
+                    'pagination' => __('Table pagination'),
+                    'previous' => __('Previous page'),
+                    'next' => __('Next page'),
+                ],
+            ];
+
+            $landing_admin_json = json_encode(
+                $landing_admin_config,
+                JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE
+            );
+        @endphp
+
         <div class="content mt-3">
-            <div class="animated fadeIn">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <strong class="card-title">{{ __('All Landing Pages') }}</strong>
-                            </div>
-                            <div class="card-body">
-                                <table id="example" class="table table-striped table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th>{{ __('ID') }}</th>
-                                            <th>{{ __('Title') }}</th>
-                                            <th>{{ __('Slug') }}</th>
-                                            <th>{{ __('Price') }}</th>
-                                            <th>{{ __('Status') }}</th>
-                                            <th>{{ __('URL') }}</th>
-                                            <th>{{ __('Action') }}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($landing_pages as $page)
-                                        <tr>
-                                            <td>{{ $page->lp_id }}</td>
-                                            <td>{{ mb_substr($page->lp_title, 0, 40, 'UTF-8') }}{{ strlen($page->lp_title) > 40 ? '...' : '' }}</td>
-                                            <td>{{ $page->lp_slug }}</td>
-                                            <td>{{ $page->lp_currency }} {{ number_format($page->lp_price, 2) }}</td>
-                                            <td>
-                                                @if($page->lp_status == 1)
-                                                <span class="badge badge-success">{{ __('Active') }}</span>
-                                                @else
-                                                <span class="badge badge-danger">{{ __('Inactive') }}</span>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                <a href="{{ url('/landing/' . $page->lp_slug) }}" target="_blank" class="btn btn-info btn-sm">
-                                                    <i class="fa fa-external-link"></i> {{ __('View') }}
-                                                </a>
-                                            </td>
-                                            <td>
-                                                <a href="{{ route('admin.edit-landing-page', $page->lp_id) }}" class="btn btn-success btn-sm">
-                                                    <i class="fa fa-edit"></i> {{ __('Edit') }}
-                                                </a>
-                                                <a href="{{ route('admin.landing-pages.analytics', $page->lp_id) }}" class="btn btn-primary btn-sm">
-                                                    <i class="fa fa-bar-chart"></i> {{ __('Analytics') }}
-                                                </a>
-                                                <a href="{{ route('admin.duplicate-landing-page', $page->lp_id) }}" 
-                                                   class="btn btn-info btn-sm" 
-                                                   title="{{ __('Duplicate Landing Page') }}">
-                                                    <i class="fa fa-copy"></i> {{ __('Duplicate') }}
-                                                </a>
-                                                <a href="{{ url('/admin/landing-pages/' . $page->lp_id) }}" 
-                                                   class="btn btn-danger btn-sm" 
-                                                   onClick="return confirm('{{ __('Are you sure you want to delete this landing page') }}?');">
-                                                    <i class="fa fa-trash"></i> {{ __('Delete') }}
-                                                </a>
-                                            </td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div id="landing-admin-app" v-cloak></div>
+            <script id="landing-admin-data" type="application/json">{!! $landing_admin_json !!}</script>
         </div>
     </div>
 
     @include('admin.javascript')
+    <script src="{{ asset('admin/vendors/vue/vue.global.prod.js') }}"></script>
+    <script src="{{ asset('admin/assets/js/landing-admin-vue.js') }}?v=20260831-3"></script>
 </body>
 
 </html>
-

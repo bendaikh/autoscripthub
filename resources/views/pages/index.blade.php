@@ -5,1389 +5,630 @@
 @include('meta')
 @include('style')
 </head>
-<body>
+<body class="home-v2">
 @include('header')
-<section class="hero-section-modern" style="position: relative; overflow: hidden; min-height: 400px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-      
-      <!-- Animated Background Elements -->
-      <div class="hero-bg-animation">
-        <div class="floating-shape shape-1"></div>
-        <div class="floating-shape shape-2"></div>
-        <div class="floating-shape shape-3"></div>
-        <div class="floating-shape shape-4"></div>
-        <div class="floating-shape shape-5"></div>
-      </div>
-      
-      <!-- Floating Icons -->
-      <div class="floating-icons">
-        <i class="dwg-shopping-bag floating-icon icon-1"></i>
-        <i class="dwg-download floating-icon icon-2"></i>
-        <i class="dwg-star-filled floating-icon icon-3"></i>
-        <i class="dwg-cart floating-icon icon-4"></i>
-        <i class="dwg-code floating-icon icon-5"></i>
-        <i class="dwg-image floating-icon icon-6"></i>
-        <i class="dwg-rocket floating-icon icon-7"></i>
-        <i class="dwg-heart floating-icon icon-8"></i>
-      </div>
-      
-      <!-- Particle Effect Container -->
-      <canvas id="particle-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></canvas>
-      
-      <div class="py-5" style="position: relative; z-index: 10;">
-        <div class="container">
-          <div class="row mb-4">
-            <div class="col-lg-8 col-md-10 text-center mx-auto">
-              <h1 class="text-white line-height-base hero-title-animated" style="font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; text-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-                {{ $allsettings->site_banner_heading }}
-              </h1>
-              <h2 class="h5 text-white font-weight-light hero-subtitle-animated" style="opacity: 0.95; text-shadow: 0 2px 10px rgba(0,0,0,0.2); margin-bottom: 2rem;">
-                {{ $allsettings->site_banner_subheading }}
-              </h2>
-            </div>
-          </div>
-          
-          <form action="{{ route('shop') }}" id="search_form" method="post" class="form-noborder searchbox" enctype="multipart/form-data">
+
+@php
+  // Palette + icon used by the "Browse Categories" tiles, cycled by position.
+  $hvCatStyles = [
+    ['bg' => '#eef2ff', 'fg' => '#4f46e5', 'icon' => 'fa-code'],
+    ['bg' => '#ecfdf5', 'fg' => '#059669', 'icon' => 'fa-magic'],
+    ['bg' => '#fff7ed', 'fg' => '#ea580c', 'icon' => 'fa-bullhorn'],
+    ['bg' => '#fef2f2', 'fg' => '#dc2626', 'icon' => 'fa-shopping-cart'],
+    ['bg' => '#f0fdfa', 'fg' => '#0d9488', 'icon' => 'fa-comments'],
+    ['bg' => '#faf5ff', 'fg' => '#9333ea', 'icon' => 'fa-graduation-cap'],
+    ['bg' => '#eff6ff', 'fg' => '#2563eb', 'icon' => 'fa-paint-brush'],
+    ['bg' => '#fdf2f8', 'fg' => '#db2777', 'icon' => 'fa-picture-o'],
+  ];
+  // Nicer icon when the category name is recognisable.
+  $hvCatIcons = [
+    'script' => 'fa-code',        'theme'   => 'fa-paint-brush', 'ebook'   => 'fa-book',
+    'print'  => 'fa-print',       'graphic' => 'fa-picture-o',   'mobile'  => 'fa-mobile',
+    'desktop'=> 'fa-desktop',     'app'     => 'fa-th-large',    'plugin'  => 'fa-plug',
+    'saas'   => 'fa-cloud',       'ai'      => 'fa-magic',       'course'  => 'fa-graduation-cap',
+    'video'  => 'fa-video-camera','music'   => 'fa-music',       'game'    => 'fa-gamepad',
+  ];
+  $hvCatCounts = $category['counts'] ?? collect();
+
+  // Headline with a gradient accent. Wrap words in [[ ]] inside the banner
+  // heading setting to choose the accent; otherwise the last two words are used.
+  $hvHeading = trim($allsettings->site_banner_heading);
+  if (preg_match('/^(.*?)\[\[(.+?)\]\](.*)$/s', $hvHeading, $hvParts)) {
+      $hvHeadingHtml = e($hvParts[1]).'<span class="hv-grad-text">'.e($hvParts[2]).'</span>'.e($hvParts[3]);
+  } else {
+      $hvWords = preg_split('/\s+/', $hvHeading, -1, PREG_SPLIT_NO_EMPTY);
+      if (count($hvWords) > 3) {
+          $hvAccent = array_splice($hvWords, -2);
+          $hvHeadingHtml = e(implode(' ', $hvWords)).' <span class="hv-grad-text">'.e(implode(' ', $hvAccent)).'</span>';
+      } else {
+          $hvHeadingHtml = e($hvHeading);
+      }
+  }
+@endphp
+
+<!-- ============================ Hero ============================ -->
+<section class="hv-hero">
+  <div class="container">
+    <div class="row align-items-center">
+
+      <div class="col-lg-6">
+        <span class="hv-hero-badge"><i class="fa fa-bolt"></i>{{ __('Trusted Digital Marketplace') }}</span>
+
+        <h1>{!! $hvHeadingHtml !!}</h1>
+
+        <p class="hv-hero-sub">{{ $allsettings->site_banner_subheading }}</p>
+
+        <ul class="hv-pills">
+          <li class="hv-pill"><i class="fa fa-download"></i>{{ __('Instant Download') }}</li>
+          <li class="hv-pill"><i class="fa fa-refresh"></i>{{ __('Regular Updates') }}</li>
+          <li class="hv-pill"><i class="fa fa-certificate"></i>{{ __('Commercial License') }}</li>
+          <li class="hv-pill"><i class="fa fa-shield"></i>{{ __('30-Day Money Back') }}</li>
+        </ul>
+
+        <form action="{{ route('shop') }}" id="search_form" method="post" class="form-noborder searchbox" enctype="multipart/form-data">
           {{ csrf_field() }}
-          <div class="row">
-            <div class="col-lg-8 col-md-10 mx-auto">
-              <div class="hero-search-box" style="backdrop-filter: blur(20px); background: rgba(255, 255, 255, 0.15); border-radius: 50px; padding: 6px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.18);">
-                <div class="d-flex align-items-center flex-wrap" style="gap: 0;">
-                  <div style="position: relative; flex: 1; min-width: 200px;">
-                    <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); z-index: 5; color: #667eea;">
-                      <i class="dwg-search" style="font-size: 1.1rem;"></i>
-                    </span>
-                    <input class="form-control" 
-                           type="text" 
-                           id="product_item" 
-                           name="product_item" 
-                           placeholder="{{ __('Search your products...') }}"
-                           style="background: rgba(255, 255, 255, 0.95); border: none; font-size: 0.95rem; padding: 0.85rem 1rem 0.85rem 2.8rem; border-radius: 50px 0 0 50px; height: 50px;">
-                  </div>
-                  @if(count($category['view']) != 0)
-                  <select name="category_names[]" 
-                          id="product_cat" 
-                          class="custom-select"
-                          style="background: rgba(255, 255, 255, 0.95); border: none; border-left: 2px solid rgba(102, 126, 234, 0.2); font-size: 0.95rem; padding: 0.85rem 1rem; border-radius: 0; height: 50px; flex: 0 0 auto; width: auto; min-width: 150px;">
-                      <option value="">{{ __('All categories') }}</option>
-                      @foreach($category['view'] as $cat)
-                      <option value="{{ 'category_'.$cat->cat_id }}">{{ $cat->category_name }}</option>
-                      @foreach($cat->subcategory as $sub_category)
-                      <option value="{{ 'subcategory_'.$sub_category->subcat_id }}"> - {{ $sub_category->subcategory_name }}</option>
-                      @endforeach
-                      @endforeach 
-                  </select>
-                  @endif
-                  <button class="btn btn-primary hero-search-btn" 
-                          type="submit"
-                          style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border: none; padding: 0.85rem 2rem; border-radius: 0 50px 50px 0; font-weight: 600; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4); height: 50px; white-space: nowrap;">
-                    {{ __('Search Now') }}
-                  </button>
+          <div class="hv-search">
+            <div class="hv-search-field">
+              <i class="dwg-search"></i>
+              <input class="form-control" type="text" id="product_item" name="product_item" placeholder="{{ __('Search for products, scripts, tools...') }}">
+            </div>
+            @if(count($category['view']) != 0)
+            <select name="category_names[]" id="product_cat" class="custom-select">
+              <option value="">{{ __('All categories') }}</option>
+              @foreach($category['view'] as $cat)
+              <option value="{{ 'category_'.$cat->cat_id }}">{{ $cat->category_name }}</option>
+              @foreach($cat->subcategory as $sub_category)
+              <option value="{{ 'subcategory_'.$sub_category->subcat_id }}"> - {{ $sub_category->subcategory_name }}</option>
+              @endforeach
+              @endforeach
+            </select>
+            @endif
+            <button class="hv-search-btn" type="submit">{{ __('Search') }}</button>
+          </div>
+        </form>
+
+        @if(count($category['view']) != 0)
+        <div class="hv-popular">
+          <span>{{ __('Popular Searches') }}:</span>
+          @foreach($category['view']->take(5) as $cat)
+          <a href="{{ URL::to('/shop/category/') }}/{{ $cat->category_slug }}">{{ $cat->category_name }}</a>
+          @endforeach
+        </div>
+        @endif
+      </div>
+
+      <div class="col-lg-6">
+        <div class="hv-visual">
+          <div class="hv-dash">
+            <div class="hv-dash-bar">
+              <span class="hv-dash-dot"></span><span class="hv-dash-dot"></span><span class="hv-dash-dot"></span>
+              <span class="hv-dash-title">{{ __('Dashboard') }}</span>
+            </div>
+
+            <div class="hv-dash-stats">
+              <div class="hv-dash-stat">
+                <span>{{ __('Revenue') }}</span><strong>$24,850</strong><em>+12.5%</em>
+              </div>
+              <div class="hv-dash-stat">
+                <span>{{ __('Orders') }}</span><strong>1,250</strong><em>+8.2%</em>
+              </div>
+              <div class="hv-dash-stat">
+                <span>{{ __('Users') }}</span><strong>3,246</strong><em>+5.4%</em>
+              </div>
+            </div>
+
+            <div class="row no-gutters">
+              <div class="col-7 pr-1">
+                <div class="hv-dash-panel">
+                  <h6>{{ __('Revenue Overview') }}</h6>
+                  <svg class="hv-dash-chart" viewBox="0 0 260 88" preserveAspectRatio="none" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="hvArea" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#a855f7" stop-opacity=".55"/>
+                        <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
+                      </linearGradient>
+                    </defs>
+                    <path d="M0,70 C25,66 40,44 62,46 C86,48 96,24 120,30 C146,36 156,58 180,52 C206,46 220,16 260,10 L260,88 L0,88 Z" fill="url(#hvArea)"/>
+                    <path d="M0,70 C25,66 40,44 62,46 C86,48 96,24 120,30 C146,36 156,58 180,52 C206,46 220,16 260,10" fill="none" stroke="#c084fc" stroke-width="2.5" stroke-linecap="round"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="col-5 pl-1">
+                <div class="hv-dash-panel">
+                  <h6>{{ __('Top Products') }}</h6>
+                  <ul class="hv-dash-list">
+                    <li><span class="hv-dash-chip" style="background:#4f46e5;"><i class="fa fa-code"></i></span>{{ __('Scripts') }}<b>412</b></li>
+                    <li><span class="hv-dash-chip" style="background:#0ea5e9;"><i class="fa fa-paint-brush"></i></span>{{ __('Themes') }}<b>318</b></li>
+                    <li><span class="hv-dash-chip" style="background:#10b981;"><i class="fa fa-th-large"></i></span>{{ __('Apps') }}<b>264</b></li>
+                    <li><span class="hv-dash-chip" style="background:#f59e0b;"><i class="fa fa-picture-o"></i></span>{{ __('Graphics') }}<b>197</b></li>
+                  </ul>
                 </div>
               </div>
             </div>
           </div>
-          </form>
+
+          <div class="hv-float hv-float--products">
+            <span class="hv-float-icon" style="background:linear-gradient(135deg,#7c3aed,#a855f7);"><i class="fa fa-cube"></i></span>
+            <span>
+              <strong>{{ $total_files }}+</strong>
+              <span>{{ __('Premium Products') }}</span>
+            </span>
+          </div>
+
+          <div class="hv-float hv-float--customers">
+            <span class="hv-float-icon" style="background:linear-gradient(135deg,#f59e0b,#f97316);"><i class="fa fa-star"></i></span>
+            <span>
+              <strong>{{ Helper::member_count() }}+</strong>
+              <span>{{ __('Happy Customers') }}</span>
+            </span>
+          </div>
         </div>
       </div>
-      
-      <style>
-        /* Animated Background Shapes */
-        .hero-bg-animation {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
-          z-index: 1;
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================ Trust bar ============================ -->
+<div class="hv-trust-wrap">
+  <div class="container">
+    <div class="hv-trust">
+      <div class="hv-trust-item">
+        <span class="hv-avatars">
+          <span class="hv-avatar" style="background:#7c3aed;">A</span>
+          <span class="hv-avatar" style="background:#0ea5e9;">M</span>
+          <span class="hv-avatar" style="background:#10b981;">S</span>
+          <span class="hv-avatar" style="background:#f59e0b;">K</span>
+        </span>
+        <span class="ml-2">
+          <strong>{{ __('Trusted by Customers Worldwide') }}</strong>
+          <span class="hv-stars">&#9733;&#9733;&#9733;&#9733;&#9733; <span class="text-muted">{{ __('Rated by our community') }}</span></span>
+        </span>
+      </div>
+      <div class="hv-trust-item">
+        <i class="fa fa-bolt"></i>
+        <span><strong>{{ __('Instant Access') }}</strong><span>{{ __('After purchase') }}</span></span>
+      </div>
+      <div class="hv-trust-item">
+        <i class="fa fa-lock"></i>
+        <span><strong>{{ __('Secure Payment') }}</strong><span>{{ __('100% protected') }}</span></span>
+      </div>
+      <div class="hv-trust-item">
+        <i class="fa fa-refresh"></i>
+        <span><strong>{{ __('Regular Updates') }}</strong><span>{{ __('Lifetime free') }}</span></span>
+      </div>
+      <div class="hv-trust-item">
+        <i class="fa fa-life-ring"></i>
+        <span><strong>{{ __('24/7 Support') }}</strong><span>{{ __('We are here') }}</span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+@if(in_array('home',$top_ads))
+<section class="container pt-5" data-aos="fade-up" data-aos-delay="200">
+  <div class="row">
+    <div class="col-lg-12" align="center">
+      @php echo html_entity_decode($addition_settings->top_ads); @endphp
+    </div>
+  </div>
+</section>
+@endif
+
+<!-- ============================ Browse categories ============================ -->
+@if(count($category['view']) != 0)
+<section class="hv-section" data-aos="fade-up" data-aos-delay="200">
+  <div class="container">
+    <div class="hv-head">
+      <div>
+        <h2>{{ __('Browse Categories') }}</h2>
+        <p>{{ __('Find exactly what you need, organised by category') }}</p>
+      </div>
+      <a class="hv-head-link" href="{{ URL::to('/shop') }}">{{ __('View All Categories') }}<i class="dwg-arrow-right"></i></a>
+    </div>
+    <div class="row">
+      @foreach($category['view'] as $index => $cat)
+      @php
+        $style = $hvCatStyles[$index % count($hvCatStyles)];
+        $icon  = $style['icon'];
+        foreach($hvCatIcons as $needle => $faIcon) {
+          if(stripos($cat->category_name, $needle) !== false) { $icon = $faIcon; break; }
         }
-        
-        .floating-shape {
-          position: absolute;
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 50%;
-          animation: float 20s infinite ease-in-out;
-        }
-        
-        .shape-1 {
-          width: 300px;
-          height: 300px;
-          top: -50px;
-          left: -50px;
-          animation-delay: 0s;
-          background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
-        }
-        
-        .shape-2 {
-          width: 200px;
-          height: 200px;
-          top: 50%;
-          right: -30px;
-          animation-delay: 3s;
-          animation-duration: 15s;
-          background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
-        }
-        
-        .shape-3 {
-          width: 150px;
-          height: 150px;
-          bottom: 20%;
-          left: 10%;
-          animation-delay: 5s;
-          animation-duration: 18s;
-          background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, transparent 70%);
-        }
-        
-        .shape-4 {
-          width: 250px;
-          height: 250px;
-          top: 30%;
-          left: 60%;
-          animation-delay: 2s;
-          animation-duration: 22s;
-          background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-        }
-        
-        .shape-5 {
-          width: 180px;
-          height: 180px;
-          bottom: -50px;
-          right: 15%;
-          animation-delay: 4s;
-          animation-duration: 16s;
-          background: radial-gradient(circle, rgba(255, 255, 255, 0.18) 0%, transparent 70%);
-        }
-        
-        @keyframes float {
-          0%, 100% {
-            transform: translate(0, 0) scale(1);
-          }
-          25% {
-            transform: translate(30px, -30px) scale(1.1);
-          }
-          50% {
-            transform: translate(-20px, 20px) scale(0.9);
-          }
-          75% {
-            transform: translate(20px, 30px) scale(1.05);
-          }
-        }
-        
-        /* Floating Icons */
-        .floating-icons {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          z-index: 2;
-          pointer-events: none;
-        }
-        
-        .floating-icon {
-          position: absolute;
-          font-size: 2rem;
-          color: rgba(255, 255, 255, 0.3);
-          animation: floatIcon 15s infinite ease-in-out;
-        }
-        
-        .icon-1 {
-          top: 10%;
-          left: 5%;
-          animation-delay: 0s;
-          animation-duration: 12s;
-        }
-        
-        .icon-2 {
-          top: 20%;
-          right: 8%;
-          animation-delay: 2s;
-          animation-duration: 14s;
-        }
-        
-        .icon-3 {
-          top: 60%;
-          left: 15%;
-          animation-delay: 1s;
-          animation-duration: 13s;
-        }
-        
-        .icon-4 {
-          top: 70%;
-          right: 12%;
-          animation-delay: 3s;
-          animation-duration: 15s;
-        }
-        
-        .icon-5 {
-          top: 40%;
-          left: 8%;
-          animation-delay: 4s;
-          animation-duration: 11s;
-        }
-        
-        .icon-6 {
-          top: 30%;
-          right: 20%;
-          animation-delay: 1.5s;
-          animation-duration: 16s;
-        }
-        
-        .icon-7 {
-          top: 80%;
-          left: 25%;
-          animation-delay: 2.5s;
-          animation-duration: 14s;
-        }
-        
-        .icon-8 {
-          top: 15%;
-          left: 35%;
-          animation-delay: 3.5s;
-          animation-duration: 13s;
-        }
-        
-        @keyframes floatIcon {
-          0%, 100% {
-            transform: translateY(0) rotate(0deg);
-            opacity: 0.3;
-          }
-          25% {
-            transform: translateY(-20px) rotate(5deg);
-            opacity: 0.5;
-          }
-          50% {
-            transform: translateY(-40px) rotate(-5deg);
-            opacity: 0.3;
-          }
-          75% {
-            transform: translateY(-20px) rotate(3deg);
-            opacity: 0.4;
-          }
-        }
-        
-        /* Text Animations */
-        .hero-title-animated {
-          animation: fadeInUp 1s ease-out;
-        }
-        
-        .hero-subtitle-animated {
-          animation: fadeInUp 1.2s ease-out;
-        }
-        
-        .hero-search-box {
-          animation: fadeInUp 1.4s ease-out;
-        }
-        
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        /* Search Button Hover Effect */
-        .hero-search-btn:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 25px rgba(245, 87, 108, 0.6) !important;
-        }
-        
-        /* Glassmorphism effect enhancement */
-        .hero-search-box:hover {
-          background: rgba(255, 255, 255, 0.2);
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          transition: all 0.3s ease;
-        }
-        
-        /* Responsive Adjustments */
-        @media (max-width: 992px) {
-          .hero-section-modern {
-            min-height: 350px !important;
-          }
-          .hero-search-box .d-flex {
-            flex-direction: column !important;
-          }
-          .hero-search-box .d-flex > div,
-          .hero-search-box .d-flex > select,
-          .hero-search-box .d-flex > button {
-            width: 100% !important;
-            min-width: 100% !important;
-            max-width: 100% !important;
-            border-radius: 25px !important;
-            margin-bottom: 8px;
-          }
-          .hero-search-box .d-flex > div:last-child,
-          .hero-search-box .d-flex > button:last-child {
-            margin-bottom: 0;
-          }
-          .hero-search-box .d-flex input {
-            border-radius: 25px !important;
-          }
-          .hero-search-box .d-flex select {
-            border-left: none !important;
-            border-top: 2px solid rgba(102, 126, 234, 0.2) !important;
-          }
-        }
-        
-        @media (max-width: 768px) {
-          .hero-section-modern {
-            min-height: 320px !important;
-          }
-          .hero-title-animated {
-            font-size: 1.75rem !important;
-          }
-          .hero-subtitle-animated {
-            font-size: 0.95rem !important;
-          }
-          .floating-icon {
-            font-size: 1.5rem;
-          }
-          .floating-shape {
-            opacity: 0.5;
-          }
-        }
-      </style>
-      
-      <script>
-        // Particle Animation
-        document.addEventListener('DOMContentLoaded', function() {
-          const canvas = document.getElementById('particle-canvas');
-          if (!canvas) return;
-          
-          const ctx = canvas.getContext('2d');
-          canvas.width = canvas.offsetWidth;
-          canvas.height = canvas.offsetHeight;
-          
-          const particles = [];
-          const particleCount = 50;
-          
-          class Particle {
-            constructor() {
-              this.reset();
-            }
-            
-            reset() {
-              this.x = Math.random() * canvas.width;
-              this.y = Math.random() * canvas.height;
-              this.size = Math.random() * 3 + 1;
-              this.speedX = Math.random() * 2 - 1;
-              this.speedY = Math.random() * 2 - 1;
-              this.opacity = Math.random() * 0.5 + 0.2;
-            }
-            
-            update() {
-              this.x += this.speedX;
-              this.y += this.speedY;
-              
-              if (this.x > canvas.width || this.x < 0 || this.y > canvas.height || this.y < 0) {
-                this.reset();
-              }
-            }
-            
-            draw() {
-              ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
-              ctx.beginPath();
-              ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-              ctx.fill();
-            }
-          }
-          
-          for (let i = 0; i < particleCount; i++) {
-            particles.push(new Particle());
-          }
-          
-          function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            for (let i = 0; i < particles.length; i++) {
-              particles[i].update();
-              particles[i].draw();
-              
-              for (let j = i + 1; j < particles.length; j++) {
-                const dx = particles[i].x - particles[j].x;
-                const dy = particles[i].y - particles[j].y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (distance < 100) {
-                  ctx.strokeStyle = `rgba(255, 255, 255, ${0.2 - distance / 500})`;
-                  ctx.lineWidth = 1;
-                  ctx.beginPath();
-                  ctx.moveTo(particles[i].x, particles[i].y);
-                  ctx.lineTo(particles[j].x, particles[j].y);
-                  ctx.stroke();
-                }
-              }
-            }
-            
-            requestAnimationFrame(animate);
-          }
-          
-          animate();
-          
-          // Resize handler
-          window.addEventListener('resize', function() {
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-          });
-        });
-      </script>
-    </section>
-    @if(in_array('home',$top_ads))
-    <section class="container mb-lg-1" data-aos="fade-up" data-aos-delay="200">
-      <div class="row">
-          <div class="col-lg-12 mb-1" align="center">
-             @php echo html_entity_decode($addition_settings->top_ads); @endphp
-          </div>
-       </div>   
-    </section>   
-    @endif
+        $itemCount = $hvCatCounts[$cat->cat_id] ?? 0;
+      @endphp
+      <div class="col-lg-3 col-md-4 col-6 mb-4">
+        <a class="hv-cat" href="{{ URL::to('/shop/category/') }}/{{ $cat->category_slug }}">
+          <span class="hv-cat-icon" style="background:{{ $style['bg'] }};color:{{ $style['fg'] }};"><i class="fa {{ $icon }}"></i></span>
+          <h3>{{ $cat->category_name }}</h3>
+          <p>{{ $itemCount }} {{ trans_choice('Item|Items', $itemCount) }}</p>
+        </a>
+      </div>
+      @endforeach
+    </div>
+  </div>
+</section>
+@endif
+
+<!-- ============================ Featured ============================ -->
 @if(count($featured['items']) != 0)
-<section class="container mb-lg-1" data-aos="fade-up" data-aos-delay="200">
-      <!-- Heading-->
-      <div class="d-flex flex-wrap justify-content-between align-items-center pt-1 border-bottom pb-4 mb-4">
-        <h2 class="h3 mb-0 pt-3 mr-2" data-aos="fade-down" data-aos-delay="100">{{ __('Featured Files') }}</h2>
-        <div class="pt-3" data-aos="fade-down" data-aos-delay="100">
-          <a class="btn btn-outline-accent" href="{{ URL::to('/') }}/featured-items">{{ __('Browse All Items') }}<i class="dwg-arrow-right font-size-ms ml-1"></i></a>
-        </div>
+<section class="hv-section hv-section--soft" data-aos="fade-up" data-aos-delay="200">
+  <div class="container">
+    <div class="hv-head">
+      <div>
+        <h2>{{ __('Featured Products') }}</h2>
+        <p>{{ __('Hand-picked tools our team recommends') }}</p>
       </div>
-      <!-- Grid-->
-      <div class="row pt-2 mx-n2 flash-sale">
-        <!-- Product-->
-        @php $no = 1; @endphp
-        @foreach($featured['items'] as $featured)
-        @php
+      <a class="hv-head-link" href="{{ URL::to('/') }}/featured-items">{{ __('View All Products') }}<i class="dwg-arrow-right"></i></a>
+    </div>
+    <div class="row mx-n2 flash-sale">
+      @foreach($featured['items'] as $index => $featured)
+      @php
         $price = Helper::price_info($featured->item_flash,$featured->extended_price);
         $count_rating = Helper::count_rating($featured->ratings);
-        @endphp
-        <div class="col-lg-3 col-md-4 col-sm-6 px-2 mb-grid-gutter">
-          <!-- Product-->
-          <div class="card product-card-alt">
-            @if($custom_settings->author_key == Helper::Key_Owner())
-            @if($featured->item_flash == 1)
-            <div class="ribbon ribbon-top-left"><span>{{ $addition_settings->flash_sale_value }}% {{ __('OFF') }}</span></div>
-            @endif
-            @endif
-            <div class="product-thumb">
-              @if(Auth::guest()) 
-              <a class="btn-wishlist btn-sm" href="{{ url('/') }}/login"><i class="dwg-heart"></i></a>
-              @endif
-              @if (Auth::check())
-              @if($featured->user_id != Auth::user()->id)
-              <a class="btn-wishlist btn-sm" href="{{ url('/item') }}/{{ base64_encode($featured->item_id) }}/favorite/{{ base64_encode($featured->item_liked) }}"><i class="dwg-heart"></i></a>
-              @endif
-              @endif
-              <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"><i class="dwg-eye"></i></a>
-              @php
-              $checkif_purchased = Helper::if_purchased($featured->item_token);
-              @endphp
-              
-              @if($addition_settings->guest_checkout == 1)
-              <!--- Guest Checkout ON  -->
-              @if($checkif_purchased == 0)
-              @if($featured->free_download == 0)
-              @if (Auth::check())
-              @if(Auth::user()->id != 1 && $featured->user_id != Auth::user()->id)
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/add-to-cart') }}/{{ $featured->item_slug }}"><i class="dwg-cart"></i></a>
-              @endif
-              @else
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/add-to-cart') }}/{{ $featured->item_slug }}"><i class="dwg-cart"></i></a>
-              @endif
-              @else
-              @if(Auth::guest())
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/login') }}"><i class="dwg-download"></i></a>
-              @else
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/download/{{ base64_encode($featured->item_token) }}"><i class="dwg-download"></i></a>
-              @endif
-              @endif 
-              @endif
-              <!--- Guest Checkout ON  -->
-              @else
-              <!--- Guest Checkout OFF -->
-              @if($checkif_purchased == 0)
-              @if($featured->free_download == 0)
-              @if (Auth::check())
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"><i class="dwg-cart"></i></a>
-              @else
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"><i class="dwg-cart"></i></a>
-              @endif
-              @else
-              @if(Auth::guest())
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/login') }}"><i class="dwg-download"></i></a>
-              @else
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/download/{{ base64_encode($featured->item_token) }}"><i class="dwg-download"></i></a>
-              @endif
-              @endif
-              @else
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"><i class="dwg-cart"></i></a>
-              @endif
-               <!--- Guest Checkout OFF -->
-              @endif  
-              
-              </div><a class="product-thumb-overlay" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"></a>
-                            @if($featured->item_preview!='')
-                            <img class="lazy" src="{{ Helper::Image_Path($featured->item_preview,'no-image.png') }}" alt="{{ $featured->item_name }}" width="300" height="200">
-                            @else
-                            <img class="lazy" src="{{ url('/') }}/public/img/no-image.png" alt="{{ $featured->item_name }}" width="300" height="200">
-                            @endif
-                          </div>
-            <div class="card-body">
-              <div class="d-flex flex-wrap justify-content-between align-items-start pb-2">
-                <div class="text-muted font-size-xs mr-1"><a class="product-meta font-weight-medium" href="{{ URL::to('/shop') }}/item-type/{{ $featured->item_type }}">{{ Helper::ItemTypeIdGetData($featured->item_type_id) }}</a></div>
-                <div class="star-rating">
-                    @if($count_rating == 0)
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    @endif
-                    @if($count_rating == 1)
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    @endif
-                    @if($count_rating == 2)
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    @endif
-                    @if($count_rating == 3)
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    @endif
-                    @if($count_rating == 4)
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star"></i>
-                    @endif
-                    @if($count_rating == 5)
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    @endif
-                </div>
-               </div>
-              <h3 class="product-title font-size-sm mb-2"><a href="{{ URL::to('/item') }}/{{ $featured->item_slug }}">@if($addition_settings->item_name_limit != 0){{ mb_substr($featured->item_name,0,$addition_settings->item_name_limit,'utf-8').'...' }}
-		      @else {{ $featured->item_name }} @endif</a></h3>
-              <div class="card-footer d-flex align-items-center font-size-xs">
-              <a class="blog-entry-meta-link" href="{{ URL::to('/user') }}/{{ $featured->username }}">
-                    <div class="blog-entry-author-ava">
-                    @if($featured->user_photo!='')
-                    <img class="lazy" src="{{ url('/') }}/public/storage/users/{{ $featured->user_photo }}" alt="{{ $featured->username }}" width="26" height="26">
-                    @else
-                    <img class="lazy" src="{{ url('/') }}/public/img/no-user.png" alt="{{ $featured->username }}" width="26" height="26">
-                    @endif
-                    </div>
-					@if($addition_settings->author_name_limit != 0){{ mb_substr($featured->username,0,$addition_settings->author_name_limit,'utf-8') }} @else {{ $featured->username }} @endif 
-					@if($addition_settings->subscription_mode == 1) @if($featured->user_document_verified == 1) <span class="badges-success"><i class="dwg-check-circle danger"></i> {{ __('verified') }}</span>@endif @endif</a>
-                  <div class="ml-auto text-nowrap"><i class="dwg-time"></i> {{ date('d M Y',strtotime($featured->updated_item)) }}</div>
-                </div>
-              <div class="d-flex flex-wrap justify-content-between align-items-center">
-                @if($featured->file_type == 'serial') 
-                @php
-                if($featured->item_delimiter == 'comma')
-                {
-                $result_count = substr_count($featured->item_serials_list, ",");
-                }
-                else
-                {
-                $result_count = substr_count($featured->item_serials_list, "\n");
-                }
-                @endphp
-                <div class="font-size-sm mr-2"><i class="dwg-cart text-muted mr-1"></i>{{ $result_count }}<span class="font-size-xs ml-1">{{ __('Stock') }}</span>
-                </div>
-                @else
-                <div class="font-size-sm mr-2">
-                {{-- @if($addition_settings->item_sale_count == 1)
-                <i class="dwg-download text-muted mr-1"></i>{{ $featured->item_sold }}<span class="font-size-xs ml-1">{{ __('Sales') }}</span>
-                @endif --}}
-                </div>
-                @endif
-                <div>
-                @if($featured->free_download == 0)
-                @if($featured->item_flash == 1)<del class="price-old">{{ Helper::price_format($allsettings->site_currency_position,$featured->extended_price,$currency_symbol,$multicurrency) }}</del>@endif <span class="bg-faded-accent text-accent rounded-sm py-1 px-2">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency) }}</span>
-                @else
-                <span class="price-badge rounded-sm py-1 px-2">{{ __('Free') }}</span> 
-                @endif
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- Product-->
-        @php $no++; @endphp
-	    @endforeach
-       </div>
-    </section>
-    @endif
-    @if(count($popular['items']) != 0)
-<section class="container mb-lg-1 flash-sale" data-aos="fade-up" data-aos-delay="200">
-      <!-- Heading-->
-      <div class="d-flex flex-wrap justify-content-between align-items-center pt-1 border-bottom pb-4 mb-4">
-        <h2 class="h3 mb-0 pt-3 mr-2" data-aos="fade-down" data-aos-delay="100">{{ __('Popular Items') }}</h2>
-        <div class="pt-3" data-aos="fade-down" data-aos-delay="100">
-          <a class="btn btn-outline-accent" href="{{ URL::to('/') }}/popular-items">{{ __('Browse All Items') }}<i class="dwg-arrow-right font-size-ms ml-1"></i></a>
-        </div>
+        $hvTag = $hvTagClass = null;
+        if($index === 0)                    { $hvTag = __('Top Seller'); $hvTagClass = 'hv-tag--seller'; }
+        elseif($featured->item_flash == 1)  { $hvTag = __('Trending');   $hvTagClass = 'hv-tag--trending'; }
+        elseif($featured->free_download==1) { $hvTag = __('Free');       $hvTagClass = 'hv-tag--free'; }
+        elseif($index === 1)                { $hvTag = __('Best Value'); $hvTagClass = 'hv-tag--value'; }
+      @endphp
+      @include('partials.product-card')
+      @endforeach
+    </div>
+  </div>
+</section>
+@endif
+
+<!-- ============================ Popular ============================ -->
+@if(count($popular['items']) != 0)
+<section class="hv-section flash-sale" data-aos="fade-up" data-aos-delay="200">
+  <div class="container">
+    <div class="hv-head">
+      <div>
+        <h2>{{ __('Popular Items') }}</h2>
+        <p>{{ __('What other customers are buying right now') }}</p>
       </div>
-      <!-- Grid-->
-      <div class="row pt-2 mx-n2">
-        <!-- Product-->
-        @php $no = 1; @endphp
-        @foreach($popular['items'] as $featured)
-        @php
+      <a class="hv-head-link" href="{{ URL::to('/') }}/popular-items">{{ __('View All Products') }}<i class="dwg-arrow-right"></i></a>
+    </div>
+    <div class="row mx-n2">
+      @foreach($popular['items'] as $featured)
+      @php
         $price = Helper::price_info($featured->item_flash,$featured->extended_price);
         $count_rating = Helper::count_rating($featured->ratings);
-        @endphp
-        <div class="col-lg-3 col-md-4 col-sm-6 px-2 mb-grid-gutter">
-          <!-- Product-->
-          <div class="card product-card-alt">
-            @if($custom_settings->author_key == Helper::Key_Owner())
-            @if($featured->item_flash == 1)
-            <div class="ribbon ribbon-top-left"><span>{{ $addition_settings->flash_sale_value }}% {{ __('OFF') }}</span></div>
-            @endif
-            @endif
-            <div class="product-thumb">
-              @if(Auth::guest()) 
-              <a class="btn-wishlist btn-sm" href="{{ url('/') }}/login"><i class="dwg-heart"></i></a>
-              @endif
-              @if (Auth::check())
-              @if($featured->user_id != Auth::user()->id)
-              <a class="btn-wishlist btn-sm" href="{{ url('/item') }}/{{ base64_encode($featured->item_id) }}/favorite/{{ base64_encode($featured->item_liked) }}"><i class="dwg-heart"></i></a>
-              @endif
-              @endif
-              <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"><i class="dwg-eye"></i></a>
-              @php
-              $checkif_purchased = Helper::if_purchased($featured->item_token);
-              @endphp
-              
-              @if($addition_settings->guest_checkout == 1)
-              <!--- Guest Checkout ON  -->
-              @if($checkif_purchased == 0)
-              @if($featured->free_download == 0)
-              @if (Auth::check())
-              @if(Auth::user()->id != 1 && $featured->user_id != Auth::user()->id)
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/add-to-cart') }}/{{ $featured->item_slug }}"><i class="dwg-cart"></i></a>
-              @endif
-              @else
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/add-to-cart') }}/{{ $featured->item_slug }}"><i class="dwg-cart"></i></a>
-              @endif
-              @else
-              @if(Auth::guest())
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/login') }}"><i class="dwg-download"></i></a>
-              @else
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/download/{{ base64_encode($featured->item_token) }}"><i class="dwg-download"></i></a>
-              @endif
-              @endif 
-              @endif
-              <!--- Guest Checkout ON  -->
-              @else
-              <!--- Guest Checkout OFF -->
-              @if($checkif_purchased == 0)
-              @if($featured->free_download == 0)
-              @if (Auth::check())
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"><i class="dwg-cart"></i></a>
-              @else
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"><i class="dwg-cart"></i></a>
-              @endif
-              @else
-              @if(Auth::guest())
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/login') }}"><i class="dwg-download"></i></a>
-              @else
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/download/{{ base64_encode($featured->item_token) }}"><i class="dwg-download"></i></a>
-              @endif
-              @endif
-              @else
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"><i class="dwg-cart"></i></a>
-              @endif
-               <!--- Guest Checkout OFF -->
-              @endif
-                 
-              </div><a class="product-thumb-overlay" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"></a>
-                            @if($featured->item_preview!='')
-                            <img class="lazy" src="{{ Helper::Image_Path($featured->item_preview,'no-image.png') }}" alt="{{ $featured->item_name }}" width="300" height="200">
-                            @else
-                            <img class="lazy" src="{{ url('/') }}/public/img/no-image.png" alt="{{ $featured->item_name }}" width="300" height="200">
-                            @endif
-                          </div>
-            <div class="card-body">
-              <div class="d-flex flex-wrap justify-content-between align-items-start pb-2">
-                <div class="text-muted font-size-xs mr-1"><a class="product-meta font-weight-medium" href="{{ URL::to('/shop') }}/item-type/{{ $featured->item_type }}">{{ Helper::ItemTypeIdGetData($featured->item_type_id) }}</a></div>
-                <div class="star-rating">
-                    @if($count_rating == 0)
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    @endif
-                    @if($count_rating == 1)
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    @endif
-                    @if($count_rating == 2)
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    @endif
-                    @if($count_rating == 3)
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    @endif
-                    @if($count_rating == 4)
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star"></i>
-                    @endif
-                    @if($count_rating == 5)
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    @endif
-                </div>
-               </div>
-              <h3 class="product-title font-size-sm mb-2"><a href="{{ URL::to('/item') }}/{{ $featured->item_slug }}">
-			  @if($addition_settings->item_name_limit != 0)
-			  {{ mb_substr($featured->item_name,0,$addition_settings->item_name_limit,'utf-8').'...' }}
-		      @else
-			  {{ $featured->item_name }}	  
-			  @endif
-			  </a></h3>
-              <div class="card-footer d-flex align-items-center font-size-xs">
-              <a class="blog-entry-meta-link" href="{{ URL::to('/user') }}/{{ $featured->username }}">
-                    <div class="blog-entry-author-ava">
-                    @if($featured->user_photo!='')
-                    <img class="lazy" src="{{ url('/') }}/public/storage/users/{{ $featured->user_photo }}"  alt="{{ $featured->username }}" width="26" height="26">
-                    @else
-                    <img class="lazy" src="{{ url('/') }}/public/img/no-user.png" alt="{{ $featured->username }}" width="26" height="26">
-                    @endif
-                    </div>
-					@if($addition_settings->author_name_limit != 0){{ mb_substr($featured->username,0,$addition_settings->author_name_limit,'utf-8') }} @else {{ $featured->username }} @endif
-					@if($addition_settings->subscription_mode == 1) @if($featured->user_document_verified == 1) <span class="badges-success"><i class="dwg-check-circle danger"></i> {{ __('verified') }}</span>@endif @endif</a>
-                  <div class="ml-auto text-nowrap"><i class="dwg-time"></i> {{ date('d M Y',strtotime($featured->updated_item)) }}</div>
-                </div>
-              <div class="d-flex flex-wrap justify-content-between align-items-center">
-                @if($featured->file_type == 'serial') 
-                @php
-                if($featured->item_delimiter == 'comma')
-                {
-                $result_count = substr_count($featured->item_serials_list, ",");
-                }
-                else
-                {
-                $result_count = substr_count($featured->item_serials_list, "\n");
-                }
-                @endphp
-                <div class="font-size-sm mr-2"><i class="dwg-cart text-muted mr-1"></i>{{ $result_count }}<span class="font-size-xs ml-1">{{ __('Stock') }}</span>
-                </div>
-                @else
-                <div class="font-size-sm mr-2">
-                {{-- @if($addition_settings->item_sale_count == 1)
-                <i class="dwg-download text-muted mr-1"></i>{{ $featured->item_sold }}<span class="font-size-xs ml-1">{{ __('Sales') }}</span>
-                @endif --}}
-                </div>
-                @endif
-                <div>
-                @if($featured->free_download == 0)
-                @if($featured->item_flash == 1)<del class="price-old">{{ Helper::price_format($allsettings->site_currency_position,$featured->extended_price,$currency_symbol,$multicurrency) }}</del>@endif <span class="bg-faded-accent text-accent rounded-sm py-1 px-2">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency) }}</span>
-                @else
-                <span class="price-badge rounded-sm py-1 px-2">{{ __('Free') }}</span> 
-                @endif
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- Product-->
-        @php $no++; @endphp
-	    @endforeach
-       </div>
-    </section>
-    @endif
-    @if(count($flash['items']) != 0)
-<section class="container mb-lg-1 flash-sale" data-aos="fade-up" data-aos-delay="200">
-      <!-- Heading-->
-      <div class="d-flex flex-wrap justify-content-between align-items-center pt-1 border-bottom pb-4 mb-4">
-        <h2 class="h3 mb-0 pt-3 mr-2" data-aos="fade-down" data-aos-delay="100">{{ __('Flash Sale') }}</h2>
-        <div class="pt-3" data-aos="fade-down" data-aos-delay="100">
-          <a class="btn btn-outline-accent" href="{{ URL::to('/') }}/flash-sale">{{ __('Browse All Items') }}<i class="dwg-arrow-right font-size-ms ml-1"></i></a>
-        </div>
+        $hvTag = $hvTagClass = null;
+      @endphp
+      @include('partials.product-card')
+      @endforeach
+    </div>
+  </div>
+</section>
+@endif
+
+<!-- ============================ Flash sale ============================ -->
+@if(count($flash['items']) != 0)
+<section class="hv-section hv-section--soft flash-sale" data-aos="fade-up" data-aos-delay="200">
+  <div class="container">
+    <div class="hv-head">
+      <div>
+        <h2>{{ __('Flash Sale') }}</h2>
+        <p>{{ __('Limited-time discounts, while they last') }}</p>
       </div>
-      <!-- Grid-->
-      <div class="row pt-2 mx-n2">
-        <!-- Product-->
-        @php $no = 1; @endphp
-        @foreach($flash['items'] as $featured)
-        @php
+      <a class="hv-head-link" href="{{ URL::to('/') }}/flash-sale">{{ __('View All Products') }}<i class="dwg-arrow-right"></i></a>
+    </div>
+    <div class="row mx-n2">
+      @foreach($flash['items'] as $featured)
+      @php
         $price = Helper::price_info($featured->item_flash,$featured->extended_price);
         $count_rating = Helper::count_rating($featured->ratings);
-        @endphp
-        <div class="col-lg-3 col-md-4 col-sm-6 px-2 mb-grid-gutter">
-          <!-- Product-->
-          <div class="card product-card-alt">
-            @if($custom_settings->author_key == Helper::Key_Owner())
-            @if($featured->item_flash == 1)
-            <div class="ribbon ribbon-top-left"><span>{{ $addition_settings->flash_sale_value }}% {{ __('OFF') }}</span></div>
-            @endif
-            @endif
-            <div class="product-thumb">
-              @if(Auth::guest()) 
-              <a class="btn-wishlist btn-sm" href="{{ url('/') }}/login"><i class="dwg-heart"></i></a>
-              @endif
-              @if (Auth::check())
-              @if($featured->user_id != Auth::user()->id)
-              <a class="btn-wishlist btn-sm" href="{{ url('/item') }}/{{ base64_encode($featured->item_id) }}/favorite/{{ base64_encode($featured->item_liked) }}"><i class="dwg-heart"></i></a>
-              @endif
-              @endif
-              <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"><i class="dwg-eye"></i></a>
-              @php
-              $checkif_purchased = Helper::if_purchased($featured->item_token);
-              @endphp
-              
-              @if($addition_settings->guest_checkout == 1)
-              <!--- Guest Checkout ON  -->
-              @if($checkif_purchased == 0)
-              @if($featured->free_download == 0)
-              @if (Auth::check())
-              @if(Auth::user()->id != 1 && $featured->user_id != Auth::user()->id)
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/add-to-cart') }}/{{ $featured->item_slug }}"><i class="dwg-cart"></i></a>
-              @endif
-              @else
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/add-to-cart') }}/{{ $featured->item_slug }}"><i class="dwg-cart"></i></a>
-              @endif
-              @else
-              @if(Auth::guest())
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/login') }}"><i class="dwg-download"></i></a>
-              @else
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/download/{{ base64_encode($featured->item_token) }}"><i class="dwg-download"></i></a>
-              @endif
-              @endif 
-              @endif
-              <!--- Guest Checkout ON  -->
-              @else
-              <!--- Guest Checkout OFF -->
-              @if($checkif_purchased == 0)
-              @if($featured->free_download == 0)
-              @if (Auth::check())
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"><i class="dwg-cart"></i></a>
-              @else
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"><i class="dwg-cart"></i></a>
-              @endif
-              @else
-              @if(Auth::guest())
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/login') }}"><i class="dwg-download"></i></a>
-              @else
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/download/{{ base64_encode($featured->item_token) }}"><i class="dwg-download"></i></a>
-              @endif
-              @endif
-              @else
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"><i class="dwg-cart"></i></a>
-              @endif
-               <!--- Guest Checkout OFF -->
-              @endif
-                
-              </div><a class="product-thumb-overlay" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"></a>
-                            @if($featured->item_preview!='')
-                            <img class="lazy" src="{{ Helper::Image_Path($featured->item_preview,'no-image.png') }}" alt="{{ $featured->item_name }}" width="300" height="200">
-                            @else
-                            <img class="lazy" src="{{ url('/') }}/public/img/no-image.png" alt="{{ $featured->item_name }}" width="300" height="200">
-                            @endif
-                          </div>
-            <div class="card-body">
-              <div class="d-flex flex-wrap justify-content-between align-items-start pb-2">
-                <div class="text-muted font-size-xs mr-1"><a class="product-meta font-weight-medium" href="{{ URL::to('/shop') }}/item-type/{{ $featured->item_type }}">{{ Helper::ItemTypeIdGetData($featured->item_type_id) }}</a></div>
-                <div class="star-rating">
-                    @if($count_rating == 0)
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    @endif
-                    @if($count_rating == 1)
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    @endif
-                    @if($count_rating == 2)
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    @endif
-                    @if($count_rating == 3)
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    @endif
-                    @if($count_rating == 4)
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star"></i>
-                    @endif
-                    @if($count_rating == 5)
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    @endif
-                </div>
-               </div>
-              <h3 class="product-title font-size-sm mb-2"><a href="{{ URL::to('/item') }}/{{ $featured->item_slug }}">
-			  @if($addition_settings->item_name_limit != 0)
-			  {{ mb_substr($featured->item_name,0,$addition_settings->item_name_limit,'utf-8').'...' }}
-		      @else
-			  {{ $featured->item_name }}	  
-			  @endif
-			  </a></h3>
-              <div class="card-footer d-flex align-items-center font-size-xs">
-              <a class="blog-entry-meta-link" href="{{ URL::to('/user') }}/{{ $featured->username }}">
-                    <div class="blog-entry-author-ava">
-                    @if($featured->user_photo!='')
-                    <img class="lazy" src="{{ url('/') }}/public/storage/users/{{ $featured->user_photo }}" alt="{{ $featured->username }}" width="26" height="26">
-                    @else
-                    <img class="lazy" src="{{ url('/') }}/public/img/no-user.png" alt="{{ $featured->username }}" width="26" height="26">
-                    @endif
-                    </div>
-					@if($addition_settings->author_name_limit != 0)
-					{{ mb_substr($featured->username,0,$addition_settings->author_name_limit,'utf-8') }}
-				    @else
-				    {{ $featured->username }}	  
-				    @endif
-					@if($addition_settings->subscription_mode == 1) @if($featured->user_document_verified == 1) <span class="badges-success"><i class="dwg-check-circle danger"></i> {{ __('verified') }}</span>@endif @endif</a>
-                  <div class="ml-auto text-nowrap"><i class="dwg-time"></i> {{ date('d M Y',strtotime($featured->updated_item)) }}</div>
-                </div>
-              <div class="d-flex flex-wrap justify-content-between align-items-center">
-                @if($featured->file_type == 'serial') 
-                @php
-                if($featured->item_delimiter == 'comma')
-                {
-                $result_count = substr_count($featured->item_serials_list, ",");
-                }
-                else
-                {
-                $result_count = substr_count($featured->item_serials_list, "\n");
-                }
-                @endphp
-                <div class="font-size-sm mr-2"><i class="dwg-cart text-muted mr-1"></i>{{ $result_count }}<span class="font-size-xs ml-1">{{ __('Stock') }}</span>
-                </div>
-                @else
-                <div class="font-size-sm mr-2">
-                {{-- @if($addition_settings->item_sale_count == 1)
-                <i class="dwg-download text-muted mr-1"></i>{{ $featured->item_sold }}<span class="font-size-xs ml-1">{{ __('Sales') }}</span>
-                @endif --}}
-                </div>
-                @endif
-                <div>@if($featured->item_flash == 1)<del class="price-old">{{ Helper::price_format($allsettings->site_currency_position,$featured->extended_price,$currency_symbol,$multicurrency) }}</del>@endif <span class="price-badge rounded-sm py-1 px-2">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency) }}</span></div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- Product-->
-        @php $no++; @endphp
-	    @endforeach
-       </div>
-    </section>
-    @endif
-    @if(count($free['items']) != 0)
-<section class="container mb-lg-1 flash-sale" data-aos="fade-up" data-aos-delay="200">
-      <!-- Heading-->
-      <div class="d-flex flex-wrap justify-content-between align-items-center pt-1 border-bottom pb-4 mb-4">
-        <h2 class="h3 mb-0 pt-3 mr-2" data-aos="fade-down" data-aos-delay="100">{{ __('Free Items') }}</h2>
-        <div class="pt-3" data-aos="fade-down" data-aos-delay="100">
-          <a class="btn btn-outline-accent" href="{{ URL::to('/') }}/free-items">{{ __('Browse All Items') }}<i class="dwg-arrow-right font-size-ms ml-1"></i></a>
-        </div>
+        $hvTag = __('Sale'); $hvTagClass = 'hv-tag--trending';
+      @endphp
+      @include('partials.product-card')
+      @endforeach
+    </div>
+  </div>
+</section>
+@endif
+
+<!-- ============================ Free items ============================ -->
+@if(count($free['items']) != 0)
+<section class="hv-section flash-sale" data-aos="fade-up" data-aos-delay="200">
+  <div class="container">
+    <div class="hv-head">
+      <div>
+        <h2>{{ __('Free Items') }}</h2>
+        <p>{{ __('Great tools that cost you nothing') }}</p>
       </div>
-      <!-- Grid-->
-      <div class="row pt-2 mx-n2">
-        <!-- Product-->
-        @php $no = 1; @endphp
-        @foreach($free['items'] as $featured)
-        @php
+      <a class="hv-head-link" href="{{ URL::to('/') }}/free-items">{{ __('View All Products') }}<i class="dwg-arrow-right"></i></a>
+    </div>
+    <div class="row mx-n2">
+      @foreach($free['items'] as $featured)
+      @php
         $price = Helper::price_info($featured->item_flash,$featured->extended_price);
         $count_rating = Helper::count_rating($featured->ratings);
-        @endphp
-        <div class="col-lg-3 col-md-4 col-sm-6 px-2 mb-grid-gutter">
-          <!-- Product-->
-          <div class="card product-card-alt">
-            @if($custom_settings->author_key == Helper::Key_Owner())
-            @if($featured->item_flash == 1)
-            <div class="ribbon ribbon-top-left"><span>{{ $addition_settings->flash_sale_value }}% {{ __('OFF') }}</span></div>
-            @endif
-            @endif
-            <div class="product-thumb">
-              @if(Auth::guest()) 
-              <a class="btn-wishlist btn-sm" href="{{ url('/') }}/login"><i class="dwg-heart"></i></a>
-              @endif
-              @if (Auth::check())
-              @if($featured->user_id != Auth::user()->id)
-              <a class="btn-wishlist btn-sm" href="{{ url('/item') }}/{{ base64_encode($featured->item_id) }}/favorite/{{ base64_encode($featured->item_liked) }}"><i class="dwg-heart"></i></a>
-              @endif
-              @endif
-              <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"><i class="dwg-eye"></i></a>
-              @php
-              $checkif_purchased = Helper::if_purchased($featured->item_token);
-              @endphp
-              
-              @if($addition_settings->guest_checkout == 1)
-              <!--- Guest Checkout ON  -->
-              @if($checkif_purchased == 0)
-              @if($featured->free_download == 0)
-              @if (Auth::check())
-              @if(Auth::user()->id != 1 && $featured->user_id != Auth::user()->id)
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/add-to-cart') }}/{{ $featured->item_slug }}"><i class="dwg-cart"></i></a>
-              @endif
-              @else
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/add-to-cart') }}/{{ $featured->item_slug }}"><i class="dwg-cart"></i></a>
-              @endif
-              @else
-              @if(Auth::guest())
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/login') }}"><i class="dwg-download"></i></a>
-              @else
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/download/{{ base64_encode($featured->item_token) }}"><i class="dwg-download"></i></a>
-              @endif
-              @endif 
-              @endif
-              <!--- Guest Checkout ON  -->
-              @else
-              <!--- Guest Checkout OFF -->
-              @if($checkif_purchased == 0)
-              @if($featured->free_download == 0)
-              @if (Auth::check())
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"><i class="dwg-cart"></i></a>
-              @else
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"><i class="dwg-cart"></i></a>
-              @endif
-              @else
-              @if(Auth::guest())
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/login') }}"><i class="dwg-download"></i></a>
-              @else
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/download/{{ base64_encode($featured->item_token) }}"><i class="dwg-download"></i></a>
-              @endif
-              @endif
-              @else
-              <a class="btn btn-light btn-icon btn-shadow font-size-base mx-2" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"><i class="dwg-cart"></i></a>
-              @endif
-               <!--- Guest Checkout OFF -->
-              @endif
-              
-                
-              </div><a class="product-thumb-overlay" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"></a>
-                            @if($featured->item_preview!='')
-                            <img class="lazy" src="{{ Helper::Image_Path($featured->item_preview,'no-image.png') }}" alt="{{ $featured->item_name }}" width="300" height="200">
-                            @else
-                            <img class="lazy" src="{{ url('/') }}/public/img/no-image.png" alt="{{ $featured->item_name }}" width="300" height="200">
-                            @endif
-                          </div>
-            <div class="card-body">
-              <div class="d-flex flex-wrap justify-content-between align-items-start pb-2">
-                <div class="text-muted font-size-xs mr-1"><a class="product-meta font-weight-medium" href="{{ URL::to('/shop') }}/item-type/{{ $featured->item_type }}">{{ Helper::ItemTypeIdGetData($featured->item_type_id) }}</a></div>
-                <div class="star-rating">
-                    @if($count_rating == 0)
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    @endif
-                    @if($count_rating == 1)
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    @endif
-                    @if($count_rating == 2)
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    @endif
-                    @if($count_rating == 3)
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star"></i>
-                    <i class="sr-star dwg-star"></i>
-                    @endif
-                    @if($count_rating == 4)
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star"></i>
-                    @endif
-                    @if($count_rating == 5)
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    <i class="sr-star dwg-star-filled active"></i>
-                    @endif
-                </div>
-               </div>
-              <h3 class="product-title font-size-sm mb-2"><a href="{{ URL::to('/item') }}/{{ $featured->item_slug }}">
-			  @if($addition_settings->item_name_limit != 0)
-			  {{ mb_substr($featured->item_name,0,$addition_settings->item_name_limit,'utf-8').'...' }}
-		      @else
-			  {{ $featured->item_name }}	  
-			  @endif
-			  </a></h3>
-              <div class="card-footer d-flex align-items-center font-size-xs">
-              <a class="blog-entry-meta-link" href="{{ URL::to('/user') }}/{{ $featured->username }}">
-                    <div class="blog-entry-author-ava">
-                    @if($featured->user_photo!='')
-                    <img class="lazy" src="{{ url('/') }}/public/storage/users/{{ $featured->user_photo }}" alt="{{ $featured->username }}" width="26" height="26">
-                    @else
-                    <img class="lazy" src="{{ url('/') }}/public/img/no-user.png" alt="{{ $featured->username }}" width="26" height="26">
-                    @endif
-                    </div>
-					@if($addition_settings->author_name_limit != 0)
-					{{ mb_substr($featured->username,0,$addition_settings->author_name_limit,'utf-8') }}
-				    @else
-				    {{ $featured->username }}	  
-				    @endif 
-					@if($addition_settings->subscription_mode == 1) @if($featured->user_document_verified == 1) <span class="badges-success"><i class="dwg-check-circle danger"></i> {{ __('verified') }}</span>@endif @endif</a>
-                  <div class="ml-auto text-nowrap"><i class="dwg-time"></i> {{ date('d M Y',strtotime($featured->updated_item)) }}</div>
-                </div>
-              <div class="d-flex flex-wrap justify-content-between align-items-center">
-                @if($featured->file_type == 'serial') 
-                @php
-                if($featured->item_delimiter == 'comma')
-                {
-                $result_count = substr_count($featured->item_serials_list, ",");
-                }
-                else
-                {
-                $result_count = substr_count($featured->item_serials_list, "\n");
-                }
-                @endphp
-                <div class="font-size-sm mr-2"><i class="dwg-cart text-muted mr-1"></i>{{ $result_count }}<span class="font-size-xs ml-1">{{ __('Stock') }}</span>
-                </div>
-                @else
-                <div class="font-size-sm mr-2">
-                {{-- @if($addition_settings->item_sale_count == 1)
-                <i class="dwg-download text-muted mr-1"></i>{{ $featured->item_sold }}<span class="font-size-xs ml-1">{{ __('Sales') }}</span>
-                @endif --}}
-                </div>
-                @endif
-                <div>
-                @if($featured->free_download == 0)
-                @if($featured->item_flash == 1)<del class="price-old">{{ Helper::price_format($allsettings->site_currency_position,$featured->extended_price,$currency_symbol,$multicurrency) }}</del>@endif <span class="bg-faded-accent text-accent rounded-sm py-1 px-2">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency) }}</span>
-                @else
-                <span class="price-badge rounded-sm py-1 px-2">{{ __('Free') }}</span> 
-                @endif
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- Product-->
-        @php $no++; @endphp
-	    @endforeach
-       </div>
-    </section>
-    @endif
-    @if(count($newest['items']) != 0)
-    <section class="container pb-4 pb-md-5" data-aos="fade-up" data-aos-delay="200">
-      <div class="d-flex flex-wrap justify-content-between align-items-center pt-1 border-bottom pb-4 mb-4">
-        <h2 class="h3 mb-0 pt-3 mr-2" data-aos="fade-down" data-aos-delay="100">{{ __('New Releases') }}</h2>
-        <div class="pt-3" data-aos="fade-down" data-aos-delay="100">
-          <a class="btn btn-outline-accent" href="{{ URL::to('/new-releases') }}">{{ __('Browse All Items') }}<i class="dwg-arrow-right font-size-ms ml-1"></i></a>
-        </div>
+        $hvTag = __('Free'); $hvTagClass = 'hv-tag--free';
+      @endphp
+      @include('partials.product-card')
+      @endforeach
+    </div>
+  </div>
+</section>
+@endif
+
+<!-- ============================ New releases ============================ -->
+@if(count($newest['items']) != 0)
+<section class="hv-section hv-section--soft" data-aos="fade-up" data-aos-delay="200">
+  <div class="container">
+    <div class="hv-head">
+      <div>
+        <h2>{{ __('New Releases') }}</h2>
+        <p>{{ __('The latest additions to the marketplace') }}</p>
       </div>
-      <div class="row">
-        <!-- Bestsellers-->
-            @php $no = 1; @endphp
-            @foreach($newest['items'] as $featured)
-            @php
-            $price = Helper::price_info($featured->item_flash,$featured->extended_price);
-        $count_rating = Helper::count_rating($featured->ratings);
-            @endphp
-          <div class="col-lg-4 col-md-6 mb-2 py-3">
-           <div class="widget">    
-            <div class="media align-items-center pb-2 border-bottom">
-            <a class="d-block mr-2" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}">
+      <a class="hv-head-link" href="{{ URL::to('/new-releases') }}">{{ __('View All Products') }}<i class="dwg-arrow-right"></i></a>
+    </div>
+    <div class="row">
+      @foreach($newest['items'] as $featured)
+      @php $price = Helper::price_info($featured->item_flash,$featured->extended_price); @endphp
+      <div class="col-lg-4 col-md-6 mb-3">
+        <div class="hv-mini">
+          <a href="{{ URL::to('/item') }}/{{ $featured->item_slug }}">
             @if($featured->item_preview!='')
-            <img class="lazy" src="{{ Helper::Image_Path($featured->item_preview,'no-image.png') }}"  alt="{{ $featured->item_name }}" width="64" height="48">
-           @else
-           <img class="lazy" src="{{ url('/') }}/public/img/no-image.png" alt="{{ $featured->item_name }}" width="64" height="48">
-           @endif
-            </a>
-              <div class="media-body">
-                <h6 class="widget-product-title"><a href="{{ URL::to('/item') }}/{{ $featured->item_slug }}">{{ $featured->item_name }}</a></h6>
-                <div class="widget-product-meta">
-                @if($featured->free_download == 0)
-                <span class="text-accent">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency) }}</span> @if($featured->item_flash == 1)<del class="price-old">{{ Helper::price_format($allsettings->site_currency_position,$featured->extended_price,$currency_symbol,$multicurrency) }}</del>@endif
-                @else
-                <span class="text-accent">{{ __('Free') }}</span>
-                @endif
-                </div>
-              </div>
-            </div>
-           </div>
-        </div>
-            @php $no++; @endphp
-            @endforeach
-       </div>
-    </section>
-    @endif
-    @if($allsettings->site_features_display == 1)
-    <section class="bg-size-cover bg-position-center pt-5 pb-4 pb-lg-5 feature-panel" style="background-image: url('{{ url('/') }}/public/storage/settings/{{ $allsettings->site_banner }}');">
-      <div class="container pt-lg-3" data-aos="fade-up" data-aos-delay="200">
-        <h2 class="h3 mb-3 pb-4 text-light text-center">{{ __('Why Choose') }} {{ $allsettings->site_title }}?</h2>
-        <div class="row pt-lg-2 text-center">
-          <div class="col-lg-3 col-md-3 col-sm-12 mb-grid-gutter" data-aos="fade-right" data-aos-delay="200">
-            <div class="d-inline-block">
-              <div class="media media-ie-fix align-items-center text-left"><span class="{{ $allsettings->site_icon1 }}"></span>
-                <div class="media-body pl-3">
-                  <h6 class="text-light font-size-base mb-1">{{ $allsettings->site_text1 }}</h6>
-                  <p class="text-light font-size-ms opacity-70 mb-0">{{ $allsettings->site_sub_text1 }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-3 col-md-3 col-sm-12 mb-grid-gutter" data-aos="fade-right" data-aos-delay="200">
-            <div class="d-inline-block">
-              <div class="media media-ie-fix align-items-center text-left"><span class="{{ $allsettings->site_icon2 }}"></span>
-                <div class="media-body pl-3">
-                  <h6 class="text-light font-size-base mb-1">{{ $allsettings->site_text2 }}</h6>
-                  <p class="text-light font-size-ms opacity-70 mb-0">{{ $allsettings->site_sub_text2 }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-3 col-md-3 col-sm-12 mb-grid-gutter" data-aos="fade-right" data-aos-delay="200">
-            <div class="d-inline-block">
-              <div class="media media-ie-fix align-items-center text-left"><span class="{{ $allsettings->site_icon3 }}"></span>
-                <div class="media-body pl-3">
-                  <h6 class="text-light font-size-base mb-1">{{ $allsettings->site_text3 }}</h6>
-                  <p class="text-light font-size-ms opacity-70 mb-0">{{ $allsettings->site_sub_text3 }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-3 col-md-3 col-sm-12 mb-grid-gutter" data-aos="fade-right" data-aos-delay="200">
-            <div class="d-inline-block">
-              <div class="media media-ie-fix align-items-center text-left"><span class="{{ $allsettings->site_icon4 }}"></span>
-                <div class="media-body pl-3">
-                  <h6 class="text-light font-size-base mb-1">{{ $allsettings->site_text4 }}</h6>
-                  <p class="text-light font-size-ms opacity-70 mb-0">{{ $allsettings->site_sub_text4 }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-    @endif
-    @if($allsettings->site_blog_display == 1)
-    @if($allsettings->home_blog_display == 1)
-    @if(count($blog['data']) != 0)
-    <section class="container pb-4 pb-md-5 homeblog" data-aos="fade-up" data-aos-delay="200">
-      <div class="d-flex flex-wrap justify-content-between align-items-center pt-1 border-bottom pb-4 mb-4">
-        <h2 class="h3 mb-0 pt-3 mr-2" data-aos="fade-down" data-aos-delay="100">{{ __('Our Blog') }}</h2>
-        <div class="pt-3" data-aos="fade-down" data-aos-delay="100">
-          <a class="btn btn-outline-accent" href="{{ URL::to('/blog') }}">{{ __('Ream more posts') }}<i class="dwg-arrow-right font-size-ms ml-1"></i></a>
-        </div>
-      </div>
-        <div class="row">
-          @php $no = 1; @endphp
-          @foreach($blog['data'] as $post)
-            <div class="col-lg-4 col-md-6 mb-2 py-3">
-              <div class="card">
-              <a class="blog-entry-thumb" href="{{ URL::to('/single') }}/{{ $post->post_slug }}" title="{{ $post->post_title }}">
-              @if($post->post_image!='')
-              <img class="lazy card-img-top" src="{{ url('/') }}/public/storage/post/{{ $post->post_image }}" alt="{{ $post->post_title }}" width="388" height="240">
+            <img class="lazy" src="{{ Helper::Image_Path($featured->item_preview,'no-image.png') }}" alt="{{ $featured->item_name }}" width="64" height="48">
+            @else
+            <img class="lazy" src="{{ url('/') }}/public/img/no-image.png" alt="{{ $featured->item_name }}" width="64" height="48">
+            @endif
+          </a>
+          <div class="media-body">
+            <h6><a href="{{ URL::to('/item') }}/{{ $featured->item_slug }}">{{ $featured->item_name }}</a></h6>
+            <div class="hv-mini-price">
+              @if($featured->free_download == 0)
+              {{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency) }}
+              @if($featured->item_flash == 1)<del class="price-old ml-1">{{ Helper::price_format($allsettings->site_currency_position,$featured->extended_price,$currency_symbol,$multicurrency) }}</del>@endif
               @else
-              <img class="lazy card-img-top" src="{{ url('/') }}/public/img/no-image.png" width="388" height="240">
+              {{ __('Free') }}
               @endif
-              </a>
-                <div class="card-body">
-                  <h2 class="h6 blog-entry-title"><a href="{{ URL::to('/single') }}/{{ $post->post_slug }}">{{ $post->post_title }}</a></h2>
-                  <p class="font-size-sm">
-				  @if($addition_settings->post_short_desc_limit != 0)
-				  {{ mb_substr($post->post_short_desc,0,$addition_settings->post_short_desc_limit,'utf-8').'...' }}
+            </div>
+          </div>
+        </div>
+      </div>
+      @endforeach
+    </div>
+  </div>
+</section>
+@endif
+
+<!-- ============================ Why choose us / stats ============================ -->
+@if($allsettings->site_features_display == 1)
+<section class="hv-section" data-aos="fade-up" data-aos-delay="200">
+  <div class="container">
+    <div class="hv-stats">
+      <div class="row align-items-center">
+        <div class="col-lg-5 mb-4 mb-lg-0">
+          <div class="hv-stats-label">{{ __('Why Choose') }} {{ $allsettings->site_title }}</div>
+          <h2>{{ __('Built for Entrepreneurs, Loved by Professionals') }}</h2>
+          <p>{{ __('We provide premium digital products that help you build, automate and scale your business with ease.') }}</p>
+          <a class="hv-btn hv-btn--primary" href="{{ URL::to('/shop') }}">{{ __('Explore All Products') }}<i class="dwg-arrow-right"></i></a>
+        </div>
+        <div class="col-lg-7">
+          <div class="row">
+            <div class="col-6 col-md-3">
+              <div class="hv-stat">
+                <span class="hv-stat-icon"><i class="fa fa-users"></i></span>
+                <strong>{{ Helper::member_count() }}+</strong>
+                <span>{{ __('Happy Customers') }}</span>
+                <small>{{ __('And growing every week') }}</small>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="hv-stat">
+                <span class="hv-stat-icon"><i class="fa fa-cube"></i></span>
+                <strong>{{ $total_files }}+</strong>
+                <span>{{ __('Premium Products') }}</span>
+                <small>{{ __('New items added regularly') }}</small>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="hv-stat">
+                <span class="hv-stat-icon"><i class="fa fa-bolt"></i></span>
+                <strong>99.9%</strong>
+                <span>{{ __('Uptime & Reliability') }}</span>
+                <small>{{ __('Always available') }}</small>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="hv-stat">
+                <span class="hv-stat-icon"><i class="fa fa-life-ring"></i></span>
+                <strong>24/7</strong>
+                <span>{{ __('Customer Support') }}</span>
+                <small>{{ __('We are here for you') }}</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+@endif
+
+<!-- ============================ Testimonials + CTA ============================ -->
+@php
+  $hvReviews = collect($review['data'] ?? [])->filter(function ($r) {
+      return !empty($r->rating_comment);
+  })->take(3);
+  // Shown until real reviews exist. Edit or delete these three entries freely.
+  $hvFallbackReviews = [
+    ['rating' => 5, 'comment' => __('Excellent products and amazing support. The scripts are high quality and easy to customise. Highly recommended.'), 'name' => 'John D.', 'role' => __('Entrepreneur')],
+    ['rating' => 5, 'comment' => __('Saved hundreds of hours simply by using ready-made tools from this marketplace. They have everything I need for my business.'), 'name' => 'Sarah K.', 'role' => __('Agency Owner')],
+    ['rating' => 5, 'comment' => __('Fast delivery, regular updates and great customer support. My go-to marketplace for digital products.'), 'name' => 'Michael T.', 'role' => __('Developer')],
+  ];
+@endphp
+<section class="hv-section hv-section--soft" data-aos="fade-up" data-aos-delay="200">
+  <div class="container">
+    <div class="hv-head">
+      <div>
+        <h2>{{ __('What Our Customers Say') }}</h2>
+        <p>{{ __('Real feedback from people building with our products') }}</p>
+      </div>
+      @if($hvReviews->count() > 0)
+      <a class="hv-head-link" href="{{ URL::to('/shop') }}">{{ __('View All Reviews') }}<i class="dwg-arrow-right"></i></a>
+      @endif
+    </div>
+
+    <div class="row">
+      <div class="col-lg-8">
+        <div class="row">
+          @if($hvReviews->count() > 0)
+            @foreach($hvReviews as $hvReview)
+            <div class="col-md-4 mb-4 mb-lg-0">
+              <div class="hv-quote">
+                <div class="hv-stars">
+                  @for($star = 1; $star <= 5; $star++){!! $star <= $hvReview->rating ? '&#9733;' : '&#9734;' !!}@endfor
+                </div>
+                <p>{{ $hvReview->rating_comment }}</p>
+                <div class="hv-quote-user">
+                  @if(!empty($hvReview->user_photo))
+                  <img src="{{ url('/') }}/public/storage/users/{{ $hvReview->user_photo }}" alt="{{ $hvReview->username }}" width="36" height="36">
                   @else
-				  {{ $post->post_short_desc }}	  
-                  @endif					  
-				  </p>
-                  <div class="font-size-xs text-nowrap"><span class="blog-entry-meta-link text-nowrap">{{ date('d M Y', strtotime($post->post_date)) }}</span><span class="blog-entry-meta-divider mx-2"></span><span class="blog-entry-meta-link text-nowrap"><i class="dwg-message"></i>{{ $comments->has($post->post_id) ? count($comments[$post->post_id]) : 0 }}</span></div>
+                  <span class="hv-quote-avatar">{{ strtoupper(mb_substr($hvReview->username, 0, 1)) }}</span>
+                  @endif
+                  <span>
+                    <strong>{{ $hvReview->username }}</strong>
+                    <span>{{ __('Verified Buyer') }}</span>
+                  </span>
                 </div>
               </div>
             </div>
-            @php $no++; @endphp
             @endforeach
-         </div>
-        <!-- More button-->
-     </section>
-     @endif 
-     @endif
-     @endif
-     @if(in_array('home',$bottom_ads))
-    <section class="container pt-2" data-aos="fade-up" data-aos-delay="200">
-      <div class="row">
-          <div class="col-lg-12 mb-3" align="center">
-             @php echo html_entity_decode($addition_settings->bottom_ads); @endphp
-          </div>
-       </div>   
-    </section>   
-    @endif 
-    @if($custom_settings->promotion_popup == 1)
-    <?php /** promoation offer ***/ ?>
-    <div id="my-welcome-message">
-        <div class="header">
-           <h3>{{ $custom_settings->pr_promo_heading }}</h3>
-        </div>
-        <div class="bodies">
-          <div class="container-fluid p-0">
-           <div class="row no-gutters">
-              <div class="col-md-12 textboxrow" style="background-image: url('{{ url('/') }}/public/storage/settings/{{ $custom_settings->promotion_bg_image }}'); background-size:cover;">
-              <h1>{{ $custom_settings->pr_promo_title_one }}</h1>
-              <h5>{{ $custom_settings->pr_promo_title_two }}</h5>
-              <p class="saledate">{{ __('Sales end') }} {{ date('M d, Y', strtotime($custom_settings->pr_promo_date)) }}</p>
-              <a class="btn btn-outline-accent" href="{{ $custom_settings->pr_promo_button_link }}">{{ __('Download Now') }}</a>
+          @else
+            @foreach($hvFallbackReviews as $hvReview)
+            <div class="col-md-4 mb-4 mb-lg-0">
+              <div class="hv-quote">
+                <div class="hv-stars">
+                  @for($star = 1; $star <= 5; $star++){!! $star <= $hvReview['rating'] ? '&#9733;' : '&#9734;' !!}@endfor
+                </div>
+                <p>{{ $hvReview['comment'] }}</p>
+                <div class="hv-quote-user">
+                  <span class="hv-quote-avatar">{{ mb_substr($hvReview['name'], 0, 1) }}</span>
+                  <span>
+                    <strong>{{ $hvReview['name'] }}</strong>
+                    <span>{{ $hvReview['role'] }}</span>
+                  </span>
+                </div>
               </div>
-           </div>
-          </div>    
-         </div> 
-        </div> 
-        @endif 
+            </div>
+            @endforeach
+          @endif
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="hv-cta">
+          <h3>{{ __('Join Entrepreneurs Already Growing with') }} {{ $allsettings->site_title }}</h3>
+          <p>{{ __('Get instant access to premium scripts, themes and tools built to move your business forward.') }}</p>
+          <div>
+            <a class="hv-btn hv-btn--light" href="{{ Auth::guest() ? URL::to('/register') : URL::to('/shop') }}">{{ __('Start Shopping Now') }}<i class="dwg-arrow-right"></i></a>
+          </div>
+          <small><i class="fa fa-shield"></i>{{ __('30-Day Money Back Guarantee') }}</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ Blog ============================ -->
+@if($allsettings->site_blog_display == 1)
+@if($allsettings->home_blog_display == 1)
+@if(count($blog['data']) != 0)
+<section class="hv-section homeblog" data-aos="fade-up" data-aos-delay="200">
+  <div class="container">
+    <div class="hv-head">
+      <div>
+        <h2>{{ __('From Our Blog') }}</h2>
+        <p>{{ __('Guides, updates and tips from the team') }}</p>
+      </div>
+      <a class="hv-head-link" href="{{ URL::to('/blog') }}">{{ __('Read More Posts') }}<i class="dwg-arrow-right"></i></a>
+    </div>
+    <div class="row">
+      @foreach($blog['data'] as $post)
+      <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100">
+          <a class="blog-entry-thumb" href="{{ URL::to('/single') }}/{{ $post->post_slug }}" title="{{ $post->post_title }}">
+            @if($post->post_image!='')
+            <img class="lazy card-img-top" src="{{ url('/') }}/public/storage/post/{{ $post->post_image }}" alt="{{ $post->post_title }}" width="388" height="240">
+            @else
+            <img class="lazy card-img-top" src="{{ url('/') }}/public/img/no-image.png" width="388" height="240">
+            @endif
+          </a>
+          <div class="card-body">
+            <h2 class="h6 blog-entry-title"><a href="{{ URL::to('/single') }}/{{ $post->post_slug }}">{{ $post->post_title }}</a></h2>
+            <p class="font-size-sm">
+              @if($addition_settings->post_short_desc_limit != 0)
+              {{ mb_substr($post->post_short_desc,0,$addition_settings->post_short_desc_limit,'utf-8').'...' }}
+              @else
+              {{ $post->post_short_desc }}
+              @endif
+            </p>
+            <div class="font-size-xs text-nowrap"><span class="blog-entry-meta-link text-nowrap">{{ date('d M Y', strtotime($post->post_date)) }}</span><span class="blog-entry-meta-divider mx-2"></span><span class="blog-entry-meta-link text-nowrap"><i class="dwg-message"></i>{{ $comments->has($post->post_id) ? count($comments[$post->post_id]) : 0 }}</span></div>
+          </div>
+        </div>
+      </div>
+      @endforeach
+    </div>
+  </div>
+</section>
+@endif
+@endif
+@endif
+
+<!-- ============================ Newsletter ============================ -->
+@if($allsettings->site_newsletter_display == 1)
+<section class="pb-5" data-aos="fade-up" data-aos-delay="200">
+  <div class="container">
+    <div class="hv-news">
+      <span class="hv-news-icon"><i class="dwg-mail"></i></span>
+      <div class="hv-news-text">
+        <h3>{{ __('Stay Updated with New Products & Offers') }}</h3>
+        <p>{{ $allsettings->site_newsletter }}</p>
+      </div>
+      <form class="hv-news-form validate" action="{{ route('newsletter') }}" method="post" name="mc-embedded-subscribe-form" id="home_news_form" enctype="multipart/form-data">
+        {{ csrf_field() }}
+        <input class="form-control" type="email" value="" placeholder="{{ __('Enter your email address') }}" data-bvalidator="required" name="news_email">
+        <button type="submit" name="subscribe">{{ __('Subscribe') }}</button>
+      </form>
+    </div>
+  </div>
+</section>
+@endif
+
+@if(in_array('home',$bottom_ads))
+<section class="container pb-5" data-aos="fade-up" data-aos-delay="200">
+  <div class="row">
+    <div class="col-lg-12" align="center">
+      @php echo html_entity_decode($addition_settings->bottom_ads); @endphp
+    </div>
+  </div>
+</section>
+@endif
+
+@if($custom_settings->promotion_popup == 1)
+<div id="my-welcome-message">
+  <div class="header">
+    <h3>{{ $custom_settings->pr_promo_heading }}</h3>
+  </div>
+  <div class="bodies">
+    <div class="container-fluid p-0">
+      <div class="row no-gutters">
+        <div class="col-md-12 textboxrow" style="background-image: url('{{ url('/') }}/public/storage/settings/{{ $custom_settings->promotion_bg_image }}'); background-size:cover;">
+          <h1>{{ $custom_settings->pr_promo_title_one }}</h1>
+          <h5>{{ $custom_settings->pr_promo_title_two }}</h5>
+          <p class="saledate">{{ __('Sales end') }} {{ date('M d, Y', strtotime($custom_settings->pr_promo_date)) }}</p>
+          <a class="btn btn-outline-accent" href="{{ $custom_settings->pr_promo_button_link }}">{{ __('Download Now') }}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+@endif
+
 @include('footer')
 @include('script')
 </body>

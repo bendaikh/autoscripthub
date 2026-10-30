@@ -16,6 +16,10 @@ class xframeOptions
      */
     public function handle($request, Closure $next)
     {
+        if ($request->is('.well-known/apple-developer-merchantid-domain-association')) {
+            return $next($request);
+        }
+
         $response = $next($request);
 
         $response->headers->set('X-Frame-Options', 'SAMEORIGIN', false);

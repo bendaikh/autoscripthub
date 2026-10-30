@@ -20,6 +20,17 @@
       </div>
     </div>
 @endif
+@if ($message = Session::get('unsuccess'))
+<div class="toast-container toast-top-center">
+      <div class="toast mb-3" id="cart-toast-unsuccess" data-delay="5000" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-danger text-white"><i class="dwg-close-circle mr-2"></i>
+          <h6 class="font-size-sm text-white mb-0 mr-auto">{{ __('Error!') }}</h6>
+          <button class="close text-white ml-2 mb-1" type="button" data-dismiss="toast" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+        <div class="toast-body text-danger">{{ $message }}</div>
+      </div>
+    </div>
+@endif
 @if (!$errors->isEmpty())
 <div class="toast-container toast-top-center">
       <div class="toast mb-3" id="cart-toast-error" data-delay="5000" role="alert" aria-live="assertive" aria-atomic="true">
@@ -40,10 +51,8 @@
         <div class="row">
           <div class="col-md-4 text-center text-md-left mb-4">
             <div class="text-nowrap mb-3">
-            <a class="d-inline-block align-middle mt-n2 mr-2" href="{{ URL::to('/') }}">
-            @if($addition_settings->site_footer_logo != '')
-            <img class="d-block lazy" width="150" height="43"  src="{{ url('/') }}/public/storage/settings/{{ $addition_settings->site_footer_logo }}"  alt="{{ $allsettings->site_title }}"/>
-            @endif
+            <a class="d-inline-block align-middle mr-2" href="{{ URL::to('/') }}" aria-label="{{ $allsettings->site_title }}">
+            @include('partials.brand', ['brandCompact' => false, 'brandLight' => true])
             </a>
             </div>
             @if($addition_settings->members_count == 1)
@@ -147,7 +156,7 @@
               </div>
           </div>
           @if($allsettings->site_newsletter_display == 1)
-          <div class="col-md-4">
+          <div class="col-md-4 footer-newsletter">
             <div class="widget pb-2 mb-4">
               <h3 class="widget-title text-light pb-1">{{ __('NEWSLETTER') }}</h3>
               <form class="validate" action="{{ route('newsletter') }}" method="post" name="mc-embedded-subscribe-form" id="footer_form" enctype="multipart/form-data">

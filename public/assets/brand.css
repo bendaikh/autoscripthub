@@ -1,0 +1,114 @@
+/*!
+ * AutoScriptHub wordmark. Loaded on every page (header + footer).
+ */
+
+.asb {
+  display: inline-flex;
+  align-items: center;
+  gap: .6rem;
+  line-height: 1.1;
+  text-decoration: none;
+  vertical-align: middle;
+}
+
+.asb:hover {
+  text-decoration: none;
+}
+
+.asb-mark {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+  box-shadow: 0 6px 16px rgba(79, 70, 229, .35);
+}
+
+.asb-mark svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.asb-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.asb-name {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  white-space: nowrap;
+  color: #0f172a;
+}
+
+.asb-name-accent {
+  background: linear-gradient(100deg, #7c3aed 0%, #4f46e5 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.asb-tag {
+  font-size: .58rem;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #94a3b8;
+  margin-top: 1px;
+}
+
+/* Dark backgrounds (footer, dark home header) */
+.asb--light .asb-name {
+  color: #fff;
+}
+
+.asb--light .asb-name-accent {
+  background: linear-gradient(100deg, #a855f7 0%, #60a5fa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.asb--light .asb-tag {
+  color: rgba(226, 232, 240, .55);
+}
+
+/* Compact: mark + name only */
+.asb--compact {
+  gap: .45rem;
+}
+
+.asb--compact .asb-mark {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+}
+
+.asb--compact .asb-mark svg {
+  width: 17px;
+  height: 17px;
+}
+
+.asb--compact .asb-name {
+  font-size: 1rem;
+}
+
+.asb--compact .asb-tag {
+  display: none;
+}
+
+@media (max-width: 359.98px) {
+  .asb-name { font-size: .92rem; }
+  .asb-mark { flex-basis: 30px; width: 30px; height: 30px; }
+}

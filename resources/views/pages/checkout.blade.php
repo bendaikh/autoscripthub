@@ -4,6 +4,22 @@
 <title>{{ $allsettings->site_title }} - {{ __('Checkout') }}</title>
 @include('meta')
 @include('style')
+@if(in_array('whop', $get_payment ?? []))
+<script async defer src="https://js.whop.com/static/checkout/loader.js"></script>
+<style>
+  .whop-checkout-wrapper { width: 100%; min-height: 420px; }
+  .whop-checkout-wrapper iframe { width: 100% !important; min-height: 420px; border: 0; }
+  #whopInlineBox label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+</style>
+@endif
+@if(in_array('dodopayments', $get_payment ?? []))
+<script src="https://cdn.jsdelivr.net/npm/dodopayments-checkout@latest/dist/index.js"></script>
+<style>
+  .dodo-checkout-wrapper { width: 100%; min-height: 420px; }
+  #dodo-inline-checkout { min-height: 420px; width: 100%; }
+  #dodoInlineBox label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+</style>
+@endif
 </head>
 <body>
 @include('header')
@@ -34,19 +50,24 @@
             {{ csrf_field() }}
             <div class="pt-2 px-4 pr-lg-0 pl-xl-5">
              @if(Auth::guest())
+              <div id="guest-checkout-holder" class="d-none" aria-hidden="true">
+              <div id="guest-checkout-fields" class="guest-checkout-fields mb-3 pb-3 border-bottom">
               <h2 class="h6 border-bottom pb-3 mb-3">{{ __('Not a customer yet?') }}</h2>
               <!-- Billing detail-->
-              <div class="row pb-4">
-                <div class="col-6 form-group">
-                  <label for="mc-email">{{ __('Email Address') }}  <span class='text-danger'>*</span></label>
-                  <input type="text" id="email" class="form-control" name="email" data-bvalidator="required,email">
+              <div class="row pb-3">
+                <div class="col-6 form-group mb-2">
+                  <label for="email">{{ __('Email Address') }}  <span class='text-danger'>*</span></label>
+                  <input type="text" id="email" class="form-control" name="email" data-bvalidator="required,email" autocomplete="email" required>
                 </div>
-                <div class="col-sm-6 form-group">
-                  <label for="mc-company">{{ __('Password') }} <span class='text-danger'>*</span></label>
-                  <input type="password" id="password" class="form-control" name="password" data-bvalidator="required,minlen[6]">
+                <div class="col-sm-6 form-group mb-2">
+                  <label for="password">{{ __('Password') }} <span class='text-danger'>*</span></label>
+                  <input type="password" id="password" class="form-control" name="password" data-bvalidator="required,minlen[6]" autocomplete="new-password" required>
                 </div>
               </div>
-              @endif
+              <p class="font-size-sm text-muted mb-0">{{ __('Create an account to complete your purchase and download your files.') }}</p>
+              </div>
+              </div>
+             @endif
               @if (Auth::check())
               <input type="hidden" name="user_id" value="{{ Auth::user()->id }}">
               @endif
@@ -236,16 +257,17 @@
                 <div class="card">
                   <div class="card-header" role="tab">
                     @if (Auth::check())
-                    <h3 class="accordion-heading"><a href="#{{ $payment }}" id="{{ $payment }}" data-toggle="collapse">{{ __('Pay with') }} @if($payment == 'twocheckout') {{ __('2Checkout') }} @elseif($payment == 'dodopayments') {{ __('Card') }} @else {{ $payment }} @endif<span class="accordion-indicator"><i data-feather="chevron-up"></i></span></a></h3>
+                    <h3 class="accordion-heading"><a href="#{{ $payment }}" id="{{ $payment }}" data-toggle="collapse">{{ __('Pay with') }} @if($payment == 'twocheckout') {{ __('2Checkout') }} @elseif($payment == 'dodopayments') {{ __('Card') }} @elseif($payment == 'whop') {{ __('card') }} @else {{ $payment }} @endif<span class="accordion-indicator"><i data-feather="chevron-up"></i></span></a></h3>
                     @else
                     @if($payment != 'wallet')
-                    <h3 class="accordion-heading"><a href="#{{ $payment }}" id="{{ $payment }}" data-toggle="collapse">{{ __('Pay with') }} @if($payment == 'twocheckout') {{ __('2Checkout') }} @elseif($payment == 'dodopayments') {{ __('Card') }} @else {{ $payment }} @endif<span class="accordion-indicator"><i data-feather="chevron-up"></i></span></a></h3>
+                    <h3 class="accordion-heading"><a href="#{{ $payment }}" id="{{ $payment }}" data-toggle="collapse">{{ __('Pay with') }} @if($payment == 'twocheckout') {{ __('2Checkout') }} @elseif($payment == 'dodopayments') {{ __('Card') }} @elseif($payment == 'whop') {{ __('card') }} @else {{ $payment }} @endif<span class="accordion-indicator"><i data-feather="chevron-up"></i></span></a></h3>
                     @endif
                     @endif
                   </div>
                   <div class="collapse @if($no == 1) show @endif" id="{{ $payment }}" data-parent="#payment-method" role="tabpanel">
                   @if($payment == 'paypal')
                     <div class="card-body font-size-sm custom-control custom-radio">
+                      <div class="guest-checkout-slot" data-guest-slot="paypal"></div>
                       <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" @if($no == 1) checked @endif data-bvalidator="required"> {{ __('PayPal') }}</span> - {{ __('the safer, easier way to pay') }}</p>
                       <button class="btn btn-primary" type="submit">{{ __('Checkout with PayPal') }}</button>
                     </div>
@@ -392,9 +414,29 @@
                     </div>
                     @endif
                     @if($payment == 'dodopayments')
-                    <div class="card-body font-size-sm custom-control custom-radio">
+                    <div class="card-body font-size-sm custom-radio custom-control">
+                      <div class="guest-checkout-slot" data-guest-slot="dodopayments"></div>
                       <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('Credit/Debit Card') }}</span> - {{ __('Pay securely with your card') }}</p>
-                      <button class="btn btn-primary" type="submit">{{ __('Pay with Card') }}</button>
+                      <div class="dodobox mb-3" id="dodoInlineBox" style="display:none;">
+                        <label for="dodo-inline-checkout">{{ __('Credit or debit card') }}</label>
+                        <div id="dodo-inline-loading" class="text-muted font-size-sm mb-2" style="display:none;">{{ __('Loading secure card form...') }}</div>
+                        <div id="dodo-inline-checkout" class="dodo-checkout-wrapper"></div>
+                        <div id="dodo-inline-error" class="text-danger mt-2" role="alert" style="display:none;"></div>
+                      </div>
+                      <button class="btn btn-primary" type="button" id="dodoCheckoutBtn">{{ __('Pay with Card') }}</button>
+                    </div>
+                    @endif
+                    @if($payment == 'whop')
+                    <div class="card-body font-size-sm custom-radio custom-control">
+                      <div class="guest-checkout-slot" data-guest-slot="whop"></div>
+                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('Card') }}</span> - {{ __('Credit or debit card') }}</p>
+                      <div class="whopbox mb-3" id="whopInlineBox" style="display:none;">
+                        <label for="whop-inline-checkout">{{ __('Credit or debit card') }}</label>
+                        <div id="whop-inline-loading" class="text-muted font-size-sm mb-2" style="display:none;">{{ __('Loading secure card form...') }}</div>
+                        <div id="whop-inline-checkout" class="whop-checkout-wrapper"></div>
+                        <div id="whop-inline-error" class="text-danger mt-2" role="alert" style="display:none;"></div>
+                      </div>
+                      <button class="btn btn-primary" type="button" id="whopCheckoutBtn">{{ __('Checkout with Card') }}</button>
                     </div>
                     @endif
                     @if($payment == 'cashfree')
@@ -684,9 +726,44 @@ $(function () {
 <script type="text/javascript">
 $(document).ready(function(){
         'use strict';
+
+        @if(Auth::guest())
+        (function () {
+            var $fields = $('#guest-checkout-fields');
+            var $holder = $('#guest-checkout-holder');
+
+            window.placeGuestCheckoutFields = function (slotName) {
+                if (!$fields.length) {
+                    return;
+                }
+                var $slot = $('.guest-checkout-slot[data-guest-slot="' + slotName + '"]');
+                if ($slot.length) {
+                    $slot.append($fields);
+                    $fields.removeClass('d-none').show();
+                } else if ($holder.length) {
+                    $holder.append($fields);
+                }
+            };
+
+            var initialMethod = $('input[name=payment_method]:checked').val();
+            if (initialMethod === 'paypal' || initialMethod === 'whop' || initialMethod === 'dodopayments') {
+                window.placeGuestCheckoutFields(initialMethod);
+            } else if ($('.guest-checkout-slot[data-guest-slot="paypal"]').length) {
+                window.placeGuestCheckoutFields('paypal');
+            } else if ($('.guest-checkout-slot[data-guest-slot="whop"]').length) {
+                window.placeGuestCheckoutFields('whop');
+            } else if ($('.guest-checkout-slot[data-guest-slot="dodopayments"]').length) {
+                window.placeGuestCheckoutFields('dodopayments');
+            }
+        })();
+        @endif
+
 		$('#paypal').click(function(){
             var value = "paypal";
             $("input[name=payment_method][value=" + value + "]").prop('checked', true);
+            if (typeof window.placeGuestCheckoutFields === 'function') {
+                window.placeGuestCheckoutFields('paypal');
+            }
         });
          $('#wallet').click(function(){
             var value = "wallet";
@@ -795,7 +872,435 @@ $(document).ready(function(){
 		$('#dodopayments').click(function(){
             var value = "dodopayments";
             $("input[name=payment_method][value=" + value + "]").prop('checked', true);
+            if (typeof window.placeGuestCheckoutFields === 'function') {
+                window.placeGuestCheckoutFields('dodopayments');
+            }
         });
+		$('#whop').click(function(){
+            var value = "whop";
+            $("input[name=payment_method][value=" + value + "]").prop('checked', true);
+            if (typeof window.placeGuestCheckoutFields === 'function') {
+                window.placeGuestCheckoutFields('whop');
+            }
+        });
+
+        @if(in_array('whop', $get_payment ?? []))
+        (function () {
+            var whopMounted = false;
+            var whopLoading = false;
+            var $form = $('#checkout_form');
+            var $btn = $('#whopCheckoutBtn');
+            var $box = $('#whopInlineBox');
+            var $error = $('#whop-inline-error');
+            var $mount = $('#whop-inline-checkout');
+            var $loading = $('#whop-inline-loading');
+            var defaultBtnText = $btn.text();
+            var isGuest = {{ Auth::guest() ? 'true' : 'false' }};
+
+            function showWhopError(message) {
+                $loading.hide();
+                $error.text(message || @json(__('Payment initialization failed. Please try again.'))).show();
+                $box.show();
+            }
+
+            function showGuestRequiredError(message) {
+                $loading.hide();
+                $mount.empty();
+                $box.hide();
+                $error.hide().text('');
+                if (typeof window.placeGuestCheckoutFields === 'function') {
+                    window.placeGuestCheckoutFields('whop');
+                }
+                var $email = $('#email');
+                var $password = $('#password');
+                var bVal = $form.data('bValidator');
+                if (bVal && typeof bVal.showMsg === 'function') {
+                    if (!$email.val() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test($.trim($email.val() || ''))) {
+                        bVal.showMsg($email, message || @json(__('This field is required.')));
+                        $email.focus();
+                    }
+                    if (!$password.val() || ($password.val() || '').length < 6) {
+                        bVal.showMsg($password, ($password.val() || '').length > 0
+                            ? @json(__('The length must be at least 6 characters.'))
+                            : @json(__('This field is required.')));
+                        if (!$email.val()) {
+                            $email.focus();
+                        } else {
+                            $password.focus();
+                        }
+                    }
+                    return;
+                }
+                alert(message || @json(__('Please enter your email address and password before continuing.')));
+                $email.focus();
+            }
+
+            function validateGuestFields() {
+                if (!isGuest) {
+                    return true;
+                }
+                if (typeof window.placeGuestCheckoutFields === 'function') {
+                    window.placeGuestCheckoutFields('whop');
+                }
+
+                var $email = $('#email');
+                var $password = $('#password');
+                if (!$email.length || !$password.length) {
+                    showGuestRequiredError(@json(__('Please enter your email address and password before continuing.')));
+                    return false;
+                }
+
+                // Same plugin PayPal uses — do not open the card frame until these pass
+                var bVal = $form.data('bValidator');
+                if (bVal && typeof bVal.validate === 'function') {
+                    var valid = bVal.validate($email.add($password));
+                    if (!valid) {
+                        $mount.empty();
+                        $box.hide();
+                        $loading.hide();
+                        $btn.prop('disabled', false).text(defaultBtnText);
+                        if (!$email.val()) {
+                            $email.focus();
+                        } else if (!$password.val() || ($password.val() || '').length < 6) {
+                            $password.focus();
+                        }
+                        return false;
+                    }
+                    return true;
+                }
+
+                var email = $.trim($email.val() || '');
+                var password = $password.val() || '';
+                if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !password || password.length < 6) {
+                    showGuestRequiredError(@json(__('Please enter your email address and password before continuing.')));
+                    $btn.prop('disabled', false).text(defaultBtnText);
+                    return false;
+                }
+                return true;
+            }
+
+            function mountWhopEmbed(data) {
+                var frameUrl = data.whop_frame_url;
+                if (!frameUrl) {
+                    showWhopError(@json(__('Checkout could not be loaded. Please try again.')));
+                    $btn.prop('disabled', false).text(defaultBtnText);
+                    whopLoading = false;
+                    return;
+                }
+
+                // Always pass the customer's email (account or guest form) into the Whop frame
+                var customerEmail = String(data.whop_prefill_email || $('#email').val() || '').trim();
+                if (customerEmail) {
+                    try {
+                        var u = new URL(frameUrl, window.location.origin);
+                        u.searchParams.set('email', customerEmail);
+                        frameUrl = u.toString();
+                    } catch (e) {
+                        frameUrl += (frameUrl.indexOf('?') === -1 ? '?' : '&') + 'email=' + encodeURIComponent(customerEmail);
+                    }
+                } else {
+                    showWhopError(@json(__('Please enter your email address before paying with card.')));
+                    $btn.prop('disabled', false).text(defaultBtnText);
+                    whopLoading = false;
+                    return;
+                }
+
+                $error.hide().text('');
+                $loading.hide();
+                $mount.html(
+                    '<iframe src="' + frameUrl + '" title="Whop Checkout" style="width:100%;min-height:560px;border:0;background:#fff;" allow="payment *"></iframe>'
+                );
+                $box.show();
+                $btn.hide();
+                whopMounted = true;
+                whopLoading = false;
+            }
+
+            function startWhopCheckout() {
+                if (whopMounted || whopLoading) {
+                    return;
+                }
+                $("#opt1-whop").prop('checked', true);
+
+                // Never show loading/frame until guest account fields are valid
+                $mount.empty();
+                $box.hide();
+                $loading.hide();
+                $error.hide().text('');
+
+                if (!validateGuestFields()) {
+                    whopLoading = false;
+                    $btn.prop('disabled', false).text(defaultBtnText);
+                    return;
+                }
+
+                $error.hide().text('');
+                $box.show();
+                $loading.show();
+                $mount.empty();
+                whopLoading = true;
+                $btn.prop('disabled', true).text(@json(__('Loading...')));
+
+                $.ajax({
+                    url: $form.attr('action'),
+                    method: 'POST',
+                    data: $form.serialize() + '&payment_method=whop&inline_embed=1',
+                    dataType: 'json',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                }).done(function (res) {
+                    if (res && res.success && res.whop_frame_url) {
+                        mountWhopEmbed(res);
+                        return;
+                    }
+                    whopLoading = false;
+                    showWhopError(res && res.message ? res.message : '');
+                    $btn.prop('disabled', false).text(defaultBtnText);
+                }).fail(function (xhr) {
+                    whopLoading = false;
+                    var message = '';
+                    if (xhr.responseJSON) {
+                        if (xhr.responseJSON.message) {
+                            message = xhr.responseJSON.message;
+                        } else if (xhr.responseJSON.errors) {
+                            var first = Object.values(xhr.responseJSON.errors)[0];
+                            message = Array.isArray(first) ? first[0] : first;
+                        }
+                    }
+                    showWhopError(message);
+                    $btn.prop('disabled', false).text(defaultBtnText);
+                });
+            }
+
+            $btn.on('click', function (e) {
+                e.preventDefault();
+                startWhopCheckout();
+            });
+
+            $form.on('submit', function (e) {
+                if (!$('#opt1-whop').is(':checked')) {
+                    return;
+                }
+                e.preventDefault();
+                startWhopCheckout();
+            });
+        })();
+        @endif
+
+        @if(in_array('dodopayments', $get_payment ?? []))
+        (function () {
+            var dodoMounted = false;
+            var dodoLoading = false;
+            var $form = $('#checkout_form');
+            var $btn = $('#dodoCheckoutBtn');
+            var $box = $('#dodoInlineBox');
+            var $error = $('#dodo-inline-error');
+            var $mount = $('#dodo-inline-checkout');
+            var $loading = $('#dodo-inline-loading');
+            var defaultBtnText = $btn.text();
+            var isGuest = {{ Auth::guest() ? 'true' : 'false' }};
+
+            function showDodoError(message) {
+                $loading.hide();
+                $error.text(message || @json(__('Payment initialization failed. Please try again.'))).show();
+                $box.show();
+            }
+
+            function showGuestRequiredError(message) {
+                $loading.hide();
+                $mount.empty();
+                $box.hide();
+                $error.hide().text('');
+                if (typeof window.placeGuestCheckoutFields === 'function') {
+                    window.placeGuestCheckoutFields('dodopayments');
+                }
+                var $email = $('#email');
+                var $password = $('#password');
+                var bVal = $form.data('bValidator');
+                if (bVal && typeof bVal.showMsg === 'function') {
+                    if (!$email.val() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test($.trim($email.val() || ''))) {
+                        bVal.showMsg($email, message || @json(__('This field is required.')));
+                        $email.focus();
+                    }
+                    if (!$password.val() || ($password.val() || '').length < 6) {
+                        bVal.showMsg($password, ($password.val() || '').length > 0
+                            ? @json(__('The length must be at least 6 characters.'))
+                            : @json(__('This field is required.')));
+                        if (!$email.val()) {
+                            $email.focus();
+                        } else {
+                            $password.focus();
+                        }
+                    }
+                    return;
+                }
+                alert(message || @json(__('Please enter your email address and password before continuing.')));
+                $email.focus();
+            }
+
+            function validateGuestFields() {
+                if (!isGuest) {
+                    return true;
+                }
+                if (typeof window.placeGuestCheckoutFields === 'function') {
+                    window.placeGuestCheckoutFields('dodopayments');
+                }
+
+                var $email = $('#email');
+                var $password = $('#password');
+                if (!$email.length || !$password.length) {
+                    showGuestRequiredError(@json(__('Please enter your email address and password before continuing.')));
+                    return false;
+                }
+
+                var bVal = $form.data('bValidator');
+                if (bVal && typeof bVal.validate === 'function') {
+                    var valid = bVal.validate($email.add($password));
+                    if (!valid) {
+                        $mount.empty();
+                        $box.hide();
+                        $loading.hide();
+                        $btn.prop('disabled', false).text(defaultBtnText);
+                        if (!$email.val()) {
+                            $email.focus();
+                        } else if (!$password.val() || ($password.val() || '').length < 6) {
+                            $password.focus();
+                        }
+                        return false;
+                    }
+                    return true;
+                }
+
+                var email = $.trim($email.val() || '');
+                var password = $password.val() || '';
+                if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !password || password.length < 6) {
+                    showGuestRequiredError(@json(__('Please enter your email address and password before continuing.')));
+                    $btn.prop('disabled', false).text(defaultBtnText);
+                    return false;
+                }
+                return true;
+            }
+
+            function mountDodoEmbed(data) {
+                var checkoutUrl = data.dodo_checkout_url;
+                var mode = data.dodo_mode || 'test';
+                if (!checkoutUrl) {
+                    showDodoError(@json(__('Checkout could not be loaded. Please try again.')));
+                    $btn.prop('disabled', false).text(defaultBtnText);
+                    dodoLoading = false;
+                    return;
+                }
+                if (typeof DodoPaymentsCheckout === 'undefined' || !DodoPaymentsCheckout.DodoPayments) {
+                    showDodoError(@json(__('Checkout could not be loaded. Please try again.')));
+                    $btn.prop('disabled', false).text(defaultBtnText);
+                    dodoLoading = false;
+                    return;
+                }
+
+                $error.hide().text('');
+                $loading.hide();
+                $mount.empty();
+
+                var DodoPayments = DodoPaymentsCheckout.DodoPayments;
+                DodoPayments.Initialize({
+                    mode: mode,
+                    displayType: 'inline',
+                    onEvent: function (event) {
+                        switch (event.event_type) {
+                            case 'checkout.error':
+                                showDodoError(event.data && event.data.message ? event.data.message : '');
+                                break;
+                            case 'checkout.link_expired':
+                                showDodoError(@json(__('This checkout session has expired. Please return and start checkout again.')));
+                                break;
+                        }
+                    }
+                });
+
+                DodoPayments.Checkout.open({
+                    checkoutUrl: checkoutUrl,
+                    elementId: 'dodo-inline-checkout'
+                });
+
+                $box.show();
+                $btn.hide();
+                dodoMounted = true;
+                dodoLoading = false;
+            }
+
+            function startDodoCheckout() {
+                if (dodoMounted || dodoLoading) {
+                    return;
+                }
+                $("#opt1-dodopayments").prop('checked', true);
+
+                $mount.empty();
+                $box.hide();
+                $loading.hide();
+                $error.hide().text('');
+
+                if (!validateGuestFields()) {
+                    dodoLoading = false;
+                    $btn.prop('disabled', false).text(defaultBtnText);
+                    return;
+                }
+
+                $error.hide().text('');
+                $box.show();
+                $loading.show();
+                $mount.empty();
+                dodoLoading = true;
+                $btn.prop('disabled', true).text(@json(__('Loading...')));
+
+                $.ajax({
+                    url: $form.attr('action'),
+                    method: 'POST',
+                    data: $form.serialize() + '&payment_method=dodopayments&inline_embed=1',
+                    dataType: 'json',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                }).done(function (res) {
+                    if (res && res.success && res.dodo_checkout_url) {
+                        mountDodoEmbed(res);
+                        return;
+                    }
+                    dodoLoading = false;
+                    showDodoError(res && res.message ? res.message : '');
+                    $btn.prop('disabled', false).text(defaultBtnText);
+                }).fail(function (xhr) {
+                    dodoLoading = false;
+                    var message = '';
+                    if (xhr.responseJSON) {
+                        if (xhr.responseJSON.message) {
+                            message = xhr.responseJSON.message;
+                        } else if (xhr.responseJSON.errors) {
+                            var first = Object.values(xhr.responseJSON.errors)[0];
+                            message = Array.isArray(first) ? first[0] : first;
+                        }
+                    }
+                    showDodoError(message);
+                    $btn.prop('disabled', false).text(defaultBtnText);
+                });
+            }
+
+            $btn.on('click', function (e) {
+                e.preventDefault();
+                startDodoCheckout();
+            });
+
+            $form.on('submit', function (e) {
+                if (!$('#opt1-dodopayments').is(':checked')) {
+                    return;
+                }
+                e.preventDefault();
+                startDodoCheckout();
+            });
+        })();
+        @endif
 });		
 </script>
 <!-- stripe code -->

@@ -55,7 +55,25 @@ class LandingPagePublicController extends Controller
         } else {
             $data['extended_price_data'] = null;
         }
-        
+
+        // Real purchase count, used only when there is enough of it to show
+        $completedOrders = \DB::table('landing_page_orders')
+            ->where('lp_id', $data['landing_page']->lp_id)
+            ->where('payment_status', 'completed')
+            ->count();
+
+        // Set page language before building translated content
+        \Fickrr\Helpers\LandingPageI18n::usePage($data['landing_page']);
+
+        $data['content'] = \Fickrr\Helpers\LandingPageContent::build(
+            $data['landing_page'],
+            $data['features'],
+            $data['gallery_images'],
+            $completedOrders
+        );
+
+        $data['landing_payment_methods'] = $this->enabledLandingPaymentMethods($data['setting']);
+
         return view('landing-pages.show', $data);
     }
 
@@ -194,11 +212,23 @@ class LandingPagePublicController extends Controller
         // Validate email
         $request->validate([
             'customer_email' => 'required|email',
-            'payment_method' => 'required|in:paypal,dodopayments',
+            'payment_method' => 'required|in:paypal,dodopayments,whop',
         ]);
 
         $payment_method = $request->payment_method;
         $customer_email = $request->customer_email;
+        $embedInPopup = $request->ajax() || $request->wantsJson();
+        $sid = 1;
+        $setting = Settings::editGeneral($sid);
+        $enabledMethods = $this->enabledLandingPaymentMethods($setting);
+
+        if (!in_array($payment_method, $enabledMethods, true)) {
+            if ($embedInPopup) {
+                return response()->json(['success' => false, 'message' => __('Invalid payment method')], 422);
+            }
+            Session::flash('error', __('Invalid payment method'));
+            return redirect()->back();
+        }
         
         // Generate unique order token
         $order_token = 'LP-' . time() . '-' . rand(1000, 9999);
@@ -237,7 +267,9 @@ class LandingPagePublicController extends Controller
         if ($payment_method == 'paypal') {
             return $this->processPayPal($landing_page, $order_token);
         } elseif ($payment_method == 'dodopayments') {
-            return $this->processDodoPayments($landing_page, $order_token);
+            return $this->processDodoPayments($landing_page, $order_token, $embedInPopup);
+        } elseif ($payment_method == 'whop') {
+            return $this->processWhop($landing_page, $order_token, $embedInPopup);
         }
 
         Session::flash('error', __('Invalid payment method'));
@@ -285,15 +317,16 @@ class LandingPagePublicController extends Controller
     /**
      * Process DodoPayments
      */
-    private function processDodoPayments($landing_page, $order_token)
+    private function processDodoPayments($landing_page, $order_token, $embedInPopup = false)
     {
-        $encrypter = app('Illuminate\Contracts\Encryption\Encrypter');
-        
         // Get DodoPayments configuration
         $dodopayments_mode = config('services.dodopayments.mode', 'test');
         $dodopayments_api_key = config('services.dodopayments.api_key');
         
         if (empty($dodopayments_api_key)) {
+            if ($embedInPopup) {
+                return response()->json(['success' => false, 'message' => 'DodoPayments API key is not configured. Please check your settings.'], 422);
+            }
             Session::flash('error', 'DodoPayments API key is not configured. Please check your settings.');
             return redirect()->back();
         }
@@ -325,11 +358,11 @@ class LandingPagePublicController extends Controller
             }
         }
         
-        // Build success URL with encrypted token
-        $success_url = url('/checkout-dodopayments/' . $encrypter->encrypt($order_token));
+        $success_url = url('/landing/success/' . $order_token);
         
         // Create checkout session
         try {
+            $landingEmail = trim((string) Session::get('landing_order_email'));
             $checkoutData = [
                 'product_cart' => [
                     [
@@ -339,34 +372,171 @@ class LandingPagePublicController extends Controller
                     ]
                 ],
                 'success_url' => $success_url,
-                'cancel_url' => url('/cancel'),
+                'cancel_url' => url('/landing/' . $landing_page->lp_slug),
                 'customer' => [
-                    'email' => Session::get('landing_order_email'),
-                    'name' => Session::get('landing_order_email'),
+                    'email' => $landingEmail,
+                    'name' => $landingEmail,
                 ],
                 'metadata' => [
                     'order_token' => $order_token,
                     'landing_page_slug' => $landing_page->lp_slug,
                 ],
             ];
+            $checkoutData = \Fickrr\Services\DodoPaymentsService::applyCardOnlyCheckoutOptions(
+                $checkoutData,
+                $landingEmail
+            );
             
             $response = $dodoService->createCheckoutSession($checkoutData);
-            
-            if (isset($response['checkout_url'])) {
-                return redirect($response['checkout_url']);
-            } elseif (isset($response['url'])) {
-                return redirect($response['url']);
-            } elseif (isset($response['payment_url'])) {
-                return redirect($response['payment_url']);
+            $checkoutUrl = \Fickrr\Services\DodoPaymentsService::cardOnlyCheckoutUrl(
+                \Fickrr\Services\DodoPaymentsService::sessionCheckoutUrl($response),
+                $landingEmail
+            );
+
+            if ($checkoutUrl) {
+                $embed = [
+                    'provider' => 'dodopayments',
+                    'order_token' => $order_token,
+                    'dodo_checkout_url' => $checkoutUrl,
+                    'dodo_mode' => \Fickrr\Services\DodoPaymentsService::sdkMode($dodopayments_mode),
+                    'item_name' => $landing_page->lp_title,
+                    'amount_label' => $landing_page->lp_currency . ' ' . number_format((float) $landing_page->lp_price, abs((float) $landing_page->lp_price - round((float) $landing_page->lp_price)) < 0.00001 ? 0 : 2),
+                    'cancel_url' => url('/landing/' . $landing_page->lp_slug),
+                ];
+                Session::put('landing_checkout_embed_' . $order_token, $embed);
+
+                if ($embedInPopup) {
+                    return response()->json([
+                        'success' => true,
+                        'embed_url' => url('/landing/checkout-embed/' . $order_token),
+                    ]);
+                }
+
+                $data = [
+                    'dodo_checkout_url' => $checkoutUrl,
+                    'dodo_mode' => $embed['dodo_mode'],
+                    'dodo_item_name' => $embed['item_name'],
+                    'dodo_amount_label' => $embed['amount_label'],
+                    'dodo_cancel_url' => $embed['cancel_url'],
+                ];
+                return view('dodo-embedded-checkout')->with($data);
+            }
+
+            if ($embedInPopup) {
+                return response()->json(['success' => false, 'message' => 'Failed to initialize DodoPayments checkout'], 422);
             }
             
             Session::flash('error', 'Failed to initialize DodoPayments checkout');
             return redirect()->back();
             
         } catch (\Exception $e) {
+            if ($embedInPopup) {
+                return response()->json(['success' => false, 'message' => 'Payment error: ' . $e->getMessage()], 422);
+            }
             Session::flash('error', 'Payment error: ' . $e->getMessage());
             return redirect()->back();
         }
+    }
+
+    private function processWhop($landing_page, $order_token, $embedInPopup = false)
+    {
+        $whopService = \Fickrr\Services\WhopPaymentsService::fromConfig();
+        if (!$whopService->isConfigured()) {
+            if ($embedInPopup) {
+                return response()->json(['success' => false, 'message' => 'Whop is not configured. Please check your payment settings.'], 422);
+            }
+            Session::flash('error', 'Whop is not configured. Please check your payment settings.');
+            return redirect()->back();
+        }
+
+        $success_url = url('/landing/success/' . $order_token);
+        $response = $whopService->createCheckoutConfiguration(
+            $landing_page->lp_price,
+            $landing_page->lp_currency,
+            $landing_page->lp_title,
+            $success_url,
+            [
+                'order_token' => $order_token,
+                'landing_page_slug' => $landing_page->lp_slug,
+                'payment_type' => 'landing',
+            ]
+        );
+
+        $sessionId = \Fickrr\Services\WhopPaymentsService::extractSessionId($response);
+        $planId = \Fickrr\Services\WhopPaymentsService::extractPlanId($response);
+        if ($sessionId && $planId) {
+            $embed = [
+                'provider' => 'whop',
+                'order_token' => $order_token,
+                'whop_session_id' => $sessionId,
+                'whop_plan_id' => $planId,
+                'whop_return_url' => $success_url,
+                'item_name' => $landing_page->lp_title,
+                'amount_label' => $landing_page->lp_currency . ' ' . number_format((float) $landing_page->lp_price, abs((float) $landing_page->lp_price - round((float) $landing_page->lp_price)) < 0.00001 ? 0 : 2),
+                'cancel_url' => url('/landing/' . $landing_page->lp_slug),
+                'whop_prefill_email' => Session::get('landing_order_email'),
+            ];
+            Session::put('landing_checkout_embed_' . $order_token, $embed);
+
+            if ($embedInPopup) {
+                return response()->json([
+                    'success' => true,
+                    'embed_url' => url('/landing/checkout-embed/' . $order_token),
+                ]);
+            }
+
+            return view('whop-embedded-checkout')->with([
+                'whop_session_id' => $sessionId,
+                'whop_plan_id' => $planId,
+                'whop_return_url' => $success_url,
+                'whop_item_name' => $landing_page->lp_title,
+                'whop_amount_label' => $embed['amount_label'],
+                'whop_cancel_url' => $embed['cancel_url'],
+                'whop_prefill_email' => $embed['whop_prefill_email'],
+            ]);
+        }
+
+        if ($embedInPopup) {
+            return response()->json(['success' => false, 'message' => 'Failed to initialize Whop checkout'], 422);
+        }
+
+        Session::flash('error', 'Failed to initialize Whop checkout');
+        return redirect()->back();
+    }
+
+    /**
+     * Slim checkout UI for the landing-page payment popup iframe.
+     */
+    public function embedCheckout($order_token)
+    {
+        $embed = Session::get('landing_checkout_embed_' . $order_token);
+        if (!$embed || ($embed['order_token'] ?? '') !== $order_token) {
+            abort(404);
+        }
+
+        return view('landing-pages.embed-checkout', ['embed' => $embed]);
+    }
+
+    /**
+     * PayPal plus a single activated card processor (Dodo or Whop).
+     */
+    private function enabledLandingPaymentMethods($setting)
+    {
+        $enabled = array_values(array_filter(array_map('trim', explode(',', $setting->payment_option ?? ''))));
+        $methods = [];
+
+        if (in_array('paypal', $enabled, true)) {
+            $methods[] = 'paypal';
+        }
+
+        foreach ($enabled as $option) {
+            if ($option === 'dodopayments' || $option === 'whop') {
+                $methods[] = $option;
+                break;
+            }
+        }
+
+        return $methods;
     }
 
     /**
@@ -382,6 +552,24 @@ class LandingPagePublicController extends Controller
         if (!$order) {
             Session::flash('error', __('Order not found'));
             return redirect('/');
+        }
+
+        if (($order->payment_method ?? '') === 'whop' && $order->payment_status == 'pending') {
+            $payment_token = request()->input('payment_id', request()->input('receipt_id', ''));
+            if (request()->input('status') === 'error') {
+                Session::flash('error', __('Payment failed or was canceled.'));
+                return redirect('/');
+            }
+            if (empty($payment_token)) {
+                Session::flash('error', __('Payment is pending. Please wait for confirmation.'));
+                return redirect('/');
+            }
+            $whopService = \Fickrr\Services\WhopPaymentsService::fromConfig();
+            $paymentDetails = $whopService->getPayment($payment_token);
+            if (!$paymentDetails || !\Fickrr\Services\WhopPaymentsService::isSuccessfulStatus($paymentDetails['status'] ?? '')) {
+                Session::flash('error', __('Payment verification failed.'));
+                return redirect('/');
+            }
         }
 
         // Update order status to completed if still pending

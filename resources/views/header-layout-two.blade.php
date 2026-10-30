@@ -4,11 +4,9 @@
                 <div class="row">
                    <div class="col-lg-3 col-md-3 col-6 v_middle">
                         <div class="logo">
-                            @if($allsettings->site_logo != '')
-                            <a href="{{ URL::to('/') }}">
-                                <img src="{{ url('/') }}/public/storage/settings/{{ $allsettings->site_logo }}" alt="{{ $allsettings->site_title }}" width="{{ $addition_settings->site_desktop_logo_width }}"  class="img-fluid">
+                            <a href="{{ URL::to('/') }}" aria-label="{{ $allsettings->site_title }}">
+                                @include('partials.brand', ['brandCompact' => false, 'brandLight' => false])
                             </a>
-                            @endif
                         </div>
                     </div>
                     @if(Auth::guest())

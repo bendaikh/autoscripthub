@@ -1,5 +1,18 @@
 <?php
 
+Route::get('/.well-known/apple-developer-merchantid-domain-association', function () {
+    $path = base_path('.well-known/apple-developer-merchantid-domain-association');
+    if (!is_file($path)) {
+        abort(404);
+    }
+
+    return response()->make(file_get_contents($path), 200, [
+        'Content-Type' => 'application/octet-stream',
+        'Content-Disposition' => 'inline; filename="apple-developer-merchantid-domain-association"',
+        'Cache-Control' => 'public, max-age=0, must-revalidate',
+    ]);
+});
+
 
 /* admin panel */
 
@@ -312,6 +325,12 @@ Route::group(['middleware' => ['is_admin', 'HtmlMinifier', 'cache', 'XSS']], fun
 	Route::get('/admin/preferred-settings', 'Admin\SettingsController@preferred_settings');
 	Route::post('/admin/preferred-settings', ['as' => 'admin.preferred-settings','uses'=>'Admin\SettingsController@update_preferred_settings']);
 	/* preferred settings */
+
+	/* AI API Connection */
+	Route::get('/admin/ai-api-connection', 'Admin\SettingsController@ai_api_connection');
+	Route::post('/admin/ai-api-connection', ['as' => 'admin.ai-api-connection','uses'=>'Admin\SettingsController@update_ai_api_connection']);
+	Route::post('/admin/ai-api-connection/test', 'Admin\SettingsController@test_ai_api_connection');
+	/* AI API Connection */
 	
 	/* reports */
 	Route::get('/admin/reports', 'Admin\ReportsController@view_reports');
@@ -431,12 +450,27 @@ Route::group(['middleware' => ['is_admin', 'HtmlMinifier', 'cache', 'XSS']], fun
 
 	/* landing pages */
 	Route::get('/admin/landing-pages', 'Admin\LandingPageController@index')->name('admin.landing-pages');
+	Route::post('/admin/landing-pages/{lp_id}/ads-status', 'Admin\LandingPageController@updateAdsStatus')->name('admin.landing-pages.ads-status');
+	Route::get('/admin/landing-pages/ad-costs', 'Admin\LandingPageAdCostController@index')->name('admin.landing-pages.ad-costs');
+	Route::post('/admin/landing-pages/ad-costs', 'Admin\LandingPageAdCostController@store')->name('admin.landing-pages.ad-costs.store');
+	Route::get('/admin/landing-pages/ad-costs/delete/{id}', 'Admin\LandingPageAdCostController@delete')->name('admin.landing-pages.ad-costs.delete');
+	Route::get('/admin/landing-pages/revenue', 'Admin\LandingPageRevenueController@index')->name('admin.landing-pages.revenue');
+	Route::post('/admin/landing-pages/revenue', 'Admin\LandingPageRevenueController@store')->name('admin.landing-pages.revenue.store');
+	Route::get('/admin/landing-pages/revenue/delete/{id}', 'Admin\LandingPageRevenueController@delete')->name('admin.landing-pages.revenue.delete');
+	Route::get('/admin/landing-pages/pixels', 'Admin\LandingPixelController@index')->name('admin.landing-pages.pixels');
+	Route::post('/admin/landing-pages/pixels', 'Admin\LandingPixelController@store')->name('admin.landing-pages.pixels.store');
+	Route::get('/admin/landing-pages/pixels/toggle/{id}', 'Admin\LandingPixelController@toggle')->name('admin.landing-pages.pixels.toggle');
+	Route::get('/admin/landing-pages/pixels/delete/{id}', 'Admin\LandingPixelController@delete')->name('admin.landing-pages.pixels.delete');
 	Route::get('/admin/add-landing-page', 'Admin\LandingPageController@create')->name('admin.add-landing-page');
 	Route::post('/admin/add-landing-page', 'Admin\LandingPageController@store');
 	Route::get('/admin/edit-landing-page/{lp_id}', 'Admin\LandingPageController@edit')->name('admin.edit-landing-page');
 	Route::post('/admin/edit-landing-page', ['as' => 'admin.update-landing-page','uses'=>'Admin\LandingPageController@update']);
+	Route::post('/admin/landing-pages/generate-ai', 'Admin\LandingPageController@generateWithAI')->name('admin.landing-pages.generate-ai');
+	Route::post('/admin/landing-pages/generate-ai-image', 'Admin\LandingPageController@generateAiImage')->name('admin.landing-pages.generate-ai-image');
 	Route::get('/admin/landing-pages/duplicate/{lp_id}', 'Admin\LandingPageController@duplicate')->name('admin.duplicate-landing-page');
+	Route::post('/admin/landing-pages/bulk-delete', 'Admin\LandingPageController@bulkDelete')->name('admin.landing-pages.bulk-delete');
 	Route::get('/admin/landing-pages/{lp_id}/analytics', 'Admin\LandingPageController@analytics')->name('admin.landing-pages.analytics');
+	Route::get('/admin/landing-pages/{lp_id}/analytics/live', 'Admin\LandingPageController@analyticsLive')->name('admin.landing-pages.analytics.live');
 	Route::get('/admin/landing-pages/{lp_id}', 'Admin\LandingPageController@delete');
 	Route::delete('/admin/landing-page-gallery/{lpg_id}', 'Admin\LandingPageController@deleteGalleryImage');
 	
@@ -608,6 +642,7 @@ Route::post('/paytm/status', 'ProfileController@paymentCallback');
 Route::get('/subscription-cashfree/', 'ProfileController@cashfree_success');
 Route::get('/subscription-nowpayments/{ord_token}', 'ProfileController@nowpayments_success');
 Route::get('/subscription-dodopayments/{ord_token}', 'ProfileController@dodopayments_success');
+Route::get('/subscription-whop/{ord_token}', 'ProfileController@whop_success');
 /* subscription */
 
 
@@ -632,6 +667,8 @@ Route::post('/webhooks/dodopayments-checkout', 'CommonController@dodopayments_ch
 Route::post('/webhooks/dodopayments-deposit', 'ItemController@dodopayments_deposit');
 Route::post('/webhooks/dodopayments-subscription', 'ProfileController@dodopayments_subscription');
 /* dodopayments webhook */
+
+Route::post('/webhooks/whop', 'CommonController@whop_webhook');
 
 
 /* deposit */
@@ -763,6 +800,7 @@ Route::get('/cart/{remove}/{coupon}', 'CommonController@remove_coupon');
 
 /* checkout */
 Route::get('/checkout', 'CommonController@show_checkout');
+Route::get('/checkout/whop-frame', 'CommonController@whop_inline_frame');
 Route::post('/checkout', ['as' => 'checkout','uses'=>'CommonController@view_checkout']);
 Route::post('/2checkout', ['as' => '2checkout','uses'=>'ItemController@confirm_2checkout']);
 Route::post('/gocheckout', ['as' => 'gocheckout','uses'=>'CommonController@go_checkout']);
@@ -855,6 +893,7 @@ Route::get('/mollie', 'ItemController@mollie_success');
 Route::get('/coinbase/{ord_token}', 'ItemController@coinbase_success');
 Route::get('/nowpayments/{ord_token}', 'ItemController@nowpayments_success');
 Route::get('/checkout-dodopayments/{ord_token}', 'ItemController@dodopayments_success');
+Route::get('/checkout-whop/{ord_token}', 'ItemController@whop_success');
 /* success */
 
 
@@ -938,6 +977,7 @@ Route::get('/landing/{slug}/add-to-cart', 'LandingPagePublicController@addToCart
 Route::get('/landing/{slug}/buy-now', 'LandingPagePublicController@buyNow')->name('landing-page.buy-now');
 Route::post('/landing/{slug}/process-payment', 'LandingPagePublicController@processPayment')->name('landing-page.process-payment');
 Route::post('/landing/{slug}/send-message', 'LandingPagePublicController@sendMessage')->name('landing-page.send-message');
+Route::get('/landing/checkout-embed/{order_token}', 'LandingPagePublicController@embedCheckout')->name('landing-page.checkout-embed');
 Route::get('/landing/success/{order_token}', 'LandingPagePublicController@success')->name('landing-page.success');
 Route::get('/landing/download/{order_token}', 'LandingPagePublicController@download')->name('landing-page.download');
 

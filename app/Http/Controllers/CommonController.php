@@ -279,7 +279,6 @@ class CommonController extends Controller
 				if($result_count != 0)
 				{
 				   
-				   $item_price = $this->price_info($item['view']->item_flash,$item['view']->regular_price);
 					  $item_id = $item['view']->item_id;
 					  $session_id = Session::getId();
 					  $item_name = $item['view']->item_name;
@@ -288,12 +287,23 @@ class CommonController extends Controller
 					  $additional['setting'] = Settings::editAdditional();
 					  $getmember['views'] = Members::singlevendorData($item_user_id);
 					  $user_exclusive_type = $getmember['views']->exclusive_author;
-					  $regular_license = $additional['setting']->regular_license;
+					  // Prefer extended price when regular is 0 (script products)
+					  if($item['view']->regular_price != 0)
+					  {
+						  $item_price = $this->price_info($item['view']->item_flash,$item['view']->regular_price);
+						  $license = 'regular';
+						  $license_duration = $additional['setting']->regular_license;
+					  }
+					  else
+					  {
+						  $item_price = $this->price_info($item['view']->item_flash,$item['view']->extended_price);
+						  $license = 'extended';
+						  $license_duration = $additional['setting']->extended_license;
+					  }
 					  $pricetag = $item_price * $currency_rate;
 					  $price = round($pricetag,2);
-					  $license = 'regular';
 					  $start_date = date('Y-m-d');
-					  $end_date = date('Y-m-d', strtotime($regular_license));
+					  $end_date = date('Y-m-d', strtotime($license_duration));
 					  $order_status = 'pending';
 					  $sid = 1;
 					  $setting['setting'] = Settings::editGeneral($sid);
@@ -340,7 +350,7 @@ class CommonController extends Controller
 					   $savedata = array('session_id' => $session_id, 'item_id' => $item_id, 'item_name' => $item_name, 'item_user_id' => $item_user_id, 'item_token' => $item_token, 'license' => $license, 'start_date' => $start_date, 'end_date' => $end_date, 'item_price' => $price, 'vendor_amount' => $vendor_amount, 'admin_amount' => $admin_amount, 'total_price' => $price, 'order_status' => $order_status, 'item_serial_stock' => 1, 'currency_type' => $currency_symbol, 'currency_type_code' => $multicurrency, 'item_single_price' => $item_price);
 					   
 					   
-					   $updatedata = array('license' => $license, 'start_date' => $start_date, 'end_date' => $end_date, 'item_price' => $price, 'total_price' => $price, 'item_serial_stock' => 1, 'currency_type' => $currency_symbol, 'currency_type_code' => $multicurrency, 'item_single_price' => $item_price);
+					   $updatedata = array('license' => $license, 'start_date' => $start_date, 'end_date' => $end_date, 'item_price' => $price, 'total_price' => $price, 'vendor_amount' => $vendor_amount, 'admin_amount' => $admin_amount, 'item_serial_stock' => 1, 'currency_type' => $currency_symbol, 'currency_type_code' => $multicurrency, 'item_single_price' => $item_price);
 					   
 					   
 					   if($additional['setting']->subscription_mode == 0)
@@ -375,7 +385,6 @@ class CommonController extends Controller
 			  }
 			  else
 			  {
-					  $item_price = $this->price_info($item['view']->item_flash,$item['view']->regular_price);
 					  $item_id = $item['view']->item_id;
 					  $session_id = Session::getId();
 					  $item_name = $item['view']->item_name;
@@ -384,12 +393,23 @@ class CommonController extends Controller
 					  $additional['setting'] = Settings::editAdditional();
 					  $getmember['views'] = Members::singlevendorData($item_user_id);
 					  $user_exclusive_type = $getmember['views']->exclusive_author;
-					  $regular_license = $additional['setting']->regular_license;
+					  // Prefer extended price when regular is 0 (script products)
+					  if($item['view']->regular_price != 0)
+					  {
+						  $item_price = $this->price_info($item['view']->item_flash,$item['view']->regular_price);
+						  $license = 'regular';
+						  $license_duration = $additional['setting']->regular_license;
+					  }
+					  else
+					  {
+						  $item_price = $this->price_info($item['view']->item_flash,$item['view']->extended_price);
+						  $license = 'extended';
+						  $license_duration = $additional['setting']->extended_license;
+					  }
 					  $pricetag = $item_price * $currency_rate;
 					  $price = round($pricetag,2);
-					  $license = 'regular';
 					  $start_date = date('Y-m-d');
-					  $end_date = date('Y-m-d', strtotime($regular_license));
+					  $end_date = date('Y-m-d', strtotime($license_duration));
 					  $order_status = 'pending';
 					  $sid = 1;
 					  $setting['setting'] = Settings::editGeneral($sid);
@@ -436,7 +456,7 @@ class CommonController extends Controller
 					   $savedata = array('session_id' => $session_id, 'item_id' => $item_id, 'item_name' => $item_name, 'item_user_id' => $item_user_id, 'item_token' => $item_token, 'license' => $license, 'start_date' => $start_date, 'end_date' => $end_date, 'item_price' => $price, 'vendor_amount' => $vendor_amount, 'admin_amount' => $admin_amount, 'total_price' => $price, 'order_status' => $order_status, 'item_serial_stock' => 1, 'currency_type' => $currency_symbol, 'currency_type_code' => $multicurrency, 'item_single_price' => $item_price);
 					   
 					   
-					   $updatedata = array('license' => $license, 'start_date' => $start_date, 'end_date' => $end_date, 'item_price' => $price, 'total_price' => $price, 'item_serial_stock' => 1, 'currency_type' => $currency_symbol, 'currency_type_code' => $multicurrency, 'item_single_price' => $item_price);
+					   $updatedata = array('license' => $license, 'start_date' => $start_date, 'end_date' => $end_date, 'item_price' => $price, 'total_price' => $price, 'vendor_amount' => $vendor_amount, 'admin_amount' => $admin_amount, 'item_serial_stock' => 1, 'currency_type' => $currency_symbol, 'currency_type_code' => $multicurrency, 'item_single_price' => $item_price);
 					   
 					   
 					   if($additional['setting']->subscription_mode == 0)
@@ -817,7 +837,52 @@ class CommonController extends Controller
             }
         }
     }
-	
+
+	public function whop_webhook(Request $request)
+	{
+		$payload = $request->getContent();
+		$secret = config('services.whop.webhook_secret');
+		$headers = [];
+		foreach ($request->headers->all() as $key => $value) {
+			$headers[$key] = is_array($value) ? $value[0] : $value;
+		}
+
+		if (empty($secret) || !\Fickrr\Services\WhopPaymentsService::verifyWebhookSignature($payload, $headers, $secret)) {
+			return response()->json(['error' => 'Invalid signature'], 401);
+		}
+
+		$event = json_decode($payload, true);
+		if (($event['type'] ?? '') !== 'payment.succeeded') {
+			return response()->json(['ok' => true]);
+		}
+
+		$data = $event['data'] ?? [];
+		$metadata = $data['metadata'] ?? [];
+		$paymentId = $data['id'] ?? '';
+		$paymentType = $metadata['payment_type'] ?? '';
+
+		if ($paymentType === 'checkout' && !empty($metadata['purchase_token'])) {
+			$token = $metadata['purchase_token'];
+			$check = Items::getcheckoutData($token);
+			if ($check && $check->payment_status == 'pending') {
+				Items::singleordupdateData($token, array('payment_token' => $paymentId, 'order_status' => 'completed'));
+				Items::singlecheckoutData($token, array('payment_token' => $paymentId, 'payment_status' => 'completed'));
+			}
+		}
+
+		if ($paymentType === 'landing' && !empty($metadata['order_token'])) {
+			\DB::table('landing_page_orders')
+				->where('order_token', $metadata['order_token'])
+				->where('payment_status', 'pending')
+				->update([
+					'payment_status' => 'completed',
+					'completed_at' => now(),
+					'updated_at' => now(),
+				]);
+		}
+
+		return response()->json(['ok' => true]);
+	}
 	
 	public function split_name($name) 
 	{
@@ -904,7 +969,9 @@ class CommonController extends Controller
 			{
 			 //$failedRules = $validator->failed();
 			 //return back()->withErrors($validator);
-			 
+			 if ($request->ajax() || $request->wantsJson() || $request->boolean('inline_embed')) {
+			     return response()->json(['success' => false, 'message' => 'Email address already exists'], 422);
+			 }
 			 return redirect()->back()->with('error', 'Email address already exists');
 			 
 			} 
@@ -939,6 +1006,9 @@ class CommonController extends Controller
 			   }
 			   else
 			   {
+				 if ($request->ajax() || $request->wantsJson() || $request->boolean('inline_embed')) {
+				     return response()->json(['success' => false, 'message' => 'These credentials do not match our records.'], 422);
+				 }
 				 return redirect()->back()->with('error', 'These credentials do not match our records.');
 			   }
 			  
@@ -1875,9 +1945,14 @@ class CommonController extends Controller
 	      // Dodo Payments Integration
 	      $dodopayments_mode = config('services.dodopayments.mode', 'test');
 	      $dodopayments_api_key = config('services.dodopayments.api_key');
+	      $wantsInline = $request->ajax() || $request->wantsJson() || $request->boolean('inline_embed');
 	      
 	      if (empty($dodopayments_api_key)) {
-	          return redirect()->back()->with('unsuccess', __('DodoPayments API key is not configured. Please check your settings.'));
+	          $msg = __('DodoPayments API key is not configured. Please check your settings.');
+	          if ($wantsInline) {
+	              return response()->json(['success' => false, 'message' => $msg], 422);
+	          }
+	          return redirect()->back()->with('unsuccess', $msg);
 	      }
 	      
 	      // Initialize Dodo Payments Service
@@ -1892,11 +1967,16 @@ class CommonController extends Controller
               // Auto-create a Dodo product for this order if not configured
               $createdProduct = $dodoService->createProduct($final_amount, $site_currency, $item_names_data, 'digital_products');
               if (!$createdProduct || empty($createdProduct['product_id'])) {
-                  return redirect()->back()->with('unsuccess', __('Failed to create Dodo product for checkout.'));
+                  $msg = __('Failed to create Dodo product for checkout.');
+                  if ($wantsInline) {
+                      return response()->json(['success' => false, 'message' => $msg], 422);
+                  }
+                  return redirect()->back()->with('unsuccess', $msg);
               }
               $defaultProductId = $createdProduct['product_id'];
           }
 
+          $customerName = trim($order_firstname . ' ' . $order_lastname);
           $checkoutData = [
               'product_cart' => [
                   [
@@ -1906,7 +1986,7 @@ class CommonController extends Controller
               ],
               'customer' => [
                   'email' => $order_email,
-                  'name' => trim($order_firstname . ' ' . $order_lastname),
+                  'name' => $customerName,
               ],
               'return_url' => $dodopayments_success,
               'metadata' => [
@@ -1917,14 +1997,135 @@ class CommonController extends Controller
                   'payment_type' => 'checkout'
               ]
           ];
+          $checkoutData = \Fickrr\Services\DodoPaymentsService::applyCardOnlyCheckoutOptions(
+              $checkoutData,
+              $order_email,
+              $customerName
+          );
 
           $response = $dodoService->createCheckoutSession($checkoutData);
-
-          if ($response && (isset($response['checkout_url']) || isset($response['url']))) {
-              $redirectUrl = $response['checkout_url'] ?? $response['url'];
-              return redirect($redirectUrl);
+          $customerEmail = trim((string) $order_email);
+          if ($customerEmail === '' && Auth::check()) {
+              $customerEmail = trim((string) Auth::user()->email);
           }
-          return redirect()->back()->with('unsuccess', __('Payment initialization failed. Please try again.'));
+          $checkoutUrl = \Fickrr\Services\DodoPaymentsService::cardOnlyCheckoutUrl(
+              \Fickrr\Services\DodoPaymentsService::sessionCheckoutUrl($response),
+              $customerEmail,
+              $customerName
+          );
+
+          if ($checkoutUrl) {
+              if ($wantsInline) {
+                  $customerEmail = trim((string) $order_email);
+                  if ($customerEmail === '' && Auth::check()) {
+                      $customerEmail = trim((string) Auth::user()->email);
+                  }
+                  if ($customerEmail === '' || !filter_var($customerEmail, FILTER_VALIDATE_EMAIL)) {
+                      return response()->json([
+                          'success' => false,
+                          'message' => __('Please enter a valid customer email before paying with card.'),
+                      ], 422);
+                  }
+                  return response()->json([
+                      'success' => true,
+                      'provider' => 'dodopayments',
+                      'dodo_checkout_url' => $checkoutUrl,
+                      'dodo_mode' => \Fickrr\Services\DodoPaymentsService::sdkMode($dodopayments_mode),
+                      'dodo_item_name' => $item_names_data,
+                      'dodo_amount_label' => $site_currency . ' ' . number_format((float) $final_amount, 2),
+                  ]);
+              }
+              $data = [
+                  'dodo_checkout_url' => $checkoutUrl,
+                  'dodo_mode' => \Fickrr\Services\DodoPaymentsService::sdkMode($dodopayments_mode),
+                  'dodo_item_name' => $item_names_data,
+                  'dodo_amount_label' => $site_currency . ' ' . number_format((float) $final_amount, 2),
+                  'dodo_cancel_url' => url('/checkout'),
+              ];
+              return view('dodo-embedded-checkout')->with($data);
+          }
+          $failMsg = __('Payment initialization failed. Please try again.');
+          if ($wantsInline) {
+              return response()->json(['success' => false, 'message' => $failMsg], 422);
+          }
+          return redirect()->back()->with('unsuccess', $failMsg);
+		  }
+		  else if($payment_method == 'whop')
+		  {
+	      $whopService = \Fickrr\Services\WhopPaymentsService::fromConfig();
+	      $wantsInline = $request->ajax() || $request->wantsJson() || $request->boolean('inline_embed');
+	      if (!$whopService->isConfigured()) {
+	          $msg = __('Whop is not configured. Please check your payment settings.');
+	          if ($wantsInline) {
+	              return response()->json(['success' => false, 'message' => $msg], 422);
+	          }
+	          return redirect()->back()->with('unsuccess', $msg);
+	      }
+	      $whop_success = $website_url.'/checkout-whop/'.$encrypter->encrypt($purchase_token);
+	      $response = $whopService->createCheckoutConfiguration(
+	          $final_amount,
+	          $site_currency,
+	          $item_names_data,
+	          $whop_success,
+	          [
+	              'purchase_token' => (string) $purchase_token,
+	              'items' => (string) $item_names_data,
+	              'site_currency' => (string) $site_currency,
+	              'final_amount' => (string) $final_amount,
+	              'payment_type' => 'checkout',
+	          ]
+	      );
+	      $sessionId = \Fickrr\Services\WhopPaymentsService::extractSessionId($response);
+	      $planId = \Fickrr\Services\WhopPaymentsService::extractPlanId($response);
+	      if ($sessionId && $planId) {
+	          if ($wantsInline) {
+	              $customerEmail = trim((string) $order_email);
+	              if ($customerEmail === '' && Auth::check()) {
+	                  $customerEmail = trim((string) Auth::user()->email);
+	              }
+	              if ($customerEmail === '' || !filter_var($customerEmail, FILTER_VALIDATE_EMAIL)) {
+	                  return response()->json([
+	                      'success' => false,
+	                      'message' => __('Please enter a valid customer email before paying with card.'),
+	                  ], 422);
+	              }
+	              $frameQuery = http_build_query([
+	                  'session' => $sessionId,
+	                  'plan' => $planId,
+	                  'return' => $whop_success,
+	                  'email' => $customerEmail,
+	              ]);
+	              return response()->json([
+	                  'success' => true,
+	                  'provider' => 'whop',
+	                  'whop_session_id' => $sessionId,
+	                  'whop_plan_id' => $planId,
+	                  'whop_return_url' => $whop_success,
+	                  'whop_prefill_email' => $customerEmail,
+	                  'whop_frame_url' => url('/checkout/whop-frame') . '?' . $frameQuery,
+	                  'whop_item_name' => $item_names_data,
+	                  'whop_amount_label' => $site_currency . ' ' . number_format((float) $final_amount, 2),
+	              ]);
+	          }
+	          $customerEmail = trim((string) $order_email);
+	          if ($customerEmail === '' && Auth::check()) {
+	              $customerEmail = trim((string) Auth::user()->email);
+	          }
+	          return view('whop-embedded-checkout')->with([
+	              'whop_session_id' => $sessionId,
+	              'whop_plan_id' => $planId,
+	              'whop_return_url' => $whop_success,
+	              'whop_item_name' => $item_names_data,
+	              'whop_amount_label' => $site_currency . ' ' . number_format((float) $final_amount, 2),
+	              'whop_cancel_url' => url('/checkout'),
+	              'whop_prefill_email' => $customerEmail,
+	          ]);
+	      }
+	      $failMsg = __('Payment initialization failed. Please try again.');
+	      if ($wantsInline) {
+	          return response()->json(['success' => false, 'message' => $failMsg], 422);
+	      }
+	      return redirect()->back()->with('unsuccess', $failMsg);
 		  }
 		  else if($payment_method == 'cashfree')
 		  {
@@ -4049,6 +4250,44 @@ class CommonController extends Controller
 	
 	
 	
+	public function whop_inline_frame(Request $request)
+	{
+		$sessionId = trim((string) $request->query('session', ''));
+		$planId = trim((string) $request->query('plan', ''));
+		$returnUrl = (string) $request->query('return', url('/checkout'));
+		$email = trim((string) $request->query('email', ''));
+
+		// Prefer the logged-in customer's email when available
+		if (\Illuminate\Support\Facades\Auth::check()) {
+			$authEmail = trim((string) \Illuminate\Support\Facades\Auth::user()->email);
+			if ($authEmail !== '' && filter_var($authEmail, FILTER_VALIDATE_EMAIL)) {
+				$email = $authEmail;
+			}
+		}
+
+		if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+			$email = '';
+		}
+
+		if ($sessionId === '' || $planId === '' || !preg_match('/^ch_[A-Za-z0-9]+$/', $sessionId) || !preg_match('/^plan_[A-Za-z0-9]+$/', $planId)) {
+			return response()->view('pages.whop-inline-frame', [
+				'whop_session_id' => null,
+				'whop_plan_id' => null,
+				'whop_return_url' => url('/checkout'),
+				'whop_prefill_email' => '',
+			], 422);
+		}
+
+		return response()
+			->view('pages.whop-inline-frame', [
+				'whop_session_id' => $sessionId,
+				'whop_plan_id' => $planId,
+				'whop_return_url' => $returnUrl,
+				'whop_prefill_email' => $email,
+			])
+			->header('Content-Security-Policy', "frame-ancestors 'self'");
+	}
+
 	public function show_checkout()
 	{
 	 
@@ -4695,6 +4934,7 @@ class CommonController extends Controller
 	   } 
 	   
 	   $category['view'] = Category::with('SubCategory')->where('category_status','=','1')->where('drop_status','=','no')->orderBy('menu_order','asc')->get();
+	   $category['counts'] = DB::table('items')->select('item_category_parent', DB::raw('count(*) as total'))->where('item_status','=',1)->where('drop_status','=','no')->groupBy('item_category_parent')->pluck('total','item_category_parent');
 	   $data = array('blog' => $blog, 'comments' => $comments, 'review' => $review, 'totalmembers' => $totalmembers, 'totalsales' => $totalsales, 'totalfiles' => $totalfiles, 'totalearning' => $totalearning, 'featured' => $featured, 'newest' => $newest, 'free' => $free, 'popular' => $popular, 'flash' => $flash, 'category' => $category);
 	  //SitemapGenerator::create(URL::to('/'))->writeToFile('sitemap.xml');
 	  

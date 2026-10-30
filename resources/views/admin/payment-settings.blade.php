@@ -1678,8 +1678,55 @@
                             </div>                
                             </div>            
                             </div>
-                            
-                            
+
+                            <div class="col-md-12"><div class="card-body"><h4>{{ __('Whop Settings') }}</h4></div></div>
+                            <div class="col-md-6">
+                            <div class="card-body">
+                                <div id="pay-invoice">
+                                    <div class="card-body">
+                                    <div class="form-group">
+                                                <label class="control-label mb-1">{{ __('Whop Mode') }}</label><br/>
+                                                <select name="whop_mode" class="form-control">
+                                                <option value="live" @if(config('services.whop.mode', 'live') == 'live') selected @endif>{{ __('Live') }}</option>
+                                                <option value="sandbox" @if(config('services.whop.mode', 'live') == 'sandbox') selected @endif>{{ __('Sandbox') }}</option>
+                                                </select>
+                                             </div>
+                                    <div class="form-group">
+                                                <label class="control-label mb-1">{{ __('Whop API Key') }}</label><br/>
+                                               <input name="whop_api_key" type="text" class="form-control noscroll_textarea" value="{{ config('services.whop.api_key', '') }}">
+                                                <small class="form-text text-muted">{{ __('Stored in .env (WHOP_API_KEY). Company API key from the Whop dashboard.') }}</small>
+                                             </div>
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                            <div class="col-md-6">
+                            <div class="card-body">
+                                <div id="pay-invoice">
+                                    <div class="card-body">
+                                    <div class="form-group">
+                                                <label class="control-label mb-1">{{ __('Whop Company ID') }}</label><br/>
+                                               <input name="whop_company_id" type="text" class="form-control noscroll_textarea" value="{{ config('services.whop.company_id', '') }}">
+                                                <small class="form-text text-muted">{{ __('Starts with biz_ (Dashboard > Settings). Stored as WHOP_COMPANY_ID.') }}</small>
+                                             </div>
+                                    <div class="form-group">
+                                                <label class="control-label mb-1">{{ __('Whop Webhook Secret') }}</label><br/>
+                                               <input name="whop_webhook_secret" type="text" class="form-control noscroll_textarea" value="{{ config('services.whop.webhook_secret', '') }}">
+                                                <small class="form-text text-muted">{{ __('Stored as WHOP_WEBHOOK_SECRET') }}</small>
+                                             </div>
+                                    </div>
+                                </div>
+                            </div>
+                            </div>
+                            <div class="col-md-12">
+                            <div class="card-body">
+                            <div class="form-group">
+                            <p>{{ __('Whop Webhook URL') }} : <code>{{ url('/') }}/webhooks/whop</code></p>
+                            <p>{{ __('Subscribe to') }} <code>payment.succeeded</code> {{ __('in the Whop dashboard. Checkout stays on this website using Whop embedded checkout.') }}</p>
+                            <p><a href="https://docs.whop.com/payments/checkout-embed" target="_blank" class="blue-color">{{ __('Whop embedded checkout docs') }}</a></p>
+                             </div>
+                            </div>
+                            </div>
                             
                             <div class="col-md-12"><div class="card-body"><h4>{{ __('Stripe Settings') }}</h4></div></div>
                              

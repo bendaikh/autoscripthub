@@ -516,6 +516,33 @@ class Helper {
 	   $member_count = Members::footermemberData();
 	   return $member_count;
 	}
+
+	/**
+	 * Resolve a user avatar URL, falling back to the placeholder whenever the
+	 * stored file is missing or is not an image. Some rows still point at files
+	 * that were removed during the malware cleanup.
+	 */
+	public static function user_avatar($photo)
+	{
+	   $fallback = url('/').'/public/img/no-user.png';
+
+	   if (empty($photo)) {
+	      return $fallback;
+	   }
+
+	   $file = basename($photo);
+	   $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+
+	   if (!in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+	      return $fallback;
+	   }
+
+	   if (!file_exists(base_path('public/storage/users/'.$file))) {
+	      return $fallback;
+	   }
+
+	   return url('/').'/public/storage/users/'.$file;
+	}
 	
 	public static function rating_count($item_user_id)
 	{
@@ -951,7 +978,108 @@ class Helper {
 			return number_format($price, $decimals) . ' ' . $symbol;
 		}
 	}
-	
-	
-	
+
+	public static function countryList(): array
+	{
+		return [
+			'US' => 'United States',
+			'CA' => 'Canada',
+			'GB' => 'United Kingdom',
+			'AU' => 'Australia',
+			'NZ' => 'New Zealand',
+			'DE' => 'Germany',
+			'FR' => 'France',
+			'IT' => 'Italy',
+			'ES' => 'Spain',
+			'NL' => 'Netherlands',
+			'BE' => 'Belgium',
+			'AT' => 'Austria',
+			'PT' => 'Portugal',
+			'IE' => 'Ireland',
+			'CH' => 'Switzerland',
+			'SE' => 'Sweden',
+			'NO' => 'Norway',
+			'DK' => 'Denmark',
+			'FI' => 'Finland',
+			'PL' => 'Poland',
+			'CZ' => 'Czech Republic',
+			'RO' => 'Romania',
+			'HU' => 'Hungary',
+			'GR' => 'Greece',
+			'TR' => 'Turkey',
+			'RU' => 'Russia',
+			'UA' => 'Ukraine',
+			'JP' => 'Japan',
+			'CN' => 'China',
+			'IN' => 'India',
+			'KR' => 'South Korea',
+			'SG' => 'Singapore',
+			'HK' => 'Hong Kong',
+			'TW' => 'Taiwan',
+			'TH' => 'Thailand',
+			'MY' => 'Malaysia',
+			'ID' => 'Indonesia',
+			'PH' => 'Philippines',
+			'VN' => 'Vietnam',
+			'PK' => 'Pakistan',
+			'BD' => 'Bangladesh',
+			'AE' => 'United Arab Emirates',
+			'SA' => 'Saudi Arabia',
+			'IL' => 'Israel',
+			'EG' => 'Egypt',
+			'ZA' => 'South Africa',
+			'NG' => 'Nigeria',
+			'KE' => 'Kenya',
+			'MA' => 'Morocco',
+			'MX' => 'Mexico',
+			'BR' => 'Brazil',
+			'AR' => 'Argentina',
+			'CL' => 'Chile',
+			'CO' => 'Colombia',
+			'PE' => 'Peru',
+		];
+	}
+
+	/**
+	 * Resolve a human-readable country name from an ISO 3166-1 alpha-2 code.
+	 */
+	public static function countryNameFromCode(?string $code): string
+	{
+		$code = strtoupper(trim((string) $code));
+		if ($code === '') {
+			return 'Unknown';
+		}
+
+		$list = self::countryList();
+		if (isset($list[$code])) {
+			return $list[$code];
+		}
+
+		if (class_exists(\Locale::class)) {
+			$name = \Locale::getDisplayRegion('-' . $code, 'en');
+			if ($name && $name !== $code && stripos($name, 'unknown') === false) {
+				return $name;
+			}
+		}
+
+		return $code;
+	}
+
+	/**
+	 * Convert an ISO 3166-1 alpha-2 code to a flag emoji.
+	 */
+	public static function countryFlagEmoji(?string $code): string
+	{
+		$code = strtoupper(trim((string) $code));
+		if (strlen($code) !== 2 || !ctype_alpha($code)) {
+			return '🌐';
+		}
+
+		$flag = '';
+		for ($i = 0; $i < 2; $i++) {
+			$flag .= mb_chr(ord($code[$i]) - ord('A') + 0x1F1E6);
+		}
+
+		return $flag;
+	}
 }

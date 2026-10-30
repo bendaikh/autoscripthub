@@ -64,17 +64,19 @@ src="https://www.facebook.com/tr?id=4153934531541650&ev=PageView&noscript=1"
 <link rel="stylesheet" href="{{ asset('theme/css/rtl.css') }}" />
 @endif
 <link rel="stylesheet" href="{{ asset('assets/style.css') }}">
+@php $asbBrandFile = base_path('public/assets/brand.css'); @endphp
+<link rel="stylesheet" href="{{ asset('assets/brand.css') }}?v={{ file_exists($asbBrandFile) ? filemtime($asbBrandFile) : 1 }}">
+@if($view_name == 'index')
+@php $hvThemeFile = base_path('public/assets/home-theme.css'); @endphp
+<link rel="stylesheet" href="{{ asset('assets/home-theme.css') }}?v={{ file_exists($hvThemeFile) ? filemtime($hvThemeFile) : 1 }}">
+@endif
 <link rel="stylesheet" href="{{ asset('theme/stripe/stripe.css') }}">
 <!-- Sales Popup Notification System -->
 <link rel="stylesheet" href="{{ asset('css/sales-popup.css') }}">
 @if($addition_settings->google_ads == 1)
-<!-- google ads -->
+{{-- Auto Ads: load client script only. Do not push({}) here — that requires an empty <ins class="adsbygoogle"> and breaks checkout/pages without ad units. --}}
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9233828084974503"
      crossorigin="anonymous"></script>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
-<!-- google ads -->
 @endif
 @if($addition_settings->shop_search_type == 'ajax')
 <link rel="stylesheet" href="{{ asset('theme/filter/jplist.core.min.css') }}">

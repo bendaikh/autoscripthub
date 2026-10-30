@@ -5,6 +5,9 @@
 
     RewriteEngine On
 
+    # Apple Pay domain verification for Whop embedded checkout
+    RewriteRule ^\.well-known/apple-developer-merchantid-domain-association$ - [L]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
@@ -134,3 +137,12 @@ ExpiresByType application/vnd.ms-fontobject "access plus 1 month"
  Header set Cache-Control "private, must-revalidate"
  </filesMatch>
 </ifModule>
+
+# Apple Pay domain association file (Whop embedded checkout)
+<Files "apple-developer-merchantid-domain-association">
+    ForceType application/octet-stream
+    Header set Content-Type "application/octet-stream"
+        Header set Content-Disposition "inline; filename=apple-developer-merchantid-domain-association"
+    Header unset Content-Security-Policy
+    Header set Cache-Control "public, max-age=0, must-revalidate"
+</Files>

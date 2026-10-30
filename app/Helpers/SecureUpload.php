@@ -108,6 +108,40 @@ class SecureUpload
         return null;
     }
 
+    /**
+     * Validate a product preview video (mp4 / webm / mov).
+     */
+    public static function validateVideo(UploadedFile $file = null, int $maxKilobytes = 51200)
+    {
+        if (!$file) {
+            return 'No file uploaded';
+        }
+
+        $extension = self::extension($file);
+        $allowedExt = ['mp4', 'webm', 'mov'];
+        if (self::isDangerousExtension($extension) || !in_array($extension, $allowedExt, true)) {
+            return 'Invalid video type. Use MP4, WebM, or MOV.';
+        }
+
+        $mime = (string) $file->getMimeType();
+        $allowedMimes = [
+            'video/mp4',
+            'video/webm',
+            'video/quicktime',
+            'video/x-m4v',
+            'application/octet-stream',
+        ];
+        if (!in_array($mime, $allowedMimes, true)) {
+            return 'Invalid video file';
+        }
+
+        if ($file->getSize() > ($maxKilobytes * 1024)) {
+            return 'Video is too large (max ' . (int) round($maxKilobytes / 1024) . ' MB)';
+        }
+
+        return null;
+    }
+
     public static function safeFilename($extension)
     {
         $extension = strtolower(ltrim((string) $extension, '.'));
