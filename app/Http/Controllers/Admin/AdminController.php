@@ -57,6 +57,7 @@ class AdminController extends Controller
 		$totalpages = Pages::totaldemoData();
 		$totalorder = Items::totalorderData();
 		$successorder = Items::totalsuccessOrder();
+		$pendingorder = Items::totalfailedOrder();
 		$totalitems = Items::totalitemCheck();
 		$totalpost = Blog::totalblogData();
 		$itemcomment = Items::totalitemcommentCheck();
@@ -79,7 +80,7 @@ class AdminController extends Controller
 		
 		if($this->custom() != 0)
 		{
-		return view('admin.index', [ 'setting' => $setting, 'today' => $today, 'first_day' => $first_day, 'second_day' => $second_day, 'third_day' => $third_day, 'fourth_day' => $fourth_day, 'fifth_day' => $fifth_day, 'sixth_day' => $sixth_day, 'view1' => $view1, 'view2' => $view2, 'view3' => $view3, 'view4' => $view4, 'view5' => $view5, 'view6' => $view6, 'view7' => $view7, 'approved' => $approved, 'unapproved' => $unapproved, 'rejected' => $rejected, 'totalvendor' => $totalvendor, 'totalpages' => $totalpages, 'totalorder' => $totalorder, 'successorder' => $successorder, 'totalitems' => $totalitems, 'totalpost' => $totalpost, 'itemcomment' => $itemcomment, 'total_referral_earnings' => $total_referral_earnings, 'admin_total_referral' => $admin_total_referral, 'total_referrals' => $total_referrals, 'payouts' => $payouts, 'refunds' => $refunds]);
+		return view('admin.index', [ 'setting' => $setting, 'today' => $today, 'first_day' => $first_day, 'second_day' => $second_day, 'third_day' => $third_day, 'fourth_day' => $fourth_day, 'fifth_day' => $fifth_day, 'sixth_day' => $sixth_day, 'view1' => $view1, 'view2' => $view2, 'view3' => $view3, 'view4' => $view4, 'view5' => $view5, 'view6' => $view6, 'view7' => $view7, 'approved' => $approved, 'unapproved' => $unapproved, 'rejected' => $rejected, 'totalvendor' => $totalvendor, 'totalpages' => $totalpages, 'totalorder' => $totalorder, 'successorder' => $successorder, 'pendingorder' => $pendingorder, 'totalitems' => $totalitems, 'totalpost' => $totalpost, 'itemcomment' => $itemcomment, 'total_referral_earnings' => $total_referral_earnings, 'admin_total_referral' => $admin_total_referral, 'total_referrals' => $total_referrals, 'payouts' => $payouts, 'refunds' => $refunds]);
 		}
 		else
 		{

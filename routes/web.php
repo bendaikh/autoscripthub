@@ -472,7 +472,8 @@ Route::group(['middleware' => ['is_admin', 'HtmlMinifier', 'cache', 'XSS']], fun
 	Route::post('/admin/landing-pages/bulk-delete', 'Admin\LandingPageController@bulkDelete')->name('admin.landing-pages.bulk-delete');
 	Route::get('/admin/landing-pages/{lp_id}/analytics', 'Admin\LandingPageController@analytics')->name('admin.landing-pages.analytics');
 	Route::get('/admin/landing-pages/{lp_id}/analytics/live', 'Admin\LandingPageController@analyticsLive')->name('admin.landing-pages.analytics.live');
-	Route::get('/admin/landing-pages/{lp_id}', 'Admin\LandingPageController@delete');
+	Route::post('/admin/landing-pages/{lp_id}/delete', 'Admin\LandingPageController@delete')->name('admin.delete-landing-page');
+	Route::get('/admin/landing-pages/{lp_id}', function () { return redirect()->route('admin.landing-pages'); });
 	Route::delete('/admin/landing-page-gallery/{lpg_id}', 'Admin\LandingPageController@deleteGalleryImage');
 	
 	/* landing page messages */

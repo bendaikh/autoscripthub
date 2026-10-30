@@ -82,10 +82,10 @@
                         <i class="fa fa-cart-plus"></i>
                     </div>
                     <div class="h4 mb-0">
-                        <span class="count">{{ $totalorder }}</span>
+                        <span class="count">{{ $successorder ?? 0 }}</span>
                     </div>
-                    <small class="text-muted text-uppercase font-weight-bold" title="{{ __('All checkouts, including pending and failed payments') }}">{{ __('Total Orders (all statuses)') }}</small>
-                    <div class="small text-muted">{{ $successorder ?? 0 }} {{ __('paid') }}</div>
+                    <small class="text-muted text-uppercase font-weight-bold" title="{{ __('Completed payments only') }}">Commandes payées</small>
+                    <div class="small text-muted">{{ $pendingorder ?? 0 }} en attente de paiement</div>
                     <div class="progress progress-xs mt-3 mb-0 bg-flat-color-3" style="width: 40%; height: 5px;"></div>
                 </div>
             </div>

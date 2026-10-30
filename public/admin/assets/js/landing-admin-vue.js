@@ -222,9 +222,23 @@
             confirmDelete: function (item) {
                 var label = this.isPages ? item.title : item.email;
 
-                if (window.confirm(this.config.labels.confirmDelete.replace(':name', label))) {
-                    window.location.href = item.deleteUrl;
+                if (!window.confirm(this.config.labels.confirmDelete.replace(':name', label))) {
+                    return;
                 }
+                if (!this.isPages) {
+                    window.location.href = item.deleteUrl;
+                    return;
+                }
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = item.deleteUrl;
+                var token = document.createElement('input');
+                token.type = 'hidden';
+                token.name = '_token';
+                token.value = this.config.csrfToken;
+                form.appendChild(token);
+                document.body.appendChild(form);
+                form.submit();
             },
 
             isSelected: function (id) {

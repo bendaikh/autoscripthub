@@ -138,9 +138,10 @@
                         <i class="fa fa-shopping-cart"></i>
                     </div>
                     <div class="h4 mb-0">
-                        <span class="count">{{ $totalorder }}</span>
+                        <span class="count">{{ $successorder }}</span>
                     </div>
-                    <small class="text-muted text-uppercase font-weight-bold">{{ __('Total Orders (all statuses)') }}</small>
+                    <small class="text-muted text-uppercase font-weight-bold">Commandes payées</small>
+                    <div class="small text-muted">{{ $failedorder }} en attente de paiement</div>
                     <div class="progress progress-xs mt-3 mb-0 bg-flat-color-8" style="width: 40%; height: 5px;"></div>
                 </div>
             </div>
@@ -164,7 +165,7 @@
                     <div class="h4 mb-0">
                         <span class="count">{{ $successorder }}</span>
                     </div>
-                    <small class="text-muted text-uppercase font-weight-bold">{{ __('Paid Orders') }}</small>
+                    <small class="text-muted text-uppercase font-weight-bold">Commandes payées</small>
                     <div class="progress progress-xs mt-3 mb-0 bg-flat-color-5" style="width: 40%; height: 5px;"></div>
                 </div>
             </div>
@@ -243,7 +244,7 @@
                                                 <option value="1">{{ __('Total Visit') }}</option>
                                                 <option value="2">{{ __('Total New Vendor') }}</option>
                                                 <option value="3">{{ __('Total New Items') }}</option>
-                                                <option value="4">{{ __('Paid Orders') }}</option>
+                                                <option value="4">Commandes payées</option>
                                                 <option value="5">{{ __('Pending Orders (unpaid)') }}</option>
                                                 <option value="6">{{ __('Total Amount') }}</option>
                                                 </select>

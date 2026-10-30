@@ -65,7 +65,7 @@
                     'analyticsUrl' => route('admin.landing-pages.analytics', $page->lp_id),
                     'duplicateUrl' => route('admin.duplicate-landing-page', $page->lp_id),
                     'adsStatusUrl' => route('admin.landing-pages.ads-status', $page->lp_id),
-                    'deleteUrl' => url('/admin/landing-pages/' . $page->lp_id),
+                    'deleteUrl' => route('admin.delete-landing-page', $page->lp_id),
                 ];
             }
 
@@ -159,7 +159,7 @@
 
     @include('admin.javascript')
     <script src="{{ asset('admin/vendors/vue/vue.global.prod.js') }}"></script>
-    <script src="{{ asset('admin/assets/js/landing-admin-vue.js') }}?v=20261030-1"></script>
+    <script src="{{ asset('admin/assets/js/landing-admin-vue.js') }}?v=20261030-2"></script>
 </body>
 
 </html>
