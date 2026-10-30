@@ -141,3 +141,21 @@
 #contact_form .row { align-items: flex-start; }
 /* Missing image placeholder */
 img.ash-img-missing { object-fit: contain; background: #f3f5f9; }
+
+/* Item pages: long names / rich descriptions never widen the page */
+.breadcrumb { flex-wrap: wrap; max-width: 100%; }
+.breadcrumb-item.text-nowrap.active {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+@media (max-width: 767px) {
+    .breadcrumb-item.text-nowrap.active { max-width: 60vw; }
+}
+.tab-content img, .item-description img, .product-details img { max-width: 100%; height: auto; }
+.tab-content, .item-description, .product-details { overflow-wrap: anywhere; word-break: break-word; }
+.tab-content table, .item-description table { display: block; max-width: 100%; overflow-x: auto; }
+.tab-content pre, .item-description pre { max-width: 100%; overflow-x: auto; white-space: pre-wrap; }
+.tab-content iframe, .item-description iframe { max-width: 100%; }

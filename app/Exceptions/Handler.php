@@ -58,6 +58,8 @@ class Handler extends ExceptionHandler
                 case 404:
                 // Real 404 status with the same 404 design; fall back to the old redirect if rendering fails
                 try {
+                    // Requests that matched no route skip the web middleware, so share an empty error bag
+                    \Illuminate\Support\Facades\View::share('errors', session()->get('errors', new \Illuminate\Support\ViewErrorBag));
                     return response()->view('404', [], 404);
                 } catch (\Throwable $renderError) {
                     \Log::warning("404 render fallback: " . $renderError->getMessage());
