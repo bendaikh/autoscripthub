@@ -84,8 +84,8 @@
                                             <td>{{ $contact->from_email }} </td>
                                             <td>{{ $contact->from_phone }} </td>
                                             <td>@if(!empty($contact->subject)){{ $contact->subject }}@else<span>---</span>@endif </td>
-                                            <td width="25%">{{ $contact->message_text }} </td>
-                                            <td>{{ date('d F Y', strtotime($contact->contact_date)) }} </td>
+                                            <td class="ash-msg-cell">@if(mb_strlen((string) $contact->message_text) > 140)<details><summary>{{ \Illuminate\Support\Str::limit($contact->message_text, 140) }} <span>{{ __('Show more') }}</span></summary><div class="mt-1">{{ $contact->message_text }}</div></details>@else{{ $contact->message_text }}@endif</td>
+                                            <td class="ash-nowrap">{{ date('d M Y', strtotime($contact->contact_date)) }} </td>
                                             
                                             <td>
                                             @if($demo_mode == 'on') 

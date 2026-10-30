@@ -2,7 +2,7 @@
 <html class="no-js" lang="en">
 <head>
     @include('admin.stylesheet')
-    <link rel="stylesheet" href="{{ asset('admin/assets/css/landing-admin.css') }}?v=20260824-pixel">
+    <link rel="stylesheet" href="{{ asset('admin/assets/css/landing-admin.css') }}?v=20261030-r2">
 </head>
 <body>
     @include('admin.navigation')

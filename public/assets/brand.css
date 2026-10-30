@@ -112,3 +112,32 @@
   .asb-name { font-size: .92rem; }
   .asb-mark { flex-basis: 30px; width: 30px; height: 30px; }
 }
+
+/* ===================================================== QA round 2 (2026-10-30) */
+/* Product card titles: up to 2 lines, then ellipsis */
+.product-title a {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: normal;
+    line-height: 1.35;
+    min-height: 2.7em;
+}
+/* Shop sort selects: readable, consistent */
+.cz-filter select.cz-filter-search {
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid #e3e9ef;
+    background-color: #fff;
+    font-size: .9rem;
+    color: #4b566b;
+    padding: 0 12px;
+    cursor: pointer;
+}
+.cz-filter select.cz-filter-search:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124, 58, 237, .15); }
+/* Contact info cards centred; form columns top-aligned */
+.contact-info-row .card { border-radius: 14px; }
+#contact_form .row { align-items: flex-start; }
+/* Missing image placeholder */
+img.ash-img-missing { object-fit: contain; background: #f3f5f9; }

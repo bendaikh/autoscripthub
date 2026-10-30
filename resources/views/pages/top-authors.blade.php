@@ -257,7 +257,7 @@
                   <div class="media-body pl-3">
                     <h6 class="blog-entry-title font-size-sm mb-0"><a href="{{ URL::to('/item') }}/{{ $featured->item_slug }}">
 					@if($addition_settings->item_name_limit != 0)
-			        {{ mb_substr($featured->item_name,0,$addition_settings->item_name_limit,'utf-8').'...' }}
+			        {{ \Illuminate\Support\Str::limit($featured->item_name, max(60, (int) $addition_settings->item_name_limit)) }}
 					@else
 					{{ $featured->item_name }}	  
 					@endif

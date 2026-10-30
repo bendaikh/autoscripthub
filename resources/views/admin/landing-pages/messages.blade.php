@@ -3,7 +3,7 @@
 
 <head>
     @include('admin.stylesheet')
-    <link rel="stylesheet" href="{{ asset('admin/assets/css/landing-admin.css') }}?v=20260828-1">
+    <link rel="stylesheet" href="{{ asset('admin/assets/css/landing-admin.css') }}?v=20261030-r2">
     <link rel="stylesheet" href="{{ asset('admin/assets/css/landing-messages.css') }}?v=20260828-1">
 </head>
 

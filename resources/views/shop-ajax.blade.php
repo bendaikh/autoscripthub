@@ -100,12 +100,12 @@
         <div class="col-lg-4 mb-2">
         <div class="widget cz-filter">
                         <div class="input-group-overlay input-group-sm mb-2">
-                          <select 
+                          <select aria-label="{{ __('Sort') }}"
                           class="cz-filter-search form-control form-control-sm appended-form-control" 
                           data-control-type="sort-select" 
                                    data-control-name="sort" 
                                    data-control-action="sort">
-                          <option></option>           
+                          <option>{{ __('Sort by price') }}</option>           
                           <option data-path=".like" data-order="asc" data-type="number">{{ __('Price : Low to High') }}</option>
                           <option data-path=".like" data-order="desc" data-type="number">{{ __('Price : High to low') }}</option>
                          </select>            
@@ -115,12 +115,12 @@
         <div class="col-lg-4 mb-2">              
                       <div class="widget cz-filter">
                         <div class="input-group-overlay input-group-sm mb-2">
-                          <select 
+                          <select aria-label="{{ __('Sort') }}"
                           class="cz-filter-search form-control form-control-sm appended-form-control" 
                           data-control-type="sort-select" 
                                    data-control-name="sort" 
                                    data-control-action="sort">
-                           <option></option>        
+                           <option>{{ __('Show: all items') }}</option>        
                           <option data-path=".popular-items" data-order="desc" data-type="number">{{ __('Popular Items') }}</option>
                           <option data-path=".new-items" data-order="desc" data-type="number">{{ __('New Items') }}</option>
                           <option data-path=".free-items" data-order="desc" data-type="number">{{ __('Free Items') }}</option>
@@ -274,7 +274,7 @@
                </div>
               <h3 class="product-title font-size-sm mb-2"><a href="{{ URL::to('/item') }}/{{ $featured->item_slug }}">
 			  @if($addition_settings->item_name_limit != 0)
-			  {{ mb_substr($featured->item_name,0,$addition_settings->item_name_limit,'utf-8').'...' }}
+			  {{ \Illuminate\Support\Str::limit($featured->item_name, max(60, (int) $addition_settings->item_name_limit)) }}
 		      @else
 			  {{ $featured->item_name }}	  
 			  @endif

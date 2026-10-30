@@ -192,7 +192,7 @@
                                         
                                          <div class="form-group">
                                                 <label for="site_title" class="control-label mb-1">{{ __('AWS SECRET ACCESS KEY') }}</label>
-                                                <input id="aws_secret_access_key" name="aws_secret_access_key" type="text" class="form-control noscroll_textarea" value="{{ $setting['setting']->aws_secret_access_key }}"> 
+                                                <input id="aws_secret_access_key" name="aws_secret_access_key" type="password" autocomplete="new-password" data-ash-secret="1" class="form-control noscroll_textarea" value="{{ $setting['setting']->aws_secret_access_key }}"> 
                                             </div>
                                            
                                     </div>
@@ -241,7 +241,7 @@
                                         
                                          <div class="form-group">
                                                 <label for="site_title" class="control-label mb-1">{{ __('WASABI SECRET ACCESS KEY') }}</label>
-                                                <input id="wasabi_secret_access_key" name="wasabi_secret_access_key" type="text" class="form-control noscroll_textarea" value="{{ $setting['setting']->wasabi_secret_access_key }}"> 
+                                                <input id="wasabi_secret_access_key" name="wasabi_secret_access_key" type="password" autocomplete="new-password" data-ash-secret="1" class="form-control noscroll_textarea" value="{{ $setting['setting']->wasabi_secret_access_key }}"> 
                                             </div>
                                            
                                     </div>
@@ -314,7 +314,7 @@
                                             </div>
                                         <div class="form-group">
                                                 <label for="site_title" class="control-label mb-1">{{ __('GOOGLE DRIVE CLIENT SECRET') }}</label>
-                                        <input id="google_drive_client_secret" name="google_drive_client_secret" type="text" class="form-control noscroll_textarea" value="{{ $setting['setting']->google_drive_client_secret }}">
+                                        <input id="google_drive_client_secret" name="google_drive_client_secret" type="password" autocomplete="new-password" data-ash-secret="1" class="form-control noscroll_textarea" value="{{ $setting['setting']->google_drive_client_secret }}">
                                         </div></div>
                                 </div>
                              </div>

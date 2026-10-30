@@ -609,7 +609,7 @@
 </section>
 @endif
 
-@if($custom_settings->promotion_popup == 1)
+@if($custom_settings->promotion_popup == 1 && (empty($custom_settings->pr_promo_date) || strtotime($custom_settings->pr_promo_date . ' 23:59:59') >= time()))
 <div id="my-welcome-message">
   <div class="header">
     <h3>{{ $custom_settings->pr_promo_heading }}</h3>

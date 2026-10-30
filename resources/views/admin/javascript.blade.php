@@ -540,4 +540,26 @@ $(document).ready(function(){
      $("img.lazy").lazyload();
 
   });
+</script><script>
+/* Secret settings fields: masked by default, eye button to show/hide (value unchanged) */
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('input[data-ash-secret]').forEach(function (input) {
+    if (input.parentNode.classList.contains('ash-secret')) return;
+    var wrap = document.createElement('div');
+    wrap.className = 'ash-secret';
+    input.parentNode.insertBefore(wrap, input);
+    wrap.appendChild(input);
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ash-secret-toggle';
+    btn.setAttribute('aria-label', 'Show / hide');
+    btn.innerHTML = '<i class="fa fa-eye"></i>';
+    btn.addEventListener('click', function () {
+      var show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      btn.innerHTML = '<i class="fa fa-eye' + (show ? '-slash' : '') + '"></i>';
+    });
+    wrap.appendChild(btn);
+  });
+});
 </script>

@@ -839,7 +839,7 @@ $(document).ready(function ()
 </script>
 @endif 
 @if($view_name == 'index')
-@if($custom_settings->promotion_popup == 1)
+@if($custom_settings->promotion_popup == 1 && (empty($custom_settings->pr_promo_date) || strtotime($custom_settings->pr_promo_date . ' 23:59:59') >= time()))
 <script src="{{ asset('theme/popup/popup.js') }}"></script>
 <script>
 			$(function () {
@@ -852,4 +852,13 @@ $(document).ready(function ()
 @endif        
 @endif 
 <!-- Sales Popup Notification System -->
-<script src="{{ asset('js/sales-popup.js') }}"></script>
+<script src="{{ asset('js/sales-popup.js') }}"></script><script>
+/* Show a placeholder when an item/blog image is missing (does not change data) */
+document.addEventListener('error', function (e) {
+  var img = e.target;
+  if (!img || img.tagName !== 'IMG' || img.dataset.ashFallback) return;
+  img.dataset.ashFallback = '1';
+  img.classList.add('ash-img-missing');
+  img.src = '{{ url('/') }}/public/img/no-image.png';
+}, true);
+</script>

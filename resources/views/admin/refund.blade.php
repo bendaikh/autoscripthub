@@ -82,7 +82,7 @@
                                             <td>{{ $refund->ref_refund_reason }} </td>
                                             <td>{{ $refund->ref_refund_comment }}</td>
                                             <td>
-                                            @if($refund->ref_refund_approval == 'accepted') <span class="badge badge-success">{{ __('Accepted') }}</span> @else <span class="badge badge-danger">{{ __('Declined') }}</span> @endif
+                                            @if($refund->ref_refund_approval == 'accepted') <span class="badge badge-success">{{ __('Accepted') }}</span> @elseif($refund->ref_refund_approval == 'declined') <span class="badge badge-danger">{{ __('Declined') }}</span> @else <span class="badge badge-warning">{{ __('Pending') }}</span> @endif
                                             </td>
                                             <td>
                                             @if($refund->ref_refund_approval == "") 

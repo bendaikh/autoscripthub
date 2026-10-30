@@ -7,16 +7,25 @@
 </head>
 <body>
 @include('header')
+@php
+    $flashEnd = $allsettings->site_flash_end_date ?? null;
+    $flashActive = !empty($flashEnd) && strtotime($flashEnd) >= time() && isset($items) && $items->count() > 0;
+@endphp
 <section class="bg-position-center-top" style="background-image: url('{{ url('/') }}/public/storage/settings/{{ $allsettings->site_banner }}');">
       <div class="container d-flex flex-column">
         <div class="row mt-auto">
         <div class="col-lg-8 col-sm-12 text-center mx-auto">
         <h2 class="mb-4 pt-5 title-page text-white">{{ __('Flash Sale') }}</h2>
+        @if($flashActive)
         <h3 class="lead mb-5 text-white">{{ __('For only a short period of time you can grab these files with') }} {{ $addition_settings->flash_sale_value }}% {{ __('discount') }}</h3>
+        @else
+        <h3 class="lead mb-5 text-white">{{ __('There is no flash sale running right now.') }}</h3>
+        @endif
     </div>
 </div>
 <div class="row">
     <div class="col-lg-7 col-md-7 col-sm-12 mx-auto text-center mb-3 pb-3">
+        @if($flashActive)
         <div class="countdown-timer">
                         <ul id="example">
                                 <li class="pt-2 pb-1 mb-2"><span class="days">00</span><div>{{ __('days') }}</div></li>
@@ -25,6 +34,9 @@
 		                        <li class="pt-2 pb-1 mb-2"><span class="seconds">00</span><div>{{ __('seconds') }}</div></li>
                            </ul>
                </div>
+        @else
+        <a href="{{ url('/shop') }}" class="btn btn-light">{{ __('Browse all items') }}</a>
+        @endif
         </div>
     </div> 
 </div>
@@ -37,6 +49,13 @@
           </div>
        </div>   
        @endif
+      @unless($flashActive)
+      <div class="text-center py-4">
+        <h4 class="mb-2">{{ __('No flash sale right now') }}</h4>
+        <p class="text-muted mb-3">{{ __('Check back soon, or browse the full catalogue in the meantime.') }}</p>
+        <a href="{{ url('/shop') }}" class="btn btn-primary">{{ __('Go to the shop') }}</a>
+      </div>
+      @endunless
       <div class="row pt-2 mx-n2 flash-sale" id="post-data">
         @include('flash-data')
        </div>
@@ -53,7 +72,7 @@
     </div>
 @include('footer')
 @include('script')
-@if(!empty($allsettings->site_flash_end_date))
+@if($flashActive)
 	<script type="text/javascript">
             $('#example').countdown({
                 date: '{{ date("m/d/Y H:i:s", strtotime($allsettings->site_flash_end_date)) }}',

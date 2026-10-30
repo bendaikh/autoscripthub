@@ -140,8 +140,8 @@
                     <div class="h4 mb-0">
                         <span class="count">{{ $successorder }}</span>
                     </div>
-                    <small class="text-muted text-uppercase font-weight-bold">Commandes payées</small>
-                    <div class="small text-muted">{{ $failedorder }} en attente de paiement</div>
+                    <small class="text-muted text-uppercase font-weight-bold">{{ __('Paid Orders') }}</small>
+                    <div class="small text-muted">{{ $failedorder }} {{ __('awaiting payment') }}</div>
                     <div class="progress progress-xs mt-3 mb-0 bg-flat-color-8" style="width: 40%; height: 5px;"></div>
                 </div>
             </div>
@@ -163,9 +163,9 @@
                         <i class="fa fa fa-check"></i>
                     </div>
                     <div class="h4 mb-0">
-                        <span class="count">{{ $successorder }}</span>
+                        <span class="count">{{ $totalorder }}</span>
                     </div>
-                    <small class="text-muted text-uppercase font-weight-bold">Commandes payées</small>
+                    <small class="text-muted text-uppercase font-weight-bold">{{ __('Total Orders (all statuses)') }}</small>
                     <div class="progress progress-xs mt-3 mb-0 bg-flat-color-5" style="width: 40%; height: 5px;"></div>
                 </div>
             </div>
@@ -210,7 +210,7 @@
          <div class="card">
                             <div class="card-body">
                                 <h4 class="mb-3">{{ __('Orders') }} </h4>
-                                <canvas id="pieChart"></canvas>
+                                <div style="position:relative;max-width:360px;height:300px;margin:0 auto;"><canvas id="pieChart"></canvas></div>
                             </div>
                         </div>
                         
@@ -244,7 +244,7 @@
                                                 <option value="1">{{ __('Total Visit') }}</option>
                                                 <option value="2">{{ __('Total New Vendor') }}</option>
                                                 <option value="3">{{ __('Total New Items') }}</option>
-                                                <option value="4">Commandes payées</option>
+                                                <option value="4">{{ __('Paid Orders') }}</option>
                                                 <option value="5">{{ __('Pending Orders (unpaid)') }}</option>
                                                 <option value="6">{{ __('Total Amount') }}</option>
                                                 </select>
@@ -353,7 +353,7 @@
     
 
     var ctx = document.getElementById( "pieChart" );
-    ctx.height = 330;
+    // size comes from the wrapper (max 360x300)
     var myChart = new Chart( ctx, {
         type: 'pie',
         data: {
@@ -377,7 +377,8 @@
                         ]
         },
         options: {
-            responsive: true
+            responsive: true,
+            maintainAspectRatio: false
         }
     } );
 

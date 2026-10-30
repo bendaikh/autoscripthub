@@ -164,7 +164,7 @@
                                             </div>
                                              <div class="form-group">
                                                 <label for="site_title" class="control-label mb-1">{{ __('Facebook Client Secret') }}</label>
-                                                <input id="facebook_client_secret" name="facebook_client_secret" type="text" class="form-control noscroll_textarea" value="{{ $setting['setting']->facebook_client_secret }}"> <small>{{ __('example') }} : 5fd2de273a28f223232423424232432</small>
+                                                <input id="facebook_client_secret" name="facebook_client_secret" type="password" autocomplete="new-password" data-ash-secret="1" class="form-control noscroll_textarea" value="{{ $setting['setting']->facebook_client_secret }}"> <small>{{ __('example') }} : 5fd2de273a28f223232423424232432</small>
                                             </div>
                                  </div>
                                 </div>
@@ -196,7 +196,7 @@
                                             </div>
                                              <div class="form-group">
                                                 <label for="site_title" class="control-label mb-1">{{ __('Google Client Secret') }}</label>
-                                                <input id="google_client_secret" name="google_client_secret" type="text" class="form-control noscroll_textarea" value="{{ $setting['setting']->google_client_secret }}"> <small>{{ __('example') }} : fwIUn323232j1-32432423YBe</small>
+                                                <input id="google_client_secret" name="google_client_secret" type="password" autocomplete="new-password" data-ash-secret="1" class="form-control noscroll_textarea" value="{{ $setting['setting']->google_client_secret }}"> <small>{{ __('example') }} : fwIUn323232j1-32432423YBe</small>
                                             </div>
                                </div>
                                 </div>

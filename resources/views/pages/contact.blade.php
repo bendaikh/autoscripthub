@@ -29,7 +29,7 @@
     </section>
    <!-- Outlet stores-->
    <section class="container pt-grid-gutter">
-      <div class="row">
+      <div class="row justify-content-center contact-info-row">
         @if($addition_settings->site_address_display == 1)
         <div class="col-xl-4 col-md-6 mb-grid-gutter"><a class="card" href="#map" data-scroll>
             <div class="card-body text-center"><i class="dwg-location h3 mt-2 mb-4 text-primary"></i>
@@ -41,7 +41,7 @@
         @endif
         @if($addition_settings->site_email_display == 1)
         <div class="col-xl-4 col-md-6 mb-grid-gutter">
-          <div class="card">
+          <div class="card h-100">
             <div class="card-body text-center"><i class="dwg-mail h3 mt-2 mb-4 text-primary"></i>
               <h3 class="h6 mb-3">{{ __('Email') }}</h3>
               <p class="font-size-sm text-muted">{{ $allsettings->office_email }}</p>
@@ -51,7 +51,7 @@
         @endif
         @if($addition_settings->site_phone_display == 1)
         <div class="col-xl-4 col-md-6 mb-grid-gutter">
-          <div class="card">
+          <div class="card h-100">
             <div class="card-body text-center"><i class="dwg-phone h3 mt-2 mb-4 text-primary"></i>
               <h3 class="h6 mb-2">{{ __('Phone Number') }}</h3>
               <p class="font-size-sm text-muted">{{ $allsettings->office_phone }}</p>

@@ -81,7 +81,7 @@
           @endfor
         </div>
       </div>
-      <h3 class="product-title font-size-sm mb-2"><a href="{{ URL::to('/item') }}/{{ $featured->item_slug }}">@if($addition_settings->item_name_limit != 0){{ mb_substr($featured->item_name,0,$addition_settings->item_name_limit,'utf-8').'...' }}@else{{ $featured->item_name }}@endif</a></h3>
+      <h3 class="product-title font-size-sm mb-2"><a href="{{ URL::to('/item') }}/{{ $featured->item_slug }}">@if($addition_settings->item_name_limit != 0){{ \Illuminate\Support\Str::limit($featured->item_name, max(60, (int) $addition_settings->item_name_limit)) }}@else{{ $featured->item_name }}@endif</a></h3>
       <div class="card-footer d-flex align-items-center font-size-xs">
         <a class="blog-entry-meta-link" href="{{ URL::to('/user') }}/{{ $featured->username }}">
           <div class="blog-entry-author-ava">

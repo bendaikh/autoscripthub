@@ -96,7 +96,7 @@
                                                 <td class="detail">
                                                     <a href="{{ URL::to('/item') }}/{{ $order->item_slug }}" class="theme-color">
 													@if($addition_settings->item_name_limit != 0)
-												    {{ mb_substr($order->item_name,0,$addition_settings->item_name_limit,'utf-8').'...' }}
+												    {{ \Illuminate\Support\Str::limit($order->item_name, max(60, (int) $addition_settings->item_name_limit)) }}
 												    @else
 												    {{ $order->item_name }}	  
 												    @endif

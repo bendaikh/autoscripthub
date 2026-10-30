@@ -1088,3 +1088,94 @@ canvas {
     overflow-wrap: anywhere;
     line-height: 1.4;
 }
+
+/* ===================================================== QA round 2 (2026-10-30) */
+
+/* Hamburger: keep clear of the sidebar edge */
+#header .header-menu { padding-left: 18px; }
+#header .menutoggle { margin-left: 6px; }
+
+/* Title band lines up with the table card below it */
+.content .breadcrumbs { margin: 0 0 18px !important; }
+.content .row > .breadcrumbs { margin: 0 15px 18px !important; flex: 0 0 calc(100% - 30px); max-width: calc(100% - 30px); }
+.content .row > form > .breadcrumbs { margin: 0 15px 18px !important; }
+
+/* List search box (customers, vendors, orders, items, admins...) */
+.content .row > [class*="col-md-3"][align="right"] { flex: 0 0 auto; max-width: 100%; margin-bottom: 4px; }
+.content .row > [class*="col-md-3"][align="right"] .form-group {
+    display: flex; gap: 8px; align-items: center; justify-content: flex-end; margin-bottom: 0;
+}
+input.move-bars {
+    height: 38px;
+    min-width: 240px;
+    padding: 6px 12px;
+    border: 1px solid var(--ash-border);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--ash-text, #0f172a);
+    font-size: 13.5px;
+    box-shadow: none;
+    outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+input.move-bars:focus { border-color: var(--ash-primary); box-shadow: 0 0 0 3px var(--ash-primary-soft); }
+.content .row > [class*="col-md-3"][align="right"] .btn { height: 38px; white-space: nowrap; }
+@media (max-width: 575px) {
+    input.move-bars { min-width: 0; flex: 1 1 auto; }
+    .content .row > [class*="col-md-3"][align="right"] { flex: 0 0 100%; }
+}
+
+/* Tables: scroll inside the card, compact action buttons on one line */
+.card .card-body { min-width: 0; }
+.table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table td:last-child { white-space: nowrap; }
+.table td .btn-sm { padding: 4px 9px; font-size: 12px; line-height: 1.4; margin: 2px 2px; border-radius: 8px; }
+.table td img { max-height: 64px; border-radius: 8px; object-fit: cover; }
+.table td img[width="50"] { width: 56px; height: 56px; }
+
+/* Long text cells (contact messages) */
+.ash-msg-cell { max-width: 380px; white-space: normal !important; }
+.ash-msg-cell details summary { cursor: pointer; color: var(--ash-primary); font-size: 12px; margin-top: 4px; }
+.ash-nowrap { white-space: nowrap !important; }
+
+/* Native file inputs */
+input[type="file"] {
+    display: block;
+    width: 100%;
+    max-width: 520px;
+    padding: 6px;
+    border: 1px dashed var(--ash-border);
+    border-radius: 10px;
+    background: #f8fafc;
+    font-size: 13px;
+    color: var(--ash-text-soft, #475569);
+}
+input[type="file"]::file-selector-button {
+    margin-right: 10px;
+    padding: 6px 14px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--ash-primary);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Secret fields with show/hide toggle */
+.ash-secret { position: relative; }
+.ash-secret input { padding-right: 44px !important; }
+.ash-secret .ash-secret-toggle {
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    border: 0; background: transparent; color: var(--ash-text-soft, #64748b);
+    width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
+}
+.ash-secret .ash-secret-toggle:hover { background: var(--ash-primary-soft); color: var(--ash-primary); }
+
+/* Buttons: consistent height/radius */
+.btn-sm { border-radius: 8px; font-weight: 600; }
+.card-body .btn:not(.btn-sm):not(.btn-lg) { border-radius: 10px; font-weight: 600; }
+/* list pages wrap title + table in a <form> inside .row: keep it to the row width */
+.content .row > form { flex: 0 0 100%; max-width: 100%; min-width: 0; }
+.content .row > [class*="col-"] { min-width: 0; }
+.table-responsive { max-width: 100%; }
+.card > .card-body { overflow-x: auto; }

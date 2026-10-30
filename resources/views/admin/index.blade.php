@@ -84,8 +84,8 @@
                     <div class="h4 mb-0">
                         <span class="count">{{ $successorder ?? 0 }}</span>
                     </div>
-                    <small class="text-muted text-uppercase font-weight-bold" title="{{ __('Completed payments only') }}">Commandes payées</small>
-                    <div class="small text-muted">{{ $pendingorder ?? 0 }} en attente de paiement</div>
+                    <small class="text-muted text-uppercase font-weight-bold" title="{{ __('Completed payments only') }}">{{ __('Paid Orders') }}</small>
+                    <div class="small text-muted">{{ $pendingorder ?? 0 }} {{ __('awaiting payment') }}</div>
                     <div class="progress progress-xs mt-3 mb-0 bg-flat-color-3" style="width: 40%; height: 5px;"></div>
                 </div>
             </div>
@@ -221,6 +221,9 @@
                             <div class="card-body">
                                 <h4 class="mb-3">{{ __('Order Sales') }} </h4>
                                 <canvas id="team-chart"></canvas>
+                                @if(($view1 + $view2 + $view3 + $view4 + $view5 + $view6 + $view7) == 0)
+                                <p class="text-muted small mb-0 mt-2"><i class="fa fa-info-circle"></i> {{ __('No paid orders in the last 7 days.') }}</p>
+                                @endif
                             </div>
                         </div>
                     </div>   
@@ -328,6 +331,7 @@
         data: {
             datasets: [ {
                 data: [ {{ $approved }}, {{ $unapproved }}, {{ $rejected }} ],
+                borderWidth: 0,
                 backgroundColor: [
                                     "rgba(6, 163, 61, 1)",
                                     "rgba(255, 193, 7, 1)",

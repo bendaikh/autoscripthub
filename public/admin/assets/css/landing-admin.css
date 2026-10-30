@@ -57,7 +57,7 @@
 
 .landing-admin .landing-hero p {
     margin: 0;
-    opacity: 0.78;
+    color: rgba(255, 255, 255, 0.92);
 }
 
 .landing-admin .landing-hero-actions {
@@ -608,3 +608,6 @@
         flex-wrap: wrap;
     }
 }
+
+/* actions stay on one row */
+.landing-admin .landing-table td .landing-actions { flex-wrap: nowrap; }

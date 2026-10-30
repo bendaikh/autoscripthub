@@ -78,7 +78,7 @@
                                                 <label for="site_title" class="control-label mb-1">{{ __('Mail Port') }} <span class="require">*</span></label>
                                                 <input id="mail_port" name="mail_port" type="text" class="form-control noscroll_textarea" value="{{ $setting['setting']->mail_port }}" data-bvalidator="required"> <small>{{ __('example') }} : 25</small></div><div class="form-group">
                                                 <label for="site_title" class="control-label mb-1">{{ __('Mail Password') }}</label>
-                                                <input id="mail_password" name="mail_password" type="text" class="form-control noscroll_textarea" value="{{ $setting['setting']->mail_password }}"> <small>{{ __('example') }} : test123</small>
+                                                <input id="mail_password" name="mail_password" type="password" autocomplete="new-password" data-ash-secret="1" class="form-control noscroll_textarea" value="{{ $setting['setting']->mail_password }}"> <small>{{ __('example') }} : test123</small>
                                                 </div>
                                                 </div>
                                                 </div>

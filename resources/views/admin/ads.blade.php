@@ -91,7 +91,7 @@
                                                 
                                             <div class="form-group">
                                                 <label for="site_title" class="control-label mb-1">{{ __('Example Code') }} </label>
-                                                <br> <img src="{{ url('/') }}/resources/views/admin/template/images/ins.png">
+                                                <br> <img src="{{ url('/') }}/public/admin/images/ins.png" alt="{{ __('Example Code') }}" class="img-fluid rounded border mt-1" style="max-width:520px;">
                                             </div> 
                                             
                                             
@@ -147,7 +147,7 @@
                                                 
                                             <div class="form-group">
                                                 <label for="site_title" class="control-label mb-1">{{ __('Example Code') }} </label>
-                                                <br> <img src="{{ url('/') }}/resources/views/admin/template/images/ins.png">
+                                                <br> <img src="{{ url('/') }}/public/admin/images/ins.png" alt="{{ __('Example Code') }}" class="img-fluid rounded border mt-1" style="max-width:520px;">
                                             </div> 
                                             
                                             
@@ -202,7 +202,7 @@
                                                 
                                             <div class="form-group">
                                                 <label for="site_title" class="control-label mb-1">{{ __('Example Code') }} </label>
-                                                <br> <img src="{{ url('/') }}/resources/views/admin/template/images/ins.png">
+                                                <br> <img src="{{ url('/') }}/public/admin/images/ins.png" alt="{{ __('Example Code') }}" class="img-fluid rounded border mt-1" style="max-width:520px;">
                                             </div> 
                                             
                                             
