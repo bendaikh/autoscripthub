@@ -3,7 +3,7 @@
 
 <head>
     @include('admin.stylesheet')
-    <link rel="stylesheet" href="{{ asset('admin/assets/css/landing-analytics.css') }}?v=20260829-1">
+    <link rel="stylesheet" href="{{ asset('admin/assets/css/landing-analytics.css') }}?v=20261105-1">
 </head>
 
 <body>
@@ -52,7 +52,7 @@
                     <h1>{{ $landing_page->lp_title }}</h1>
                     <p>
                         <code>/landing/{{ $landing_page->lp_slug }}</code>
-                        &middot; {{ __('Last') }} {{ $days }} {{ __('days') }}
+                        &middot; {{ $range['label'] }}
                         @if($country_filter)
                             &middot; <span class="la-filter-badge">{{ $country_filter_flag }} {{ $country_filter_name }}</span>
                         @endif
@@ -70,11 +70,56 @@
                                 @endif
                             @endforeach
                         </select>
-                        <select name="days" class="la-range-select" onchange="this.form.submit()">
+                        @php
+                            $laToday = now(config('app.timezone'))->format('Y-m-d');
+                            $laYesterday = now(config('app.timezone'))->subDay()->format('Y-m-d');
+                            $laPeriod = $range['mode'] === 'preset' ? (string) $range['days']
+                                : ($range['single_day'] && $range['from_date'] === $laToday ? 'today'
+                                : ($range['single_day'] && $range['from_date'] === $laYesterday ? 'yesterday' : 'custom'));
+                        @endphp
+                        <select name="days" id="laPeriod" class="la-range-select" aria-label="{{ __('Period') }}">
+                            <option value="today" {{ $laPeriod === 'today' ? 'selected' : '' }}>{{ __('Today') }}</option>
+                            <option value="yesterday" {{ $laPeriod === 'yesterday' ? 'selected' : '' }}>{{ __('Yesterday') }}</option>
                             @foreach([7, 14, 30, 60, 90, 180, 365] as $d)
-                                <option value="{{ $d }}" {{ (int) $days === (int) $d ? 'selected' : '' }}>{{ $d }} {{ __('days') }}</option>
+                                <option value="{{ $d }}" {{ $laPeriod === (string) $d ? 'selected' : '' }}>{{ $d }} {{ __('days') }}</option>
                             @endforeach
+                            <option value="custom" {{ $laPeriod === 'custom' ? 'selected' : '' }}>{{ __('Custom date / range') }}</option>
                         </select>
+                        <div class="la-date-range {{ $laPeriod === 'custom' ? 'is-open' : '' }}" id="laDateRange">
+                            <label class="la-date-field">
+                                <span>{{ __('From') }}</span>
+                                <input type="date" name="from" id="laFrom" class="la-range-select la-date-input" value="{{ $range['mode'] === 'custom' ? $range['from_date'] : '' }}" max="{{ $laToday }}" {{ $laPeriod === 'custom' ? '' : 'disabled' }}>
+                            </label>
+                            <label class="la-date-field">
+                                <span>{{ __('To') }}</span>
+                                <input type="date" name="to" id="laTo" class="la-range-select la-date-input" value="{{ $range['mode'] === 'custom' ? $range['to_date'] : '' }}" max="{{ $laToday }}" {{ $laPeriod === 'custom' ? '' : 'disabled' }}>
+                            </label>
+                            <button type="submit" class="la-btn la-btn-light la-btn-apply"><i class="fa fa-check"></i> {{ __('Apply') }}</button>
+                        </div>
+                        <script>
+                            (function () {
+                                var sel = document.getElementById('laPeriod');
+                                var box = document.getElementById('laDateRange');
+                                var f = document.getElementById('laFrom'), t = document.getElementById('laTo');
+                                if (!sel) { return; }
+                                sel.addEventListener('change', function () {
+                                    if (sel.value === 'custom') {
+                                        box.classList.add('is-open'); f.disabled = false; t.disabled = false;
+                                        if (!f.value) { f.value = '{{ $range['from_date'] }}'; }
+                                        if (!t.value) { t.value = '{{ $range['to_date'] }}'; }
+                                        f.focus();
+                                        return;
+                                    }
+                                    f.disabled = true; t.disabled = true;
+                                    sel.form.submit();
+                                });
+                                f.addEventListener('change', function () { if (f.value && (!t.value || t.value < f.value)) { t.value = f.value; } t.min = f.value; });
+                                t.addEventListener('change', function () { if (t.value && (!f.value || f.value > t.value)) { f.value = t.value; } });
+                                sel.form.addEventListener('submit', function () {
+                                    if (sel.value === 'custom') { sel.disabled = true; }
+                                });
+                            })();
+                        </script>
                     </form>
                     <a href="{{ route('admin.landing-pages') }}" class="la-btn la-btn-ghost">
                         <i class="fa fa-arrow-left"></i> {{ __('Back') }}
@@ -84,6 +129,10 @@
                     </a>
                 </div>
             </div>
+
+            @if(!empty($range['error']))
+                <div class="la-range-error"><i class="fa fa-exclamation-triangle"></i> {{ $range['error'] }}</div>
+            @endif
 
             <div class="la-live-panel" id="laLivePanel">
                 <div class="la-live-main">
@@ -179,7 +228,7 @@
                         <strong>{{ __('Showing analytics for') }} {{ $country_filter_flag }} {{ $country_filter_name }}</strong>
                         <span>{{ __('All metrics below are scoped to visitors from this country.') }}</span>
                     </div>
-                    <a href="{{ route('admin.landing-pages.analytics', ['lp_id' => $landing_page->lp_id, 'days' => $days]) }}" class="la-btn la-btn-ghost la-btn-sm">
+                    <a href="{{ route('admin.landing-pages.analytics', array_merge(['lp_id' => $landing_page->lp_id], $range_params)) }}" class="la-btn la-btn-ghost la-btn-sm">
                         <i class="fa fa-times"></i> {{ __('Clear country filter') }}
                     </a>
                 </div>
@@ -224,7 +273,7 @@
                                         @forelse($countries as $country)
                                             <tr class="la-country-row">
                                                 <td>
-                                                    <a href="{{ route('admin.landing-pages.analytics', ['lp_id' => $landing_page->lp_id, 'days' => $days, 'country' => $country->code]) }}" class="la-country-link">
+                                                    <a href="{{ route('admin.landing-pages.analytics', array_merge(['lp_id' => $landing_page->lp_id, 'country' => $country->code], $range_params)) }}" class="la-country-link">
                                                         <div class="la-country-cell">
                                                             <span class="la-country-flag">{{ $country->flag }}</span>
                                                             <div>
