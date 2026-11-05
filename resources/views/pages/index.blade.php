@@ -47,53 +47,28 @@
 @endphp
 
 <!-- ============================ Hero ============================ -->
-@if(\Fickrr\Support\Store::isPhysical())
-<section class="hv-hero hv-hero--shop">
-  <div class="container">
-    <div class="row align-items-center">
-      <div class="col-lg-6">
-        <p class="hv-shop-kicker">{{ \Fickrr\Support\Store::name() }}</p>
-        <h1>{{ __('Shop products, delivered to you') }}</h1>
-        <p class="hv-hero-sub">{{ __('Pay securely by card or PayPal. We deliver to the address you give at checkout.') }}</p>
-        <a class="hv-shop-cta" href="{{ URL::to('/shop') }}">{{ __('Shop products') }}</a>
-        <ul class="hv-shop-points">
-          <li>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M2 10h20" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>
-            {{ __('Secure card and PayPal') }}
-          </li>
-          <li>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="7" cy="18" r="1.6" fill="currentColor"/><circle cx="17" cy="18" r="1.6" fill="currentColor"/></svg>
-            {{ __('Delivery to your address') }}
-          </li>
-          <li>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8l8-4 8 4-8 4-8-4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M4 8v8l8 4 8-4V8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 12v8" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>
-            {{ __('Stock checked before we confirm') }}
-          </li>
-        </ul>
-      </div>
-      <div class="col-lg-6">
-        <img class="hv-shop-still" src="{{ asset('assets/esipres/hero-still.svg') }}" alt="{{ __('Products ready to ship') }}">
-      </div>
-    </div>
-  </div>
-</section>
-@else
 <section class="hv-hero">
   <div class="container">
     <div class="row align-items-center">
 
       <div class="col-lg-6">
-        <span class="hv-hero-badge"><i class="fa fa-bolt"></i>{{ __('Trusted Digital Marketplace') }}</span>
+        <span class="hv-hero-badge"><i class="fa fa-cube"></i>{{ \Fickrr\Support\Store::isPhysical() ? __('Products') : __('Trusted Digital Marketplace') }}</span>
 
-        <h1>{!! $hvHeadingHtml !!}</h1>
+        <h1>@if(\Fickrr\Support\Store::isPhysical()){{ __('Quality products delivered to your door') }}@else{!! $hvHeadingHtml !!}@endif</h1>
 
-        <p class="hv-hero-sub">{{ $allsettings->site_banner_subheading }}</p>
+        <p class="hv-hero-sub">{{ \Fickrr\Support\Store::isPhysical() ? __('Pay securely by card or PayPal. We deliver to the address you give at checkout.') : $allsettings->site_banner_subheading }}</p>
 
         <ul class="hv-pills">
+          @if(\Fickrr\Support\Store::isPhysical())
+          <li class="hv-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M2 10h20" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>{{ __('Card or PayPal') }}</li>
+          <li class="hv-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="7" cy="18" r="1.5" fill="currentColor"/><circle cx="17" cy="18" r="1.5" fill="currentColor"/></svg>{{ __('Delivery to your address') }}</li>
+          <li class="hv-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8l8-4 8 4-8 4-8-4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M4 8v8l8 4 8-4V8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 12v8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>{{ __('Stock checked before we confirm') }}</li>
+          @else
           <li class="hv-pill"><i class="fa fa-download"></i>{{ __('Instant Download') }}</li>
           <li class="hv-pill"><i class="fa fa-refresh"></i>{{ __('Regular Updates') }}</li>
           <li class="hv-pill"><i class="fa fa-certificate"></i>{{ __('Commercial License') }}</li>
           <li class="hv-pill"><i class="fa fa-shield"></i>{{ __('30-Day Money Back') }}</li>
+          @endif
         </ul>
 
         <form action="{{ route('shop') }}" id="search_form" method="post" class="form-noborder searchbox" enctype="multipart/form-data">
@@ -131,6 +106,16 @@
       <div class="col-lg-6">
         <div class="hv-visual">
           <div class="hv-dash">
+            @if(\Fickrr\Support\Store::isPhysical())
+            <div class="hv-dash-bar">
+              <span class="hv-dash-dot"></span><span class="hv-dash-dot"></span><span class="hv-dash-dot"></span>
+              <span class="hv-dash-title">{{ \Fickrr\Support\Store::name() }}</span>
+            </div>
+            <div class="hv-dash-panel" style="padding:1.25rem;">
+              <h6>{{ __('Products') }}</h6>
+              <p class="mb-0">{{ __('Pay by card or PayPal, then we deliver to your address.') }}</p>
+            </div>
+            @else
             <div class="hv-dash-bar">
               <span class="hv-dash-dot"></span><span class="hv-dash-dot"></span><span class="hv-dash-dot"></span>
               <span class="hv-dash-title">{{ __('Dashboard') }}</span>
@@ -176,8 +161,10 @@
                 </div>
               </div>
             </div>
+            @endif
           </div>
 
+          @if(!\Fickrr\Support\Store::isPhysical())
           <div class="hv-float hv-float--products">
             <span class="hv-float-icon" style="background:linear-gradient(135deg,#7c3aed,#a855f7);"><i class="fa fa-cube"></i></span>
             <span>
@@ -193,19 +180,36 @@
               <span>{{ __('Happy Customers') }}</span>
             </span>
           </div>
+          @endif
         </div>
       </div>
 
     </div>
   </div>
 </section>
-@endif
 
 <!-- ============================ Trust bar ============================ -->
-@if(!\Fickrr\Support\Store::isPhysical())
 <div class="hv-trust-wrap">
   <div class="container">
     <div class="hv-trust">
+      @if(\Fickrr\Support\Store::isPhysical())
+      <div class="hv-trust-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8l8-4 8 4-8 4-8-4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M4 8v8l8 4 8-4V8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+        <span><strong>{{ __('Products') }}</strong><span>{{ __('Shipped to your address') }}</span></span>
+      </div>
+      <div class="hv-trust-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M2 10h20" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+        <span><strong>{{ __('Card or PayPal') }}</strong><span>{{ __('Pay online before it ships') }}</span></span>
+      </div>
+      <div class="hv-trust-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v12H4z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 7V5h8v2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+        <span><strong>{{ __('Stock is checked') }}</strong><span>{{ __('Before an order is confirmed') }}</span></span>
+      </div>
+      <div class="hv-trust-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="7" cy="18" r="1.5" fill="currentColor"/><circle cx="17" cy="18" r="1.5" fill="currentColor"/></svg>
+        <span><strong>{{ __('Order status') }}</strong><span>{{ __('Pending through delivered') }}</span></span>
+      </div>
+      @else
       <div class="hv-trust-item">
         <span class="hv-avatars">
           <span class="hv-avatar" style="background:#7c3aed;">A</span>
@@ -234,10 +238,10 @@
         <i class="fa fa-life-ring"></i>
         <span><strong>{{ __('24/7 Support') }}</strong><span>{{ __('We are here') }}</span></span>
       </div>
+      @endif
     </div>
   </div>
 </div>
-@endif
 
 @if(in_array('home',$top_ads))
 <section class="container pt-5" data-aos="fade-up" data-aos-delay="200">
