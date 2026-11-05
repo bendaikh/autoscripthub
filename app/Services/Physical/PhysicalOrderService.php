@@ -47,7 +47,7 @@ class PhysicalOrderService
             'address' => ['required', 'string', 'min:5', 'max:500'],
             'city' => ['required', 'string', 'min:2', 'max:120'],
             'country' => ['required', 'string', 'min:2', 'max:80'],
-            'payment_method' => ['required', 'in:cod,stripe'],
+            'payment_method' => ['required', 'in:stripe,paypal'],
         ];
     }
 
@@ -57,22 +57,16 @@ class PhysicalOrderService
      */
     public function place(array $input, array $lines, array $context = []): object
     {
+        if (($input['payment_method'] ?? '') === 'cod') {
+            throw new CheckoutValidationException([
+                'payment_method' => ['Cash on delivery is not available. Pay by card or PayPal.'],
+            ]);
+        }
+
         $customer = $this->validateCustomer($input);
         if ($lines === []) {
             throw new CheckoutValidationException([
                 'lines' => ['Add at least one product.'],
-            ]);
-        }
-
-        if ($customer['payment_method'] === 'stripe' && !StripeChargePolicy::chargesEnabled()) {
-            throw new CheckoutValidationException([
-                'payment_method' => [StripeChargePolicy::refusalMessage()],
-            ]);
-        }
-
-        if ($customer['payment_method'] === 'cod' && !config('store.cod_enabled')) {
-            throw new CheckoutValidationException([
-                'payment_method' => ['Cash on delivery is not available.'],
             ]);
         }
 
@@ -99,7 +93,7 @@ class PhysicalOrderService
                 'city' => $customer['city'],
                 'country' => $customer['country'],
                 'payment_method' => $customer['payment_method'],
-                'payment_status' => $customer['payment_method'] === 'cod' ? 'cod_due' : 'pending',
+                'payment_status' => 'pending',
                 'fulfillment_status' => 'pending',
                 'subtotal' => $quote['subtotal'],
                 'shipping_fee' => $quote['shipping_fee'],
@@ -180,12 +174,13 @@ class PhysicalOrderService
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
 
-        $url = url('/landing/success/' . $order->landing_order_token);
+        $payment = app(OnlinePaymentService::class)->begin($order);
+        $url = $payment['redirect'] ?: url('/landing/success/' . $order->landing_order_token);
         if ($request->expectsJson()) {
-            return response()->json(['success' => true, 'redirect' => $url]);
+            return response()->json(['success' => true, 'redirect' => $url, 'paid' => false]);
         }
 
-        return redirect($url);
+        return redirect()->away($url);
     }
 
     /**
@@ -219,6 +214,10 @@ class PhysicalOrderService
         $from = (string) $order->fulfillment_status;
         if ($from === $status) {
             return $order;
+        }
+
+        if ($status === 'confirmed' && ($order->payment_status ?? '') !== 'paid') {
+            throw new InvalidStatusTransitionException('Online payment is required before this order can be confirmed.');
         }
 
         $allowed = self::TRANSITIONS[$from] ?? [];
@@ -256,9 +255,6 @@ class PhysicalOrderService
             }
             if ($status === 'delivered') {
                 $update['delivered_at'] = now();
-                if ($order->payment_method === 'cod') {
-                    $update['payment_status'] = 'paid';
-                }
             }
             if ($status === 'cancelled') {
                 $update['cancelled_at'] = now();
@@ -281,6 +277,45 @@ class PhysicalOrderService
         }
 
         return $fresh;
+    }
+
+    /**
+     * Record a verified Stripe or PayPal payment, then confirm the order.
+     * Stock is reduced only by that confirmation.
+     */
+    public function recordPayment(int $orderId, string $reference): object
+    {
+        $reference = trim($reference);
+        if ($reference === '') {
+            throw new CheckoutValidationException([
+                'payment' => ['A payment reference from the card processor or PayPal is required.'],
+            ]);
+        }
+
+        $order = $this->find($orderId);
+        if (!in_array($order->payment_method, ['stripe', 'paypal'], true)) {
+            throw new CheckoutValidationException([
+                'payment_method' => ['Pay by card or PayPal before the order can be confirmed.'],
+            ]);
+        }
+
+        if (($order->payment_status ?? '') !== 'paid') {
+            $update = [
+                'payment_status' => 'paid',
+                'updated_at' => now(),
+            ];
+            if (Schema::hasColumn('physical_orders', 'payment_reference')) {
+                $update['payment_reference'] = $reference;
+            }
+            DB::table('physical_orders')->where('id', $orderId)->update($update);
+            $order = $this->find($orderId);
+        }
+
+        if ($order->fulfillment_status === 'pending') {
+            return $this->transition($orderId, 'confirmed');
+        }
+
+        return $order;
     }
 
     public function find(int $orderId): object
@@ -551,7 +586,7 @@ class PhysicalOrderService
         }
 
         $payment = 'pending';
-        if ($status === 'delivered' && $order->payment_method === 'cod') {
+        if (in_array($status, ['confirmed', 'shipped', 'delivered'], true) && ($order->payment_status ?? '') === 'paid') {
             $payment = 'completed';
         }
         if (in_array($status, ['cancelled', 'returned'], true)) {

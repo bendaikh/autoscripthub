@@ -59,17 +59,15 @@
           </div>
         </div>
         <h2 class="h6 mt-3">{{ __('Payment') }}</h2>
+        <p class="text-muted">{{ __('Pay online by card or PayPal. The order ships after that payment is confirmed. No charge is created until payments are turned on.') }}</p>
         <div class="form-check">
-          <input class="form-check-input" type="radio" name="payment_method" id="pay_cod" value="cod" checked>
-          <label class="form-check-label" for="pay_cod">{{ __('Cash on delivery') }}</label>
+          <input class="form-check-input" type="radio" name="payment_method" id="pay_stripe" value="stripe" @if(old('payment_method', 'stripe') === 'stripe') checked @endif>
+          <label class="form-check-label" for="pay_stripe">{{ __('Card') }}</label>
         </div>
-        @if(in_array('stripe', $get_payment ?? []) && config('store.stripe_enabled'))
         <div class="form-check">
-          <input class="form-check-input" type="radio" name="payment_method" id="pay_stripe" value="stripe">
-          <label class="form-check-label" for="pay_stripe">{{ __('Card (Stripe)') }}</label>
-          <small class="form-text text-muted">{{ __('Card payment is not charged in this environment unless the live store has turned charges on.') }}</small>
+          <input class="form-check-input" type="radio" name="payment_method" id="pay_paypal" value="paypal" @if(old('payment_method') === 'paypal') checked @endif>
+          <label class="form-check-label" for="pay_paypal">{{ __('PayPal') }}</label>
         </div>
-        @endif
       </div>
       <div class="col-lg-5">
         <h2 class="h6">{{ __('Order') }}</h2>

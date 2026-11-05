@@ -11,10 +11,10 @@
   <h1 class="h3">{{ __('Order') }} {{ $order->order_number }}</h1>
   <p class="my-3">@include('partials.physical-status', ['order' => $order])</p>
   <p>{{ __('This order is for physical products. There is nothing to download.') }}</p>
-  @if($order->payment_method === 'cod')
-  <p>{{ __('Payment: cash on delivery. Pay when the shipment arrives. No card was charged.') }}</p>
+  @if(($order->payment_status ?? '') === 'paid')
+  <p>{{ __('Paid online by') }} {{ $order->payment_method === 'paypal' ? 'PayPal' : __('card') }}. {{ __('The order can now be packed and shipped.') }}</p>
   @else
-  <p>{{ __('Payment') }}: {{ $order->payment_method }} ({{ $order->payment_status }}).</p>
+  <p>{{ __('Payment is still required. This order is not confirmed and will not ship until card or PayPal payment succeeds. No charge has been created in this environment.') }}</p>
   @endif
   <h2 class="h6 mt-4">{{ __('Ship to') }}</h2>
   <p>

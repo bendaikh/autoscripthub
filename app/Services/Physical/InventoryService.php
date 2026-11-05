@@ -152,6 +152,7 @@ class InventoryService
 
         $query = DB::table('physical_order_items as i')
             ->join('physical_orders as o', 'o.id', '=', 'i.physical_order_id')
+            ->where('o.payment_status', 'paid')
             ->where('o.fulfillment_status', 'pending')
             ->where('o.stock_committed', 0);
 

@@ -61,7 +61,7 @@
         <ul class="hv-pills">
           @if(\Fickrr\Support\Store::isPhysical())
           <li class="hv-pill"><i class="fa fa-truck"></i>{{ __('Ships to your address') }}</li>
-          <li class="hv-pill"><i class="fa fa-money"></i>{{ __('Cash on delivery') }}</li>
+          <li class="hv-pill"><i class="fa fa-credit-card"></i>{{ __('Card or PayPal') }}</li>
           <li class="hv-pill"><i class="fa fa-archive"></i>{{ __('Stock is tracked') }}</li>
           <li class="hv-pill"><i class="fa fa-envelope"></i>{{ __('Shipping updates by email') }}</li>
           @else
@@ -114,7 +114,7 @@
             </div>
             <div class="hv-dash-panel" style="padding:1.25rem;">
               <h6>{{ __('Physical products store') }}</h6>
-              <p class="mb-2">{{ __('Orders are shipped. Checkout asks for a name, phone, and full address. Cash on delivery is available.') }}</p>
+              <p class="mb-2">{{ __('Orders are shipped after you pay by card or PayPal. Checkout asks for a name, phone, and full address.') }}</p>
               <p class="mb-0"><a href="{{ \Fickrr\Support\Store::url() }}">{{ parse_url(\Fickrr\Support\Store::url(), PHP_URL_HOST) }}</a></p>
             </div>
             @else
@@ -201,7 +201,7 @@
       </div>
       <div class="hv-trust-item">
         <i class="fa fa-money"></i>
-        <span><strong>{{ __('Cash on delivery') }}</strong><span>{{ __('Pay when the order arrives') }}</span></span>
+        <span><strong>{{ __('Card or PayPal') }}</strong><span>{{ __('Pay online before it ships') }}</span></span>
       </div>
       <div class="hv-trust-item">
         <i class="fa fa-archive"></i>
@@ -445,7 +445,7 @@
         <div class="col-lg-5 mb-4 mb-lg-0">
           <div class="hv-stats-label">{{ \Fickrr\Support\Store::name() }}</div>
           <h2>{{ __('Physical products, shipped to you') }}</h2>
-          <p>{{ __('Checkout collects your name, phone, and delivery address. Cash on delivery is available, and you pay when the order arrives.') }}</p>
+          <p>{{ __('Checkout collects your name, phone, and delivery address. Pay by card or PayPal before the order ships.') }}</p>
           <a class="hv-btn hv-btn--primary" href="{{ URL::to('/shop') }}">{{ __('Browse products') }}<i class="dwg-arrow-right"></i></a>
         </div>
         <div class="col-lg-7">
@@ -453,9 +453,9 @@
             <div class="col-6 col-md-3">
               <div class="hv-stat">
                 <span class="hv-stat-icon"><i class="fa fa-money"></i></span>
-                <strong>{{ __('COD') }}</strong>
-                <span>{{ __('Cash on delivery') }}</span>
-                <small>{{ __('No card charge at checkout') }}</small>
+                <strong>{{ __('Pay') }}</strong>
+                <span>{{ __('Card or PayPal') }}</span>
+                <small>{{ __('Required before shipping') }}</small>
               </div>
             </div>
             <div class="col-6 col-md-3">
@@ -615,7 +615,7 @@
         <div class="hv-cta">
           @if($hvPhysicalStore)
           <h3>{{ __('Order a physical product') }}</h3>
-          <p>{{ __('Add a delivery address at checkout. Cash on delivery is available, and nothing is sent as a download.') }}</p>
+          <p>{{ __('Add a delivery address at checkout and pay by card or PayPal. Nothing is sent as a download.') }}</p>
           <div>
             <a class="hv-btn hv-btn--light" href="{{ URL::to('/shop') }}">{{ __('Browse products') }}<i class="dwg-arrow-right"></i></a>
           </div>

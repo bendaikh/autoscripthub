@@ -29,24 +29,34 @@ return [
 
     'meta_description' => env(
         'STORE_META_DESCRIPTION',
-        'ESIPRES is a physical products store at esipres.com. Browse items, check out with a delivery address, and pay cash on delivery.'
+        'ESIPRES is a physical products store at esipres.com. Pay by card or PayPal, then the order ships to your address.'
     ),
 
-    'default_payment' => env('STORE_DEFAULT_PAYMENT', 'cod'),
-
-    'cod_enabled' => filter_var(env('STORE_COD_ENABLED', true), FILTER_VALIDATE_BOOLEAN),
+    'default_payment' => env('STORE_DEFAULT_PAYMENT', 'stripe'),
 
     'stripe_enabled' => filter_var(env('STORE_STRIPE_ENABLED', true), FILTER_VALIDATE_BOOLEAN),
 
     /*
-    | Live card charges stay off unless this is explicitly true AND the app
-    | is running in production. Local and test requests never create a charge.
+    | Live charges stay off unless the matching flag is true, the app is in
+    | production, and the provider credentials are present. Local and test
+    | requests never create a charge.
     */
     'stripe_charges_enabled' => filter_var(env('STRIPE_CHARGES_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
 
     'stripe_secret' => env('STRIPE_SECRET'),
 
     'stripe_key' => env('STRIPE_KEY'),
+
+    'paypal_enabled' => filter_var(env('PAYPAL_ENABLED', true), FILTER_VALIDATE_BOOLEAN),
+
+    'paypal_charges_enabled' => filter_var(env('PAYPAL_CHARGES_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
+
+    'paypal' => [
+        'mode' => env('PAYPAL_MODE', 'sandbox'),
+        'client_id' => env('PAYPAL_CLIENT_ID'),
+        'secret' => env('PAYPAL_CLIENT_SECRET'),
+        'webhook_id' => env('PAYPAL_WEBHOOK_ID'),
+    ],
 
     /*
     | When true (production deployment env), boot refuses an empty or shared

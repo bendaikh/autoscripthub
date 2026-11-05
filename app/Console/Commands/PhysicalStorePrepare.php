@@ -24,8 +24,8 @@ class PhysicalStorePrepare extends Command
         $this->line('Store mode: ' . Store::mode());
         $this->line('Public URL: ' . Store::url());
         $this->line('Database: ' . ($database === '' ? '(empty)' : $database));
-        $this->line('Cash on delivery: ' . (config('store.cod_enabled') ? 'on' : 'off'));
         $this->line('Stripe charges: ' . (\Fickrr\Services\Physical\StripeChargePolicy::chargesEnabled() ? 'on' : 'off (no card charge will be created)'));
+        $this->line('PayPal charges: ' . (\Fickrr\Services\Physical\PayPalChargePolicy::chargesEnabled() ? 'on' : 'off (no PayPal payment will be created)'));
 
         if ($violation !== null) {
             $this->error($violation);

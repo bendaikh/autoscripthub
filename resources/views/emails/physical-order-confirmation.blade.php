@@ -10,10 +10,10 @@
         We received order <strong>{{ $order->order_number }}</strong> at {{ $storeName }}.
         This is a physical product. There is no file to download.
     </p>
-    @if($order->payment_method === 'cod')
-    <p>Payment method: cash on delivery. You pay {{ number_format((float) $order->total, 2) }} {{ $order->currency }} when the order is delivered. No card has been charged.</p>
+    @if(($order->payment_status ?? '') === 'paid')
+    <p>Payment by {{ $order->payment_method === 'paypal' ? 'PayPal' : 'card' }} is complete. We will ship the order to the address below.</p>
     @else
-    <p>Payment method: card. Status: {{ $order->payment_status }}.</p>
+    <p>Payment by card or PayPal is still required. Nothing has been charged, and the order will not ship until that payment succeeds. Total due: {{ number_format((float) $order->total, 2) }} {{ $order->currency }}.</p>
     @endif
     <p>
         Ship to:<br>

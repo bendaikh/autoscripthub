@@ -5,7 +5,10 @@ namespace Tests\Feature;
 use Fickrr\Services\Physical\CheckoutValidationException;
 use Fickrr\Services\Physical\InsufficientStockException;
 use Fickrr\Services\Physical\InvalidStatusTransitionException;
+use Fickrr\Services\Physical\OnlinePaymentService;
+use Fickrr\Services\Physical\PayPalChargePolicy;
 use Fickrr\Services\Physical\PhysicalOrderService;
+use Fickrr\Services\Physical\StripeChargePolicy;
 use Fickrr\Mail\PhysicalOrderMail;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -21,14 +24,16 @@ class PhysicalStoreOrderTest extends TestCase
         $this->bootPhysicalSchema();
         config([
             'store.mode' => 'physical',
-            'store.cod_enabled' => true,
             'store.stripe_enabled' => true,
             'store.stripe_charges_enabled' => false,
+            'store.paypal_enabled' => true,
+            'store.paypal_charges_enabled' => false,
             'store.shipping.flat_fee' => 4,
             'store.shipping.free_over' => null,
             'store.currency' => 'USD',
         ]);
         Mail::fake();
+        OnlinePaymentService::$liveApiCalls = 0;
     }
 
     protected function tearDown(): void
@@ -37,18 +42,22 @@ class PhysicalStoreOrderTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_cod_checkout_creates_a_pending_order_without_reducing_stock(): void
+    public function test_card_checkout_stays_unpaid_and_does_not_reduce_stock(): void
     {
         $itemId = $this->item('Mug', 12.5, 5, 1.5, 200);
 
-        $order = $this->orders()->place($this->customer(), [[
+        $order = $this->orders()->place($this->customer(['payment_method' => 'stripe']), [[
             'item_id' => $itemId,
             'quantity' => 2,
         ]]);
+        $started = app(OnlinePaymentService::class)->begin($order);
 
+        $this->assertNull($started['redirect']);
+        $this->assertSame(0, OnlinePaymentService::$liveApiCalls);
+        $this->assertFalse(StripeChargePolicy::chargesEnabled());
         $this->assertSame('pending', $order->fulfillment_status);
-        $this->assertSame('cod', $order->payment_method);
-        $this->assertSame('cod_due', $order->payment_status);
+        $this->assertSame('stripe', $order->payment_method);
+        $this->assertSame('pending', $order->payment_status);
         $this->assertSame(0, (int) $order->stock_committed);
         $this->assertSame('Ada Lovelace', $order->customer_name);
         $this->assertSame('1 Market Street', $order->address);
@@ -61,6 +70,38 @@ class PhysicalStoreOrderTest extends TestCase
         });
     }
 
+    public function test_paypal_checkout_stays_unpaid_without_calling_paypal(): void
+    {
+        $itemId = $this->item('Bowl', 9, 3, 0, 100);
+        $order = $this->orders()->place($this->customer(['payment_method' => 'paypal']), [[
+            'item_id' => $itemId,
+            'quantity' => 1,
+        ]]);
+        $started = app(OnlinePaymentService::class)->begin($order);
+
+        $this->assertNull($started['redirect']);
+        $this->assertSame(0, OnlinePaymentService::$liveApiCalls);
+        $this->assertFalse(PayPalChargePolicy::chargesEnabled());
+        $this->assertSame('paypal', $order->payment_method);
+        $this->assertSame('pending', $order->payment_status);
+        $this->assertSame(3, (int) DB::table('items')->where('item_id', $itemId)->value('stock_quantity'));
+    }
+
+    public function test_cash_on_delivery_is_rejected(): void
+    {
+        $itemId = $this->item('Plate', 4, 2, 0, 50);
+        try {
+            $this->orders()->place($this->customer(['payment_method' => 'cod']), [[
+                'item_id' => $itemId,
+                'quantity' => 1,
+            ]]);
+            $this->fail('Cash on delivery must be rejected.');
+        } catch (CheckoutValidationException $e) {
+            $this->assertStringContainsString('card or PayPal', $e->getMessage());
+        }
+        $this->assertSame(0, DB::table('physical_orders')->count());
+    }
+
     public function test_confirming_an_order_decrements_stock_and_cannot_go_negative(): void
     {
         $itemId = $this->item('Notebook', 8, 2, 0, 100);
@@ -69,21 +110,33 @@ class PhysicalStoreOrderTest extends TestCase
             'item_id' => $itemId,
             'quantity' => 2,
         ]]);
+        $second = $orders->place($this->customer(), [[
+            'item_id' => $itemId,
+            'quantity' => 1,
+        ]]);
+        $this->assertSame('pending', $second->payment_status);
+        $this->assertSame(2, (int) DB::table('items')->where('item_id', $itemId)->value('stock_quantity'));
 
         try {
-            $orders->place($this->customer(), [[
-                'item_id' => $itemId,
-                'quantity' => 1,
-            ]]);
-            $this->fail('A second pending order should not reserve the same units.');
-        } catch (InsufficientStockException $e) {
-            $this->assertStringContainsString('Not enough stock', $e->getMessage());
+            $orders->transition((int) $order->id, 'confirmed');
+            $this->fail('Unpaid orders cannot be confirmed.');
+        } catch (InvalidStatusTransitionException $e) {
+            $this->assertStringContainsString('Online payment is required', $e->getMessage());
         }
 
-        $confirmed = $orders->transition((int) $order->id, 'confirmed');
+        $confirmed = $orders->recordPayment((int) $order->id, 'pi_test_notebook');
         $this->assertSame('confirmed', $confirmed->fulfillment_status);
         $this->assertSame(1, (int) $confirmed->stock_committed);
         $this->assertSame(0, (int) DB::table('items')->where('item_id', $itemId)->value('stock_quantity'));
+
+        try {
+            $orders->recordPayment((int) $second->id, 'pi_test_notebook_late');
+            $this->fail('The second payment cannot confirm more stock than exists.');
+        } catch (InsufficientStockException $e) {
+            $this->assertStringContainsString('Not enough stock', $e->getMessage());
+        }
+        $this->assertSame('paid', DB::table('physical_orders')->where('id', $second->id)->value('payment_status'));
+        $this->assertSame('pending', DB::table('physical_orders')->where('id', $second->id)->value('fulfillment_status'));
 
         $orders->transition((int) $order->id, 'cancelled');
         $this->assertSame(2, (int) DB::table('items')->where('item_id', $itemId)->value('stock_quantity'));
@@ -107,7 +160,7 @@ class PhysicalStoreOrderTest extends TestCase
 
         $this->assertSame('pending', DB::table('physical_orders')->where('id', $order->id)->value('fulfillment_status'));
 
-        $orders->transition((int) $order->id, 'confirmed');
+        $orders->recordPayment((int) $order->id, 'pi_test_lamp');
         $shipped = $orders->transition((int) $order->id, 'shipped', 'TRACK1');
         $this->assertSame('shipped', $shipped->fulfillment_status);
         $this->assertSame('TRACK1', $shipped->tracking_number);
@@ -142,7 +195,7 @@ class PhysicalStoreOrderTest extends TestCase
             'variant_id' => $variantId,
             'quantity' => 1,
         ]]);
-        $orders->transition((int) $order->id, 'confirmed');
+        $orders->recordPayment((int) $order->id, 'pi_test_shirt');
 
         $this->assertSame(0, (int) DB::table('item_variants')->where('id', $variantId)->value('stock_quantity'));
         $this->assertSame(9, (int) DB::table('items')->where('item_id', $itemId)->value('stock_quantity'));
@@ -153,21 +206,23 @@ class PhysicalStoreOrderTest extends TestCase
         $this->assertSame(1, (int) DB::table('item_variants')->where('id', $variantId)->value('stock_quantity'));
     }
 
-    public function test_stripe_checkout_does_not_create_an_order_or_a_charge(): void
+    public function test_disabled_stripe_does_not_call_the_gateway(): void
     {
-        $itemId = $this->item('Bowl', 6, 3, 0, 80);
+        config([
+            'store.stripe_charges_enabled' => true,
+            'store.stripe_secret' => '',
+            'store.stripe_key' => '',
+        ]);
+        $itemId = $this->item('Cup', 6, 3, 0, 80);
+        $order = $this->orders()->place($this->customer(['payment_method' => 'stripe']), [[
+            'item_id' => $itemId,
+            'quantity' => 1,
+        ]]);
+        app(OnlinePaymentService::class)->begin($order);
 
-        try {
-            $this->orders()->place($this->customer(['payment_method' => 'stripe']), [[
-                'item_id' => $itemId,
-                'quantity' => 1,
-            ]]);
-            $this->fail('Stripe should be refused while charges are off.');
-        } catch (CheckoutValidationException $e) {
-            $this->assertStringContainsString('no charge was created', strtolower($e->getMessage()));
-        }
-
-        $this->assertSame(0, DB::table('physical_orders')->count());
+        $this->assertFalse(StripeChargePolicy::chargesEnabled());
+        $this->assertSame(0, OnlinePaymentService::$liveApiCalls);
+        $this->assertSame('pending', $order->payment_status);
         $this->assertSame(3, (int) DB::table('items')->where('item_id', $itemId)->value('stock_quantity'));
     }
 
@@ -206,7 +261,7 @@ class PhysicalStoreOrderTest extends TestCase
         $this->assertSame(2, (int) $landingOrder->quantity);
         $this->assertNull($page->lp_product_file);
 
-        $this->orders()->transition((int) $order->id, 'confirmed');
+        $this->orders()->recordPayment((int) $order->id, 'pi_test_landing');
         $this->assertSame(2, (int) DB::table('landing_pages')->where('lp_id', $lpId)->value('lp_stock_quantity'));
         $this->assertSame('confirmed', DB::table('landing_page_orders')->where('order_token', $order->landing_order_token)->value('fulfillment_status'));
     }
@@ -225,7 +280,7 @@ class PhysicalStoreOrderTest extends TestCase
             'address' => '1 Market Street',
             'city' => 'Lisbon',
             'country' => 'Portugal',
-            'payment_method' => 'cod',
+            'payment_method' => 'stripe',
         ], $overrides);
     }
 
@@ -289,5 +344,7 @@ class PhysicalStoreOrderTest extends TestCase
 
         $migration = require base_path('database/migrations/2026_11_05_180000_add_physical_store_tables.php');
         $migration->up();
+        $reference = require base_path('database/migrations/2026_11_05_190000_add_physical_payment_reference.php');
+        $reference->up();
     }
 }

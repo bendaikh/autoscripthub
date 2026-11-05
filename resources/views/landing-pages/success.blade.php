@@ -279,8 +279,10 @@
             <p class="download-description">
                 {{ __('Status') }}: @include('partials.physical-status', ['order' => (object) ['fulfillment_status' => $order->fulfillment_status ?? 'pending']])
             </p>
-            @if(($order->payment_method ?? '') === 'cod')
-            <p class="download-description">{{ __('Payment is cash on delivery. No card was charged.') }}</p>
+            @if(($order->payment_status ?? '') !== 'completed' && ($order->payment_status ?? '') !== 'paid')
+            <p class="download-description">{{ __('Payment by card or PayPal is still required. This order is not confirmed and will not ship until that payment succeeds.') }}</p>
+            @else
+            <p class="download-description">{{ __('Payment received. The order will ship to the address below.') }}</p>
             @endif
             @if(!empty($order->address))
             <p class="download-description">

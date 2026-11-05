@@ -15,9 +15,7 @@
         {{ $order->address }}<br>
         {{ $order->city }}, {{ $order->country }}
     </p>
-    @if($order->payment_method === 'cod')
-    <p>Please have {{ number_format((float) $order->total, 2) }} {{ $order->currency }} ready for cash on delivery.</p>
-    @endif
+    <p>This shipment was paid online before it left. There is nothing to pay on delivery.</p>
     <p>Questions: <a href="mailto:{{ $supportEmail }}">{{ $supportEmail }}</a></p>
 </body>
 </html>

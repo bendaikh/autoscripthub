@@ -139,7 +139,7 @@
         'i18n' => [
             'onlyPrice' => $lpT('Only'),
             'paymentNote' => $lpProductKind === 'physical'
-                ? $lpT('Ships to your address • Cash on delivery available')
+                ? $lpT('Pay by card or PayPal • Then we ship it')
                 : (($lpProductKind === 'sheet' || $lpProductKind === 'product')
                 ? $lpT('One-time payment • Instant download')
                 : $lpT('One-time payment • Instant access')),
@@ -173,7 +173,7 @@
             'finalHeading' => $lpT('Ready to get started?'),
             'featuresIncluded' => $lpT('features included'),
             'secureNote' => $lpProductKind === 'physical'
-                ? $lpT('Cash on delivery. No file is sent.')
+                ? $lpT('Pay online, then we ship it. No file is sent.')
                 : $lpT('Secure checkout with PayPal or card'),
             'prev' => $lpT('Previous'),
             'next' => $lpT('Next'),
@@ -777,26 +777,24 @@
                         $lpShip = (float) ($landing_page->lp_shipping_fee ?? 0) + (float) config('store.shipping.flat_fee', 0);
                     @endphp
                     <p class="text-muted">{{ $lpT('Shipping') }}: {{ number_format($lpShip, 2) }} {{ $landing_page->lp_currency ?? 'USD' }} {{ $lpT('per unit, plus any store flat fee already included above.') }}</p>
-                    <div class="payment-option selected" onclick="selectPayment('cod')">
+                    <div class="payment-option selected" onclick="selectPayment('stripe')">
                         <div class="d-flex align-items-center">
-                            <input type="radio" name="payment_method" id="cod_radio" value="cod" checked>
-                            <div>
-                                <h5><i class="fas fa-money-bill"></i> {{ $lpT('Cash on delivery') }}</h5>
-                                <p>{{ $lpT('Pay when the order is delivered. No card is charged.') }}</p>
-                            </div>
-                        </div>
-                    </div>
-                    @if(config('store.stripe_enabled'))
-                    <div class="payment-option" onclick="selectPayment('stripe')">
-                        <div class="d-flex align-items-center">
-                            <input type="radio" name="payment_method" id="stripe_radio" value="stripe">
+                            <input type="radio" name="payment_method" id="stripe_radio" value="stripe" checked>
                             <div>
                                 <h5><i class="fas fa-credit-card"></i> {{ $lpT('Card') }}</h5>
-                                <p>{{ $lpT('Card payment stays off until the live store turns charges on.') }}</p>
+                                <p>{{ $lpT('Pay by card, then we ship the order. No charge is taken until card payments are turned on.') }}</p>
                             </div>
                         </div>
                     </div>
-                    @endif
+                    <div class="payment-option" onclick="selectPayment('paypal')">
+                        <div class="d-flex align-items-center">
+                            <input type="radio" name="payment_method" id="paypal_radio" value="paypal">
+                            <div>
+                                <h5><i class="fab fa-paypal"></i> {{ $lpT('PayPal') }}</h5>
+                                <p>{{ $lpT('Pay with PayPal, then we ship the order.') }}</p>
+                            </div>
+                        </div>
+                    </div>
                     <button type="submit" id="paymentBtn" class="lp-modal-submit">
                         <i class="fas fa-box mr-2"></i> {{ $lpT('Place order') }}
                     </button>
@@ -926,7 +924,7 @@ $('#paymentModal').on('hidden.bs.modal', resetPaymentModal);
 $('#paymentForm').on('submit', function (e) {
     var method = $('input[name="payment_method"]:checked').val();
     if (typeof window.lpTrack === 'function') window.lpTrack('initiate_checkout', { method: method || null, has_email: !!$('#customer_email').val() });
-    if (method === 'paypal' || method === 'cod') {
+    if (method === 'paypal' || method === 'stripe' || method === 'cod') {
         return true;
     }
     e.preventDefault();

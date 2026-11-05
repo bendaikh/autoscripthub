@@ -525,8 +525,8 @@ class LandingPageContent
             ];
             $items[] = [
                 'icon' => 'money',
-                'title' => self::t('Cash on delivery'),
-                'text' => self::t('Pay when the order arrives. No download and no subscription'),
+                'title' => self::t('Card or PayPal'),
+                'text' => self::t('Pay online first. The order ships after that payment is confirmed'),
             ];
         } else {
         $items[] = [
@@ -648,7 +648,7 @@ class LandingPageContent
             ];
             $faq[] = [
                 'q' => self::t('How do I pay?'),
-                'a' => self::t('Cash on delivery is available. You pay when the order is delivered.'),
+                'a' => self::t('Pay by card or PayPal at checkout. The order ships after that payment is confirmed.'),
             ];
         } else {
         $faq[] = [
@@ -684,7 +684,7 @@ class LandingPageContent
         if ($kind === 'physical') {
             $faq[] = [
                 'q' => self::t('Which payment methods can I use?'),
-                'a' => self::t('Cash on delivery is available at checkout. You pay when the order is delivered.'),
+                'a' => self::t('Card and PayPal. The order is confirmed only after the payment succeeds.'),
             ];
         } else {
         $faq[] = [

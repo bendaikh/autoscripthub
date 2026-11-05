@@ -4,6 +4,8 @@ namespace Fickrr\Http\Controllers;
 
 use Fickrr\Services\Physical\CheckoutValidationException;
 use Fickrr\Services\Physical\InsufficientStockException;
+use Fickrr\Services\Physical\OnlinePaymentService;
+use Fickrr\Services\Physical\PayPalChargePolicy;
 use Fickrr\Services\Physical\PhysicalOrderService;
 use Fickrr\Services\Physical\ShippingCalculator;
 use Fickrr\Services\Physical\StripeChargePolicy;
@@ -46,10 +48,64 @@ class PhysicalCheckoutController extends Controller
             return redirect()->back()->with('error', $e->getMessage())->withInput();
         }
 
+        return $this->redirectAfterOrder($order);
+    }
+
+    public function paypalReturn(Request $request, PhysicalOrderService $orders)
+    {
+        if (!PayPalChargePolicy::chargesEnabled()) {
+            abort(404);
+        }
+
+        $paypalOrderId = (string) $request->query('token', '');
+        if ($paypalOrderId === '') {
+            abort(404);
+        }
+
+        $capture = \Illuminate\Support\Facades\Http::withToken($this->paypalAccessToken())
+            ->acceptJson()
+            ->post(PayPalChargePolicy::apiBase() . '/v2/checkout/orders/' . urlencode($paypalOrderId) . '/capture');
+        $body = $capture->json();
+        $reference = (string) ($body['purchase_units'][0]['payments']['captures'][0]['id'] ?? '');
+        $orderNumber = (string) ($body['purchase_units'][0]['reference_id'] ?? '');
+        $status = (string) ($body['status'] ?? '');
+        if ($orderNumber === '' || $reference === '' || $status !== 'COMPLETED') {
+            return redirect('/')->with('error', __('PayPal payment was not completed. The order was not confirmed.'));
+        }
+
+        $order = $orders->findByNumber($orderNumber);
+        if (!$order) {
+            abort(404);
+        }
+
+        if ($order->fulfillment_status === 'pending') {
+            $orders->recordPayment((int) $order->id, $reference);
+        }
+
+        return redirect()->route('physical.order.show', ['orderNumber' => $order->order_number]);
+    }
+
+    private function redirectAfterOrder(object $order)
+    {
         $this->clearPendingCart();
+        $payment = app(OnlinePaymentService::class)->begin($order);
+        if (!empty($payment['redirect'])) {
+            return redirect()->away($payment['redirect']);
+        }
 
         return redirect()->route('physical.order.show', ['orderNumber' => $order->order_number])
-            ->with('success', __('Order received. We will ship it to the address you entered.'));
+            ->with('success', __('Delivery details saved. Pay by card or PayPal before the order is confirmed. No charge was created.'));
+    }
+
+    private function paypalAccessToken(): string
+    {
+        $response = \Illuminate\Support\Facades\Http::asForm()
+            ->withBasicAuth((string) config('store.paypal.client_id'), (string) config('store.paypal.secret'))
+            ->post(PayPalChargePolicy::apiBase() . '/v1/oauth2/token', [
+                'grant_type' => 'client_credentials',
+            ]);
+
+        return (string) ($response->json('access_token') ?? '');
     }
 
     public function show(string $orderNumber, PhysicalOrderService $orders, ShippingCalculator $shipping)
@@ -94,13 +150,8 @@ class PhysicalCheckoutController extends Controller
             abort(404);
         }
 
-        if ($order->fulfillment_status === 'pending') {
-            DB::table('physical_orders')->where('id', $order->id)->update([
-                'payment_status' => 'paid',
-                'payment_method' => 'stripe',
-                'updated_at' => now(),
-            ]);
-            $orders->transition((int) $order->id, 'confirmed');
+        if ($order->fulfillment_status === 'pending' && ($session->payment_status ?? '') === 'paid') {
+            $orders->recordPayment((int) $order->id, (string) ($session->payment_intent ?? $session->id));
         }
 
         return redirect()->route('physical.order.show', ['orderNumber' => $order->order_number]);

@@ -5,8 +5,8 @@ namespace Fickrr\Services\Physical;
 class StripeChargePolicy
 {
     /**
-     * A live Stripe charge is allowed only in production, and only when the
-     * deployment env opts in. Development and tests never reach the Stripe API.
+     * A live Stripe charge is allowed only in production, only when the
+     * deployment env opts in, and only when both API keys are present.
      */
     public static function chargesEnabled(): bool
     {
@@ -18,11 +18,16 @@ class StripeChargePolicy
             return false;
         }
 
-        return app()->environment('production');
+        if (!app()->environment('production')) {
+            return false;
+        }
+
+        return trim((string) config('store.stripe_secret')) !== ''
+            && trim((string) config('store.stripe_key')) !== '';
     }
 
     public static function refusalMessage(): string
     {
-        return 'Card payment is turned off, so no charge was created. Choose cash on delivery.';
+        return 'Card payment is not turned on, so no charge was created. The order stays unpaid until a card payment succeeds.';
     }
 }

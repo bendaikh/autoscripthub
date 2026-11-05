@@ -808,6 +808,7 @@ Route::get('/checkout', 'CommonController@show_checkout');
 Route::post('/checkout/physical', 'PhysicalCheckoutController@store')->name('physical.checkout');
 Route::get('/order/{orderNumber}', 'PhysicalCheckoutController@show')->name('physical.order.show');
 Route::get('/checkout/stripe/return', 'PhysicalCheckoutController@stripeReturn')->name('physical.stripe.return');
+Route::get('/checkout/paypal/return', 'PhysicalCheckoutController@paypalReturn')->name('physical.paypal.return');
 Route::get('/checkout/whop-frame', 'CommonController@whop_inline_frame');
 Route::post('/checkout', ['as' => 'checkout','uses'=>'CommonController@view_checkout']);
 Route::post('/2checkout', ['as' => '2checkout','uses'=>'ItemController@confirm_2checkout']);

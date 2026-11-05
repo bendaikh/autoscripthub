@@ -25,7 +25,7 @@ class PhysicalStoreFoundationTest extends TestCase
                 'address' => 'x',
                 'city' => '',
                 'country' => '',
-                'payment_method' => 'cod',
+                'payment_method' => 'stripe',
             ]);
             $this->fail('Expected validation to fail.');
         } catch (CheckoutValidationException $e) {
@@ -103,7 +103,7 @@ class PhysicalStoreFoundationTest extends TestCase
         $src = file_get_contents(base_path('resources/views/pages/index.blade.php'));
 
         $this->assertStringContainsString(
-            'Cash on delivery is available, and you pay when the order arrives.',
+            'Pay by card or PayPal before the order ships.',
             $src
         );
         $this->assertStringContainsString('$hvFallbackReviews = $hvPhysicalStore ? [] : [', $src);
@@ -137,6 +137,10 @@ class PhysicalStoreFoundationTest extends TestCase
         $this->assertStringContainsString('DB_DATABASE=esipres', $contents);
         $this->assertStringContainsString('STORE_ENFORCE_DATABASE=true', $contents);
         $this->assertStringContainsString('STRIPE_CHARGES_ENABLED=false', $contents);
+        $this->assertStringContainsString('PAYPAL_CHARGES_ENABLED=false', $contents);
+        $this->assertStringContainsString('PAYPAL_CLIENT_ID=', $contents);
+        $this->assertDoesNotMatchRegularExpression('/^PAYPAL_CLIENT_SECRET=.+$/m', $contents);
+        $this->assertDoesNotMatchRegularExpression('/^STRIPE_SECRET=.+$/m', $contents);
         $this->assertStringNotContainsString('DB_DATABASE=autoscripthub', $contents);
         $this->assertStringNotContainsString('sk_live_', $contents);
         $this->assertDoesNotMatchRegularExpression('/^DB_PASSWORD=.+$/m', $contents);

@@ -77,7 +77,7 @@
             <button class="btn btn-primary" type="submit">{{ __('Save status') }}</button>
           </form>
           @endif
-          <p class="text-muted mt-3 mb-0">{{ __('Confirming the order reduces stock. Cancelling or marking a confirmed order returned puts that stock back. Stock cannot go below zero.') }}</p>
+          <p class="text-muted mt-3 mb-0">{{ __('An order can be confirmed only after card or PayPal payment is recorded. Confirming it reduces stock. Cancelling or marking a confirmed order returned puts that stock back. Stock cannot go below zero.') }}</p>
         </div>
       </div>
     </div>
