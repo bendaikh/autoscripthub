@@ -7,6 +7,7 @@ use Fickrr\Services\Physical\CheckoutValidationException;
 use Fickrr\Services\Physical\PhysicalOrderService;
 use Fickrr\Services\Physical\ShippingCalculator;
 use Fickrr\Services\Physical\StripeChargePolicy;
+use Fickrr\Support\Store;
 use Fickrr\Support\StoreDatabaseGuard;
 use Tests\TestCase;
 
@@ -78,6 +79,23 @@ class PhysicalStoreFoundationTest extends TestCase
     {
         $page = (object) ['lp_product_kind' => 'script'];
         $this->assertSame('physical', LandingPageContent::productKind($page));
+    }
+
+    public function test_physical_newsletter_drops_script_theme_template_wording(): void
+    {
+        config(['store.mode' => 'physical']);
+        $text = Store::newsletterText('Want more script,themes & templates? Subscribe');
+
+        $this->assertStringNotContainsString('script', strtolower($text));
+        $this->assertStringNotContainsString('theme', strtolower($text));
+        $this->assertStringNotContainsString('template', strtolower($text));
+        $this->assertStringContainsString('delivery', strtolower($text));
+
+        config(['store.mode' => 'digital']);
+        $this->assertSame(
+            'Want more script,themes & templates? Subscribe',
+            Store::newsletterText('Want more script,themes & templates? Subscribe')
+        );
     }
 
     public function test_physical_homepage_hides_invented_digital_claims(): void

@@ -93,6 +93,37 @@ class Store
     }
 
     /**
+     * Public newsletter helper text. Physical mode never repeats a stored
+     * line about scripts, themes, or templates.
+     */
+    public static function newsletterText(?string $stored): string
+    {
+        $stored = trim((string) $stored);
+        if (!self::isPhysical()) {
+            return $stored;
+        }
+
+        if ($stored === '' || self::looksDigitalCopy($stored) || self::mentionsDigitalCatalog($stored)) {
+            return (string) __('Product news and delivery updates. Nothing to download.');
+        }
+
+        return $stored;
+    }
+
+    public static function mentionsDigitalCatalog(string $value): bool
+    {
+        $value = strtolower($value);
+
+        foreach (['script', 'theme', 'template'] as $needle) {
+            if (str_contains($value, $needle)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Customer-facing download routes return this redirect in physical mode.
      */
     public static function denyDigitalFulfillment()

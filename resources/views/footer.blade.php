@@ -168,7 +168,7 @@
                     <button class="btn btn-primary" type="submit" name="subscribe" id="mc-embedded-subscribe">{{ __('Subscribe') }}</button>
                   </div>
                 </div>
-                <small class="form-text text-light opacity-50" id="mc-helper">{{ $allsettings->site_newsletter }}</small>
+                <small class="form-text text-light opacity-50" id="mc-helper">{{ \Fickrr\Support\Store::newsletterText($allsettings->site_newsletter ?? '') }}</small>
                 <div class="subscribe-status"></div>
               </form>
             </div>

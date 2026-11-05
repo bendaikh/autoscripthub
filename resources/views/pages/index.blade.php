@@ -686,7 +686,7 @@
       <span class="hv-news-icon"><i class="dwg-mail"></i></span>
       <div class="hv-news-text">
         <h3>{{ __('Stay Updated with New Products & Offers') }}</h3>
-        <p>{{ $allsettings->site_newsletter }}</p>
+        <p>{{ \Fickrr\Support\Store::newsletterText($allsettings->site_newsletter ?? '') }}</p>
       </div>
       <form class="hv-news-form validate" action="{{ route('newsletter') }}" method="post" name="mc-embedded-subscribe-form" id="home_news_form" enctype="multipart/form-data">
         {{ csrf_field() }}
