@@ -2,7 +2,7 @@
 
 namespace Tests\Unit;
 
-use App\Http\Controllers\Admin\LandingPageController;
+use Fickrr\Http\Controllers\Admin\LandingPageController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
