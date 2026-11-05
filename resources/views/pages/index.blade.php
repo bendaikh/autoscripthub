@@ -194,6 +194,24 @@
 <div class="hv-trust-wrap">
   <div class="container">
     <div class="hv-trust">
+      @if(\Fickrr\Support\Store::isPhysical())
+      <div class="hv-trust-item">
+        <i class="fa fa-cube"></i>
+        <span><strong>{{ __('Physical products') }}</strong><span>{{ __('Shipped to your address') }}</span></span>
+      </div>
+      <div class="hv-trust-item">
+        <i class="fa fa-money"></i>
+        <span><strong>{{ __('Cash on delivery') }}</strong><span>{{ __('Pay when the order arrives') }}</span></span>
+      </div>
+      <div class="hv-trust-item">
+        <i class="fa fa-archive"></i>
+        <span><strong>{{ __('Stock is checked') }}</strong><span>{{ __('Before an order is confirmed') }}</span></span>
+      </div>
+      <div class="hv-trust-item">
+        <i class="fa fa-truck"></i>
+        <span><strong>{{ __('Order status') }}</strong><span>{{ __('Pending through delivered') }}</span></span>
+      </div>
+      @else
       <div class="hv-trust-item">
         <span class="hv-avatars">
           <span class="hv-avatar" style="background:#7c3aed;">A</span>
@@ -202,13 +220,13 @@
           <span class="hv-avatar" style="background:#f59e0b;">K</span>
         </span>
         <span class="ml-2">
-          <strong>{{ \Fickrr\Support\Store::isPhysical() ? __('ESIPRES') : __('Trusted by Customers Worldwide') }}</strong>
-          <span class="hv-stars">@if(\Fickrr\Support\Store::isPhysical())<span class="text-muted">{{ __('A physical products store') }}</span>@else&#9733;&#9733;&#9733;&#9733;&#9733; <span class="text-muted">{{ __('Rated by our community') }}</span>@endif</span>
+          <strong>{{ __('Trusted by Customers Worldwide') }}</strong>
+          <span class="hv-stars">&#9733;&#9733;&#9733;&#9733;&#9733; <span class="text-muted">{{ __('Rated by our community') }}</span></span>
         </span>
       </div>
       <div class="hv-trust-item">
         <i class="fa fa-bolt"></i>
-        <span><strong>{{ \Fickrr\Support\Store::isPhysical() ? __('Ships to you') : __('Instant Access') }}</strong><span>{{ \Fickrr\Support\Store::isPhysical() ? __('After the order is confirmed') : __('After purchase') }}</span></span>
+        <span><strong>{{ __('Instant Access') }}</strong><span>{{ __('After purchase') }}</span></span>
       </div>
       <div class="hv-trust-item">
         <i class="fa fa-lock"></i>
@@ -216,12 +234,13 @@
       </div>
       <div class="hv-trust-item">
         <i class="fa fa-refresh"></i>
-        <span><strong>{{ \Fickrr\Support\Store::isPhysical() ? __('Order status') : __('Regular Updates') }}</strong><span>{{ \Fickrr\Support\Store::isPhysical() ? __('Pending through delivered') : __('Lifetime free') }}</span></span>
+        <span><strong>{{ __('Regular Updates') }}</strong><span>{{ __('Lifetime free') }}</span></span>
       </div>
       <div class="hv-trust-item">
         <i class="fa fa-life-ring"></i>
         <span><strong>{{ __('24/7 Support') }}</strong><span>{{ __('We are here') }}</span></span>
       </div>
+      @endif
     </div>
   </div>
 </div>
@@ -422,6 +441,50 @@
   <div class="container">
     <div class="hv-stats">
       <div class="row align-items-center">
+        @if(\Fickrr\Support\Store::isPhysical())
+        <div class="col-lg-5 mb-4 mb-lg-0">
+          <div class="hv-stats-label">{{ \Fickrr\Support\Store::name() }}</div>
+          <h2>{{ __('Physical products, shipped to you') }}</h2>
+          <p>{{ __('Checkout collects your name, phone, and delivery address. Cash on delivery is available, and you pay when the order arrives.') }}</p>
+          <a class="hv-btn hv-btn--primary" href="{{ URL::to('/shop') }}">{{ __('Browse products') }}<i class="dwg-arrow-right"></i></a>
+        </div>
+        <div class="col-lg-7">
+          <div class="row">
+            <div class="col-6 col-md-3">
+              <div class="hv-stat">
+                <span class="hv-stat-icon"><i class="fa fa-money"></i></span>
+                <strong>{{ __('COD') }}</strong>
+                <span>{{ __('Cash on delivery') }}</span>
+                <small>{{ __('No card charge at checkout') }}</small>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="hv-stat">
+                <span class="hv-stat-icon"><i class="fa fa-truck"></i></span>
+                <strong>{{ __('Ship') }}</strong>
+                <span>{{ __('To your address') }}</span>
+                <small>{{ __('City and country required') }}</small>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="hv-stat">
+                <span class="hv-stat-icon"><i class="fa fa-archive"></i></span>
+                <strong>{{ __('Stock') }}</strong>
+                <span>{{ __('Checked on confirm') }}</span>
+                <small>{{ __('It cannot go below zero') }}</small>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="hv-stat">
+                <span class="hv-stat-icon"><i class="fa fa-envelope"></i></span>
+                <strong>{{ __('Email') }}</strong>
+                <span>{{ __('When it ships') }}</span>
+                <small>{{ __('No file to download') }}</small>
+              </div>
+            </div>
+          </div>
+        </div>
+        @else
         <div class="col-lg-5 mb-4 mb-lg-0">
           <div class="hv-stats-label">{{ __('Why Choose') }} {{ $allsettings->site_title }}</div>
           <h2>{{ __('Built for Entrepreneurs, Loved by Professionals') }}</h2>
@@ -464,6 +527,7 @@
             </div>
           </div>
         </div>
+        @endif
       </div>
     </div>
   </div>
@@ -472,29 +536,34 @@
 
 <!-- ============================ Testimonials + CTA ============================ -->
 @php
+  $hvPhysicalStore = \Fickrr\Support\Store::isPhysical();
   $hvReviews = collect($review['data'] ?? [])->filter(function ($r) {
       return !empty($r->rating_comment);
   })->take(3);
-  // Shown until real reviews exist. Edit or delete these three entries freely.
-  $hvFallbackReviews = [
+  // Digital marketplace only. Physical mode never invents reviews.
+  $hvFallbackReviews = $hvPhysicalStore ? [] : [
     ['rating' => 5, 'comment' => __('Excellent products and amazing support. The scripts are high quality and easy to customise. Highly recommended.'), 'name' => 'John D.', 'role' => __('Entrepreneur')],
     ['rating' => 5, 'comment' => __('Saved hundreds of hours simply by using ready-made tools from this marketplace. They have everything I need for my business.'), 'name' => 'Sarah K.', 'role' => __('Agency Owner')],
     ['rating' => 5, 'comment' => __('Fast delivery, regular updates and great customer support. My go-to marketplace for digital products.'), 'name' => 'Michael T.', 'role' => __('Developer')],
   ];
+  $hvShowQuotes = $hvReviews->count() > 0 || count($hvFallbackReviews) > 0;
 @endphp
 <section class="hv-section hv-section--soft" data-aos="fade-up" data-aos-delay="200">
   <div class="container">
+    @if($hvShowQuotes)
     <div class="hv-head">
       <div>
         <h2>{{ __('What Our Customers Say') }}</h2>
-        <p>{{ __('Real feedback from people building with our products') }}</p>
+        <p>{{ $hvPhysicalStore ? __('Reviews submitted by buyers') : __('Real feedback from people building with our products') }}</p>
       </div>
       @if($hvReviews->count() > 0)
       <a class="hv-head-link" href="{{ URL::to('/shop') }}">{{ __('View All Reviews') }}<i class="dwg-arrow-right"></i></a>
       @endif
     </div>
+    @endif
 
     <div class="row">
+      @if($hvShowQuotes)
       <div class="col-lg-8">
         <div class="row">
           @if($hvReviews->count() > 0)
@@ -540,15 +609,24 @@
           @endif
         </div>
       </div>
+      @endif
 
-      <div class="col-lg-4">
+      <div class="{{ $hvShowQuotes ? 'col-lg-4' : 'col-lg-8' }}">
         <div class="hv-cta">
+          @if($hvPhysicalStore)
+          <h3>{{ __('Order a physical product') }}</h3>
+          <p>{{ __('Add a delivery address at checkout. Cash on delivery is available, and nothing is sent as a download.') }}</p>
+          <div>
+            <a class="hv-btn hv-btn--light" href="{{ URL::to('/shop') }}">{{ __('Browse products') }}<i class="dwg-arrow-right"></i></a>
+          </div>
+          @else
           <h3>{{ __('Join Entrepreneurs Already Growing with') }} {{ $allsettings->site_title }}</h3>
           <p>{{ __('Get instant access to premium scripts, themes and tools built to move your business forward.') }}</p>
           <div>
             <a class="hv-btn hv-btn--light" href="{{ Auth::guest() ? URL::to('/register') : URL::to('/shop') }}">{{ __('Start Shopping Now') }}<i class="dwg-arrow-right"></i></a>
           </div>
           <small><i class="fa fa-shield"></i>{{ __('30-Day Money Back Guarantee') }}</small>
+          @endif
         </div>
       </div>
     </div>

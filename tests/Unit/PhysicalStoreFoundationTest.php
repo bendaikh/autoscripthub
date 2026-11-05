@@ -80,6 +80,35 @@ class PhysicalStoreFoundationTest extends TestCase
         $this->assertSame('physical', LandingPageContent::productKind($page));
     }
 
+    public function test_physical_homepage_hides_invented_digital_claims(): void
+    {
+        $src = file_get_contents(base_path('resources/views/pages/index.blade.php'));
+
+        $this->assertStringContainsString(
+            'Cash on delivery is available, and you pay when the order arrives.',
+            $src
+        );
+        $this->assertStringContainsString('$hvFallbackReviews = $hvPhysicalStore ? [] : [', $src);
+
+        $uptime = strpos($src, '99.9%');
+        $digitalPitch = strpos($src, 'premium digital products');
+        $this->assertNotFalse($uptime);
+        $this->assertNotFalse($digitalPitch);
+        foreach ([$uptime, $digitalPitch] as $pos) {
+            $before = substr($src, 0, $pos);
+            $this->assertNotFalse(strrpos($before, '@else'));
+            $this->assertGreaterThan(
+                strrpos($before, 'Store::isPhysical()'),
+                strrpos($before, '@else')
+            );
+        }
+
+        $fallback = strpos($src, '$hvFallbackReviews = $hvPhysicalStore ? [] : [');
+        foreach (['John D.', 'Sarah K.', 'Michael T.', 'marketplace for digital products'] as $name) {
+            $this->assertGreaterThan($fallback, strpos($src, $name));
+        }
+    }
+
     public function test_deployment_env_requires_a_separate_database(): void
     {
         $path = base_path('.env.esipres.example');
