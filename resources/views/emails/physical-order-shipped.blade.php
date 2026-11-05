@@ -6,7 +6,7 @@
 </head>
 <body style="font-family: Georgia, serif; color: #1f2933; line-height: 1.5;">
     <p>Hello {{ $order->customer_name }},</p>
-    <p>Order <strong>{{ $order->order_number }}</strong> from {{ $storeName }} has been marked shipped. This is a parcel, not a download.</p>
+    <p>Order <strong>{{ $order->order_number }}</strong> from {{ $storeName }} is on its way to the address below.</p>
     @if(!empty($order->tracking_number))
     <p>Tracking number: {{ $order->tracking_number }}</p>
     @endif

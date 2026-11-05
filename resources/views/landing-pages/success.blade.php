@@ -274,7 +274,7 @@
                 <i class="fas fa-box mr-2"></i>{{ __('Order received') }}
             </div>
             <p class="download-description">
-                {{ __('This is a physical product. We will ship it to the address on the order. There is no file to download.') }}
+                {{ __('We will ship this order to the address you gave at checkout.') }}
             </p>
             <p class="download-description">
                 {{ __('Status') }}: @include('partials.physical-status', ['order' => (object) ['fulfillment_status' => $order->fulfillment_status ?? 'pending']])

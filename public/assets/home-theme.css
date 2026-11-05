@@ -1161,6 +1161,91 @@ body.home-v2 .hv-news-form button:hover {
   box-shadow: 0 8px 20px rgba(0, 0, 0, .22);
 }
 
+/* Physical storefront hero: light, product-led, no browser mockup. */
+body.home-v2 .hv-hero--shop {
+  background: #f6f3ee;
+  padding: 3.75rem 0 3.25rem;
+}
+
+body.home-v2 .hv-hero--shop::before {
+  display: none;
+}
+
+body.home-v2 .hv-hero--shop h1 {
+  color: #1c1917;
+  font-size: 3.15rem;
+  max-width: 12ch;
+}
+
+body.home-v2 .hv-hero--shop .hv-hero-sub {
+  color: #57534e;
+  max-width: 34rem;
+}
+
+.hv-shop-kicker {
+  margin: 0 0 .85rem;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: #9a3412;
+}
+
+.hv-shop-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 1.4rem;
+  border-radius: 999px;
+  background: #1c1917;
+  color: #fff;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.hv-shop-cta:hover,
+.hv-shop-cta:focus {
+  color: #fff;
+  background: #9a3412;
+  text-decoration: none;
+}
+
+.hv-shop-points {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 0;
+}
+
+.hv-shop-points li {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  margin: 0 0 .75rem;
+  color: #44403c;
+  font-weight: 600;
+}
+
+.hv-shop-points svg,
+body.home-v2 .hv-stat-icon svg {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  color: #9a3412;
+}
+
+.hv-shop-still {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+body.home-v2 .hv-stat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* ==========================================================================
    Responsive
    ========================================================================== */
@@ -1173,7 +1258,9 @@ body.home-v2 .hv-news-form button:hover {
 
 @media (max-width: 991.98px) {
   body.home-v2 .hv-hero { padding: 3.25rem 0 4rem; }
-  body.home-v2 .hv-hero h1 { font-size: 2.2rem; }
+  body.home-v2 .hv-hero h1,
+  body.home-v2 .hv-hero--shop h1 { font-size: 2.2rem; max-width: none; }
+  body.home-v2 .hv-shop-still { margin-top: 1.75rem; }
   body.home-v2 .hv-hero-sub { max-width: none; }
   body.home-v2 .hv-visual { margin-top: 2.5rem; }
   body.home-v2 .hv-section { padding: 3rem 0; }

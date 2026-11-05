@@ -29,7 +29,7 @@ return [
 
     'meta_description' => env(
         'STORE_META_DESCRIPTION',
-        'ESIPRES is a physical products store at esipres.com. Pay by card or PayPal, then the order ships to your address.'
+        'ESIPRES is a store at esipres.com. Pay by card or PayPal, then the order ships to your address.'
     ),
 
     'default_payment' => env('STORE_DEFAULT_PAYMENT', 'stripe'),

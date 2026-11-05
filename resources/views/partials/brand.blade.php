@@ -17,7 +17,6 @@
   <span class="asb-text">
     @if($brandIsPhysical)
     <span class="asb-name">{{ $brandTitle }}</span>
-    <span class="asb-tag">{{ __('Physical products') }}</span>
     @else
     <span class="asb-name">AutoScript<span class="asb-name-accent">Hub</span></span>
     <span class="asb-tag">{{ __('Digital Pro Hub') }}</span>

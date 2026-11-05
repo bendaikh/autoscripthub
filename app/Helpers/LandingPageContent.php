@@ -628,7 +628,7 @@ class LandingPageContent
         }, array_slice(self::listItems($page->lp_what_you_get ?? ''), 0, 3));
 
         if ($kind === 'physical') {
-            $answer = self::t('The product is shipped to the address you provide. You do not receive a download.');
+            $answer = self::t('The product is shipped to the address you provide.');
         } else {
             $answer = self::t('You get immediate access to') . ' ' . $title . '.';
             if ($received) {
@@ -644,7 +644,7 @@ class LandingPageContent
         if ($kind === 'physical') {
             $faq[] = [
                 'q' => self::t('How is the product delivered?'),
-                'a' => self::t('It is packed and shipped to the address you enter at checkout. There is no file to download.'),
+                'a' => self::t('It is packed and shipped to the address you enter at checkout.'),
             ];
             $faq[] = [
                 'q' => self::t('How do I pay?'),
@@ -713,7 +713,7 @@ class LandingPageContent
         if ($kind === 'physical') {
             return [
                 'heading' => self::t('Shipped to you'),
-                'text' => self::t('This is a physical product. After you place the order we ship it to your address. No download, licence, or subscription is included.'),
+                'text' => self::t('After you pay, we ship it to your address.'),
             ];
         }
 

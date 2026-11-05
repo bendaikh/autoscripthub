@@ -8,7 +8,7 @@
     <p>{{ ($adminCopy ?? false) ? 'New order for ' . $storeName . '.' : 'Hello ' . $order->customer_name . ',' }}</p>
     <p>
         We received order <strong>{{ $order->order_number }}</strong> at {{ $storeName }}.
-        This is a physical product. There is no file to download.
+        We have your delivery details for this order.
     </p>
     @if(($order->payment_status ?? '') === 'paid')
     <p>Payment by {{ $order->payment_method === 'paypal' ? 'PayPal' : 'card' }} is complete. We will ship the order to the address below.</p>

@@ -144,7 +144,7 @@
                 ? $lpT('One-time payment • Instant download')
                 : $lpT('One-time payment • Instant access')),
             'instantAccess' => $lpProductKind === 'physical'
-                ? $lpT('We ship this to the address you enter. There is no download.')
+                ? $lpT('We ship this to the address you enter.')
                 : ($lpProductKind === 'sheet'
                 ? $lpT('Download the spreadsheet as soon as your payment is confirmed')
                 : ($lpProductKind === 'product'
@@ -165,15 +165,19 @@
             'outcomesHeading' => $lpT('What this changes for you'),
             'whatYouGetHeading' => $lpT('What you get after payment'),
             'pricingHeading' => $lpT('Simple, one-time pricing'),
-            'pricingSub' => $lpT('Pay once and keep access to the product'),
-            'lifetimeLabel' => $lpT('Full access'),
-            'extendedNote' => $lpT('An extended licence is also available — send us a message for details.'),
+            'pricingSub' => $lpProductKind === 'physical'
+                ? $lpT('Pay by card or PayPal, then we ship it')
+                : $lpT('Pay once and keep access to the product'),
+            'lifetimeLabel' => $lpProductKind === 'physical' ? $lpT('Ships to you') : $lpT('Full access'),
+            'extendedNote' => $lpProductKind === 'physical'
+                ? ''
+                : $lpT('An extended licence is also available — send us a message for details.'),
             'includedLabel' => $lpT("What's included"),
             'faqHeading' => $lpT('Questions before you buy'),
             'finalHeading' => $lpT('Ready to get started?'),
             'featuresIncluded' => $lpT('features included'),
             'secureNote' => $lpProductKind === 'physical'
-                ? $lpT('Pay online, then we ship it. No file is sent.')
+                ? $lpT('Pay by card or PayPal, then we ship it.')
                 : $lpT('Secure checkout with PayPal or card'),
             'prev' => $lpT('Previous'),
             'next' => $lpT('Next'),

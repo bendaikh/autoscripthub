@@ -10,7 +10,7 @@
 <div class="container py-5">
   <h1 class="h3">{{ __('Order') }} {{ $order->order_number }}</h1>
   <p class="my-3">@include('partials.physical-status', ['order' => $order])</p>
-  <p>{{ __('This order is for physical products. There is nothing to download.') }}</p>
+  <p>{{ __('We will ship this order to the address below after payment is confirmed.') }}</p>
   @if(($order->payment_status ?? '') === 'paid')
   <p>{{ __('Paid online by') }} {{ $order->payment_method === 'paypal' ? 'PayPal' : __('card') }}. {{ __('The order can now be packed and shipped.') }}</p>
   @else

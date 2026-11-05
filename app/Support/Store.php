@@ -104,7 +104,7 @@ class Store
         }
 
         if ($stored === '' || self::looksDigitalCopy($stored) || self::mentionsDigitalCatalog($stored)) {
-            return (string) __('Product news and delivery updates. Nothing to download.');
+            return (string) __('Product news and delivery updates.');
         }
 
         return $stored;
@@ -132,6 +132,6 @@ class Store
             return null;
         }
 
-        return redirect('/')->with('error', __('This store ships physical products. There is no file to download.'));
+        return redirect('/')->with('error', __('That page is not available.'));
     }
 }

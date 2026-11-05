@@ -122,6 +122,13 @@ class PhysicalStoreFoundationTest extends TestCase
             'Pay by card or PayPal before the order ships.',
             $src
         );
+        $this->assertStringContainsString('hv-hero--shop', $src);
+        $this->assertStringContainsString('assets/esipres/hero-still.svg', $src);
+        $this->assertStringNotContainsString('No file to download', $src);
+        $this->assertStringNotContainsString('nothing to download', strtolower($src));
+        $this->assertStringNotContainsString('Physical products', $src);
+        $this->assertStringNotContainsString('Shipping updates by email', $src);
+        $this->assertFileExists(public_path('assets/esipres/hero-still.svg'));
         $this->assertStringContainsString('$hvFallbackReviews = $hvPhysicalStore ? [] : [', $src);
 
         $uptime = strpos($src, '99.9%');

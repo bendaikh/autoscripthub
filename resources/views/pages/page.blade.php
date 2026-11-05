@@ -31,7 +31,7 @@
       'icon' => 'fa-file-text-o',
       'badge' => __('Legal Agreement'),
       'lead' => \Fickrr\Support\Store::isPhysical()
-        ? __('These terms explain how orders for physical products work at ESIPRES, including delivery details and online payment.')
+        ? __('These terms explain how orders work at ESIPRES, including delivery details and online payment.')
         : __('These terms explain how AutoScriptHub works, what you can expect from our digital marketplace, and the responsibilities that apply when you browse, purchase, or sell on our platform.'),
       'cta_title' => __('Questions about this page?'),
       'cta_text' => \Fickrr\Support\Store::isPhysical()
@@ -47,7 +47,7 @@
       'icon' => 'fa-undo',
       'badge' => __('Fair & Transparent'),
       'lead' => \Fickrr\Support\Store::isPhysical()
-        ? __('ESIPRES ships physical products. This page explains how to ask about a return after an order has been delivered.')
+        ? __('ESIPRES ships products to you. This page explains how to ask about a return after an order has been delivered.')
         : __('Because AutoScriptHub sells digital products, purchases are generally final. This page explains when refunds may be considered and how our support team can help before a refund is requested.'),
       'cta_title' => __('Need help with an order?'),
       'cta_text' => __('Contact support first — most issues can be resolved quickly without needing a refund request.'),
@@ -61,7 +61,7 @@
       'icon' => 'fa-question-circle',
       'badge' => __('Help Center'),
       'lead' => \Fickrr\Support\Store::isPhysical()
-        ? __('Answers about ordering, shipping, card and PayPal payment, and returns. This store does not sell downloads or licences.')
+        ? __('Answers about ordering, shipping, card and PayPal payment, and returns.')
         : __('Quick answers about purchasing, downloads, licensing, payments, installation support, and how to get help from the AutoScriptHub team.'),
       'cta_title' => __('Still have a question?'),
       'cta_text' => __('If you cannot find what you need here, our support team is ready to help.'),
