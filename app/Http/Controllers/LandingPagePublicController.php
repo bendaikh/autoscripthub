@@ -57,10 +57,14 @@ class LandingPagePublicController extends Controller
         }
 
         // Real purchase count, used only when there is enough of it to show
-        $completedOrders = \DB::table('landing_page_orders')
-            ->where('lp_id', $data['landing_page']->lp_id)
-            ->where('payment_status', 'completed')
-            ->count();
+        $completedOrdersQuery = \DB::table('landing_page_orders')
+            ->where('lp_id', $data['landing_page']->lp_id);
+        if (\Fickrr\Support\Store::isPhysical() && \Schema::hasColumn('landing_page_orders', 'fulfillment_status')) {
+            $completedOrdersQuery->whereIn('fulfillment_status', ['confirmed', 'shipped', 'delivered']);
+        } else {
+            $completedOrdersQuery->where('payment_status', 'completed');
+        }
+        $completedOrders = $completedOrdersQuery->count();
 
         // Set page language before building translated content
         \Fickrr\Helpers\LandingPageI18n::usePage($data['landing_page']);
@@ -207,6 +211,10 @@ class LandingPagePublicController extends Controller
         if (!$landing_page) {
             Session::flash('error', __('Product not found'));
             return redirect()->back();
+        }
+
+        if (\Fickrr\Support\Store::isPhysical()) {
+            return app(\Fickrr\Services\Physical\PhysicalOrderService::class)->handleLandingRequest($request, $landing_page);
         }
 
         // Validate email
@@ -615,6 +623,10 @@ class LandingPagePublicController extends Controller
      */
     public function download($order_token)
     {
+        if ($redirect = \Fickrr\Support\Store::denyDigitalFulfillment()) {
+            return $redirect;
+        }
+
         // Get order details
         $order = \DB::table('landing_page_orders')
             ->where('order_token', $order_token)

@@ -2032,6 +2032,7 @@ class ItemController extends Controller
 		    $data = array('item_name' => $item_name, 'item_desc' => $item_desc, 'item_thumbnail' => $item_thumbnail, 'item_preview' => $item_preview, 'item_file' => $item_file, 'file_type' => $file_type, 'item_file_link' => $item_file_link, 'item_category' =>$cat_id, 'item_category_parent' => $parent_category_id, 'item_category_type' => $cat_name, 'item_type' => $item_type, 'regular_price' => $regular_price, 'extended_price' => $extended_price, 'demo_url' => $demo_url, 'item_tags' => $item_tags, 'item_status' => $item_status, 'item_shortdesc' => $item_shortdesc, 'free_download' => $free_download, 'item_slug' => $item_slug, 'video_url' => $video_url, 'installation_video_url' => $installation_video_url, 'future_update' => $future_update, 'item_support' => $item_support, 'updated_item' => $updated_item, 'item_flash_request' => $item_flash_request, 'video_preview_type' => $video_preview_type, 'video_file' => $video_file, 'item_type_cat_id' => $item_category, 'seller_refund_term' => $seller_refund_term, 'seller_money_back' => $seller_money_back, 'seller_money_back_days' => $seller_money_back_days, 'item_allow_seo' => $item_allow_seo, 'item_seo_keyword' => $item_seo_keyword, 'item_seo_desc' => $item_seo_desc, 'audio_file' => $audio_file, 'item_type_id' => $type_id, 'subscription_item' => $subscription_item, 'item_delimiter' => $item_delimiter, 'item_serials_list' => $item_serials_list, 'item_reviewer' => $item_reviewer);
 			
 		    Items::updateitemData($item_token,$data);
+			\Fickrr\Services\Physical\PhysicalCatalog::applyItemRequest($item_token, $request);
 			
 			Items::dropAttribute($item_token);
 			
@@ -2648,6 +2649,7 @@ class ItemController extends Controller
 			 {  
 			  
 		           Items::saveitemData($data);
+			       \Fickrr\Services\Physical\PhysicalCatalog::applyItemRequest($item_token, $request);
 			       $attribute['fields'] = Attribute::selectedAttribute($type_id);
 				   foreach($attribute['fields'] as $attribute_field)
 				   {
@@ -2677,6 +2679,7 @@ class ItemController extends Controller
 		else
 		{
 		     Items::saveitemData($data);
+		     \Fickrr\Services\Physical\PhysicalCatalog::applyItemRequest($item_token, $request);
 		     $attribute['fields'] = Attribute::selectedAttribute($type_id);
 				   foreach($attribute['fields'] as $attribute_field)
 				   {
@@ -11253,6 +11256,9 @@ class ItemController extends Controller
 	
 	public function purchases_download($token,$order_id)
 	{
+	    if ($redirect = \Fickrr\Support\Store::denyDigitalFulfillment()) {
+	        return $redirect;
+	    }
 	    $today_date = date('Y-m-d');
 		$download_count_checks = Members::checkdownloadDate(Auth::user()->id,$today_date);
 		if(Auth::user()->user_subscr_download_item > $download_count_checks->user_today_download_limit)
@@ -12096,6 +12102,9 @@ class ItemController extends Controller
 	
 	public function file_download($token)
 	{
+	    if ($redirect = \Fickrr\Support\Store::denyDigitalFulfillment()) {
+	        return $redirect;
+	    }
 	    
 		    $allsettings = Settings::allSettings();
 			/* wasabi */

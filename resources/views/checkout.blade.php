@@ -1,4 +1,6 @@
-@if($allsettings->maintenance_mode == 1)
+@if(\Fickrr\Support\Store::isPhysical())
+@include('pages.physical-checkout')
+@elseif($allsettings->maintenance_mode == 1)
 @if (Auth::check())
 @if(Auth::user()->id == 1)
 @include('pages.checkout')

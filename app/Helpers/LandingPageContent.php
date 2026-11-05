@@ -138,6 +138,10 @@ class LandingPageContent
 
     public static function productKind($page): string
     {
+        if (\Fickrr\Support\Store::isPhysical()) {
+            return 'physical';
+        }
+
         $kind = strtolower(trim((string) ($page->lp_product_kind ?? 'script')));
         if (in_array($kind, ['sheet', 'product'], true)) {
             return $kind;
@@ -513,6 +517,18 @@ class LandingPageContent
     {
         $items = [];
 
+        if ($kind === 'physical') {
+            $items[] = [
+                'icon' => 'truck',
+                'title' => self::t('Ships to your address'),
+                'text' => self::t('Enter your name, phone, and full delivery address at checkout'),
+            ];
+            $items[] = [
+                'icon' => 'money',
+                'title' => self::t('Cash on delivery'),
+                'text' => self::t('Pay when the order arrives. No download and no subscription'),
+            ];
+        } else {
         $items[] = [
             'icon' => 'bolt',
             'title' => self::t('Instant Access'),
@@ -550,6 +566,7 @@ class LandingPageContent
             'title' => self::t('Secure Checkout'),
             'text' => self::t('Pay by PayPal or card'),
         ];
+        }
 
         if (count($featureCards) > 0) {
             $items[] = [
@@ -610,9 +627,13 @@ class LandingPageContent
             return rtrim(trim($item), '.;,');
         }, array_slice(self::listItems($page->lp_what_you_get ?? ''), 0, 3));
 
-        $answer = self::t('You get immediate access to') . ' ' . $title . '.';
-        if ($received) {
-            $answer .= ' ' . implode('. ', $received) . '.';
+        if ($kind === 'physical') {
+            $answer = self::t('The product is shipped to the address you provide. You do not receive a download.');
+        } else {
+            $answer = self::t('You get immediate access to') . ' ' . $title . '.';
+            if ($received) {
+                $answer .= ' ' . implode('. ', $received) . '.';
+            }
         }
 
         $faq[] = [
@@ -620,6 +641,16 @@ class LandingPageContent
             'a' => $answer,
         ];
 
+        if ($kind === 'physical') {
+            $faq[] = [
+                'q' => self::t('How is the product delivered?'),
+                'a' => self::t('It is packed and shipped to the address you enter at checkout. There is no file to download.'),
+            ];
+            $faq[] = [
+                'q' => self::t('How do I pay?'),
+                'a' => self::t('Cash on delivery is available. You pay when the order is delivered.'),
+            ];
+        } else {
         $faq[] = [
             'q' => self::t('How is the product delivered?'),
             'a' => $deliversFile
@@ -643,18 +674,26 @@ class LandingPageContent
                 'a' => self::t('This is a web app you can install on your own server. If you prefer not to run it yourself, we can host it for you. Use the contact form on this page if you want hosting.'),
             ];
         }
+        }
 
         $faq[] = [
             'q' => self::t('Is this a one-time payment?'),
             'a' => self::t('Yes. You pay once for this product. There is no subscription and no recurring charge.'),
         ];
 
+        if ($kind === 'physical') {
+            $faq[] = [
+                'q' => self::t('Which payment methods can I use?'),
+                'a' => self::t('Cash on delivery is available at checkout. You pay when the order is delivered.'),
+            ];
+        } else {
         $faq[] = [
             'q' => self::t('Which payment methods can I use?'),
             'a' => self::t('You can pay with PayPal or with a credit or debit card at checkout.'),
         ];
+        }
 
-        if (($page->lp_extended_price ?? 0) > 0) {
+        if ($kind !== 'physical' && ($page->lp_extended_price ?? 0) > 0) {
             $faq[] = [
                 'q' => self::t('What is the extended licence?'),
                 'a' => self::t('The extended licence is a higher-priced option for wider commercial use. Both options cover the same product.'),
@@ -671,6 +710,13 @@ class LandingPageContent
 
     protected static function hosting(string $kind = 'script'): array
     {
+        if ($kind === 'physical') {
+            return [
+                'heading' => self::t('Shipped to you'),
+                'text' => self::t('This is a physical product. After you place the order we ship it to your address. No download, licence, or subscription is included.'),
+            ];
+        }
+
         if ($kind === 'sheet') {
             return [
                 'heading' => self::t('Instant spreadsheet download'),

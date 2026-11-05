@@ -276,6 +276,9 @@ Route::group(['middleware' => ['is_admin', 'HtmlMinifier', 'cache', 'XSS']], fun
 	/* orders */
 	
 	Route::get('/admin/orders', 'Admin\ItemController@view_orders')->middleware('cacheable:5');
+	Route::get('/admin/physical-orders', 'Admin\PhysicalOrderController@index');
+	Route::get('/admin/physical-orders/{id}', 'Admin\PhysicalOrderController@show')->where('id', '[0-9]+');
+	Route::post('/admin/physical-orders/{id}', 'Admin\PhysicalOrderController@update')->where('id', '[0-9]+');
 	Route::post('/admin/orders', ['as' => 'admin.orders','uses'=>'Admin\ItemController@search_orders']);
 	Route::get('/admin/order-details/{token}', 'Admin\ItemController@view_order_single');
 	Route::get('/admin/order-details/{ord_id}/{user_type}', 'Admin\ItemController@view_payment_approval');
@@ -802,6 +805,9 @@ Route::get('/cart/{remove}/{coupon}', 'CommonController@remove_coupon');
 
 /* checkout */
 Route::get('/checkout', 'CommonController@show_checkout');
+Route::post('/checkout/physical', 'PhysicalCheckoutController@store')->name('physical.checkout');
+Route::get('/order/{orderNumber}', 'PhysicalCheckoutController@show')->name('physical.order.show');
+Route::get('/checkout/stripe/return', 'PhysicalCheckoutController@stripeReturn')->name('physical.stripe.return');
 Route::get('/checkout/whop-frame', 'CommonController@whop_inline_frame');
 Route::post('/checkout', ['as' => 'checkout','uses'=>'CommonController@view_checkout']);
 Route::post('/2checkout', ['as' => '2checkout','uses'=>'ItemController@confirm_2checkout']);

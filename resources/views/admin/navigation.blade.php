@@ -47,7 +47,9 @@
                         <ul class="sub-menu children dropdown-menu">
                             <li><i class="fa fa-user"></i><a href="{{ url('/admin/administrator') }}">{{ __('Sub Administrators') }}</a></li>
                             <li><i class="fa fa-user"></i><a href="{{ url('/admin/customer') }}">{{ __('Customers') }}</a></li>
+                            @if(!\Fickrr\Support\Store::isPhysical())
                             <li><i class="fa fa-user"></i><a href="{{ url('/admin/vendor') }}">{{ __('Vendors') }}</a></li>
+                            @endif
                          </ul>
                     </li>
                     @endif                   
@@ -62,6 +64,9 @@
                             <li><i class="menu-icon fa fa-location-arrow"></i><a href="{{ url('/admin/item-type') }}">{{ __('Item Type') }}</a></li>
                             <li><i class="menu-icon fa fa-location-arrow"></i><a href="{{ url('/admin/attributes') }}">{{ __('Attributes') }}</a></li>
                             <li><i class="menu-icon fa fa-location-arrow"></i><a href="{{ url('/admin/orders') }}">{{ __('Orders') }}</a></li>
+                            @if(\Fickrr\Support\Store::isPhysical())
+                            <li><i class="menu-icon fa fa-truck"></i><a href="{{ url('/admin/physical-orders') }}">{{ __('Physical orders') }}</a></li>
+                            @endif
                             <li><i class="menu-icon fa fa-location-arrow"></i><a href="{{ url('/admin/coupons') }}">{{ __('Coupons') }}</a></li>
                             @if($custom_settings->author_key == Helper::Key_Owner())
                             <li><i class="menu-icon fa fa-location-arrow"></i><a href="{{ url('/admin/other-market') }}">{{ __('Other Market Logo') }}</a></li>
@@ -80,7 +85,7 @@
                         <a href="{{ url('/admin/reports') }}"> <i class="menu-icon fa fa-file"></i>{{ __('Reports') }} </a>
                     </li>
                     @endif
-                    @if(in_array('subscription',$avilable))
+                    @if(in_array('subscription',$avilable) && !\Fickrr\Support\Store::isPhysical())
                     @if($addition_settings->subscription_mode == 1)
                     <li>
                         <a href="{{ url('/admin/subscription') }}"> <i class="menu-icon fa fa-user"></i>{{ __('Subscription') }} </a>
@@ -99,7 +104,7 @@
                         <a href="{{ url('/admin/rating') }}"> <i class="menu-icon fa fa-star"></i>{{ __('Rating & Reviews') }} </a>
                     </li>
                     @endif
-                    @if(in_array('withdrawal',$avilable)) 
+                    @if(in_array('withdrawal',$avilable) && !\Fickrr\Support\Store::isPhysical()) 
                     <li class="menu-item-has-children dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-money"></i>{{ __('Withdrawals') }}</a>
                         <ul class="sub-menu children dropdown-menu">
@@ -108,7 +113,7 @@
                         </ul>
                     </li>
                     @endif
-                    @if(in_array('deposit',$avilable))
+                    @if(in_array('deposit',$avilable) && !\Fickrr\Support\Store::isPhysical())
                     <li class="menu-item-has-children dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="menu-icon fa fa-money"></i>{{ __('Deposit') }}</a>
                         <ul class="sub-menu children dropdown-menu">
@@ -175,7 +180,7 @@
                     </li>
                     @endif
                     @endif
-                    @if(in_array('selling',$avilable))
+                    @if(in_array('selling',$avilable) && !\Fickrr\Support\Store::isPhysical())
                     @if($allsettings->site_selling_display == 1)
                     <li>
                         <a href="{{ url('/admin/start-selling') }}"> <i class="menu-icon fa fa-shopping-cart"></i>{{ __('Start Selling') }} </a>

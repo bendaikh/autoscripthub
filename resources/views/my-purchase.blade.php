@@ -132,10 +132,14 @@
                   </div>
                   @if($item->approval_status != 'payment released to customer')
                   <div class="d-flex mt-2 pt-2">
+                  @if(!\Fickrr\Support\Store::isPhysical())
                   @if($item->item_order_serial_key != "")
                   <a href="{{ url('/purchases') }}/{{ $item->item_token }}/{{ $item->ord_id }}" class="btn btn-success btn-sm mr-3"><i class="dwg-download mr-1"></i>{{ __('Download Serial Key') }}</a>
                   @else
                   <a href="{{ url('/purchases') }}/{{ $item->item_token }}/{{ $item->ord_id }}" class="btn btn-success btn-sm mr-3"><i class="dwg-download mr-1"></i>{{ __('Download Item') }}</a>
+                  @endif
+                  @else
+                  <span class="btn btn-light btn-sm mr-3">{{ __('Ships to your address') }}</span>
                   @endif
                   <a href="{{ url('/invoice') }}/{{ $item->item_token }}/{{ $item->ord_id }}" class="btn btn-primary btn-sm mr-3"><i class="dwg-download mr-1"></i>{{ __('Invoice') }}</a><br/>
                   </div>

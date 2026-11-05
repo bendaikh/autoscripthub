@@ -14,9 +14,13 @@
     'privacy-policy' => [
       'icon' => 'fa-shield',
       'badge' => __('Your Privacy Matters'),
-      'lead' => __('We are committed to protecting your personal data and being transparent about how information is collected, used, and safeguarded across AutoScriptHub.'),
+      'lead' => \Fickrr\Support\Store::isPhysical()
+        ? __('ESIPRES collects the delivery details you submit so orders can be shipped. This page explains what is stored and how to ask about it.')
+        : __('We are committed to protecting your personal data and being transparent about how information is collected, used, and safeguarded across AutoScriptHub.'),
       'cta_title' => __('Questions about this page?'),
-      'cta_text' => __('Our support team is here to help with privacy, billing, licensing, or account questions.'),
+      'cta_text' => \Fickrr\Support\Store::isPhysical()
+        ? __('Write to the store if you have a question about an order, a delivery, or this page.')
+        : __('Our support team is here to help with privacy, billing, licensing, or account questions.'),
       'related' => [
         ['slug' => 'terms-and-conditions', 'title' => __('Terms & Conditions')],
         ['slug' => 'refund-policy', 'title' => __('Refund Policy')],
@@ -26,9 +30,13 @@
     'terms-and-conditions' => [
       'icon' => 'fa-file-text-o',
       'badge' => __('Legal Agreement'),
-      'lead' => __('These terms explain how AutoScriptHub works, what you can expect from our digital marketplace, and the responsibilities that apply when you browse, purchase, or sell on our platform.'),
+      'lead' => \Fickrr\Support\Store::isPhysical()
+        ? __('These terms explain how orders for physical products work at ESIPRES, including delivery details and cash on delivery.')
+        : __('These terms explain how AutoScriptHub works, what you can expect from our digital marketplace, and the responsibilities that apply when you browse, purchase, or sell on our platform.'),
       'cta_title' => __('Questions about this page?'),
-      'cta_text' => __('Our support team is here to help with privacy, billing, licensing, or account questions.'),
+      'cta_text' => \Fickrr\Support\Store::isPhysical()
+        ? __('Write to the store if you have a question about an order, a delivery, or this page.')
+        : __('Our support team is here to help with privacy, billing, licensing, or account questions.'),
       'related' => [
         ['slug' => 'privacy-policy', 'title' => __('Privacy Policy')],
         ['slug' => 'refund-policy', 'title' => __('Refund Policy')],
@@ -38,7 +46,9 @@
     'refund-policy' => [
       'icon' => 'fa-undo',
       'badge' => __('Fair & Transparent'),
-      'lead' => __('Because AutoScriptHub sells digital products, purchases are generally final. This page explains when refunds may be considered and how our support team can help before a refund is requested.'),
+      'lead' => \Fickrr\Support\Store::isPhysical()
+        ? __('ESIPRES ships physical products. This page explains how to ask about a return after an order has been delivered.')
+        : __('Because AutoScriptHub sells digital products, purchases are generally final. This page explains when refunds may be considered and how our support team can help before a refund is requested.'),
       'cta_title' => __('Need help with an order?'),
       'cta_text' => __('Contact support first — most issues can be resolved quickly without needing a refund request.'),
       'related' => [
@@ -50,7 +60,9 @@
     'faq' => [
       'icon' => 'fa-question-circle',
       'badge' => __('Help Center'),
-      'lead' => __('Quick answers about purchasing, downloads, licensing, payments, installation support, and how to get help from the AutoScriptHub team.'),
+      'lead' => \Fickrr\Support\Store::isPhysical()
+        ? __('Answers about ordering, shipping, cash on delivery, and returns. This store does not sell downloads or licences.')
+        : __('Quick answers about purchasing, downloads, licensing, payments, installation support, and how to get help from the AutoScriptHub team.'),
       'cta_title' => __('Still have a question?'),
       'cta_text' => __('If you cannot find what you need here, our support team is ready to help.'),
       'related' => [

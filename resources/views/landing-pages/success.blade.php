@@ -268,6 +268,29 @@
             </div>
         </div>
         
+        @if(\Fickrr\Support\Store::isPhysical())
+        <div class="download-section">
+            <div class="download-title">
+                <i class="fas fa-box mr-2"></i>{{ __('Order received') }}
+            </div>
+            <p class="download-description">
+                {{ __('This is a physical product. We will ship it to the address on the order. There is no file to download.') }}
+            </p>
+            <p class="download-description">
+                {{ __('Status') }}: @include('partials.physical-status', ['order' => (object) ['fulfillment_status' => $order->fulfillment_status ?? 'pending']])
+            </p>
+            @if(($order->payment_method ?? '') === 'cod')
+            <p class="download-description">{{ __('Payment is cash on delivery. No card was charged.') }}</p>
+            @endif
+            @if(!empty($order->address))
+            <p class="download-description">
+                {{ $order->customer_name ?? '' }}<br>
+                {{ $order->address }}<br>
+                {{ $order->city ?? '' }} {{ $order->country ?? '' }}
+            </p>
+            @endif
+        </div>
+        @else
         <!-- Download Section -->
         @if($landing_page->lp_delivery_method == 'link' && $landing_page->lp_product_link)
         <div class="download-section">
@@ -300,11 +323,11 @@
         </div>
         @endif
         
-        <!-- Additional Info -->
         <p style="color: #718096; font-size: 0.9rem; margin-top: 20px;">
             <i class="fas fa-info-circle mr-1"></i>
             {{ __('Keep this page bookmarked or save your order token to download your files again later.') }}
         </p>
+        @endif
         
         <!-- Home Button -->
         @if(isset($setting->site_title))

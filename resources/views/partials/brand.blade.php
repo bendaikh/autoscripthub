@@ -1,9 +1,13 @@
 {{--
-  AutoScriptHub wordmark, used in place of a logo image.
+  Wordmark used when no logo file is shown.
   Options:
     $brandCompact - drop the tagline (mobile / tight spaces)
     $brandLight   - light text, for dark backgrounds such as the footer
 --}}
+@php
+  $brandIsPhysical = \Fickrr\Support\Store::isPhysical();
+  $brandTitle = \Fickrr\Support\Store::publicName($allsettings->site_title ?? null);
+@endphp
 <span class="asb {{ ($brandCompact ?? false) ? 'asb--compact' : '' }} {{ ($brandLight ?? false) ? 'asb--light' : '' }}">
   <span class="asb-mark" aria-hidden="true">
     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -11,7 +15,12 @@
     </svg>
   </span>
   <span class="asb-text">
+    @if($brandIsPhysical)
+    <span class="asb-name">{{ $brandTitle }}</span>
+    <span class="asb-tag">{{ __('Physical products') }}</span>
+    @else
     <span class="asb-name">AutoScript<span class="asb-name-accent">Hub</span></span>
     <span class="asb-tag">{{ __('Digital Pro Hub') }}</span>
+    @endif
   </span>
 </span>

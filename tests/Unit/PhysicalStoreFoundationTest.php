@@ -1,0 +1,97 @@
+<?php
+
+namespace Tests\Unit;
+
+use Fickrr\Helpers\LandingPageContent;
+use Fickrr\Services\Physical\CheckoutValidationException;
+use Fickrr\Services\Physical\PhysicalOrderService;
+use Fickrr\Services\Physical\ShippingCalculator;
+use Fickrr\Services\Physical\StripeChargePolicy;
+use Fickrr\Support\StoreDatabaseGuard;
+use Tests\TestCase;
+
+class PhysicalStoreFoundationTest extends TestCase
+{
+    public function test_checkout_rules_require_delivery_details(): void
+    {
+        $service = app(PhysicalOrderService::class);
+
+        try {
+            $service->validateCustomer([
+                'customer_name' => 'A',
+                'customer_phone' => '12',
+                'customer_email' => 'not-an-email',
+                'address' => 'x',
+                'city' => '',
+                'country' => '',
+                'payment_method' => 'cod',
+            ]);
+            $this->fail('Expected validation to fail.');
+        } catch (CheckoutValidationException $e) {
+            $this->assertArrayHasKey('customer_name', $e->errors);
+            $this->assertArrayHasKey('customer_phone', $e->errors);
+            $this->assertArrayHasKey('customer_email', $e->errors);
+            $this->assertArrayHasKey('address', $e->errors);
+            $this->assertArrayHasKey('city', $e->errors);
+            $this->assertArrayHasKey('country', $e->errors);
+        }
+    }
+
+    public function test_shipping_adds_flat_and_per_unit_fees_and_can_be_free(): void
+    {
+        config(['store.shipping.flat_fee' => 5, 'store.shipping.free_over' => null]);
+        $calc = new ShippingCalculator();
+        $quote = $calc->quote([
+            ['quantity' => 3, 'unit_price' => 10, 'shipping_fee' => 2, 'weight_grams' => 100, 'requires_shipping' => true],
+        ]);
+        $this->assertSame(30.0, $quote['subtotal']);
+        $this->assertSame(11.0, $quote['shipping_fee']);
+        $this->assertSame(41.0, $quote['total']);
+        $this->assertSame(300, $quote['weight_grams']);
+
+        config(['store.shipping.free_over' => 20]);
+        $free = $calc->quote([
+            ['quantity' => 3, 'unit_price' => 10, 'shipping_fee' => 2, 'requires_shipping' => true],
+        ]);
+        $this->assertSame(0.0, $free['shipping_fee']);
+        $this->assertSame(30.0, $free['total']);
+    }
+
+    public function test_stripe_charges_stay_off_outside_production(): void
+    {
+        config(['store.stripe_enabled' => true, 'store.stripe_charges_enabled' => true]);
+        $this->assertFalse(StripeChargePolicy::chargesEnabled());
+    }
+
+    public function test_database_guard_refuses_the_digital_store_database(): void
+    {
+        $message = StoreDatabaseGuard::violation('autoscripthub', false);
+        $this->assertNotNull($message);
+        $this->assertStringContainsString('auto-script-hub', $message);
+
+        $this->assertNull(StoreDatabaseGuard::violation('esipres', true));
+        $this->assertNotNull(StoreDatabaseGuard::violation('homestead', true));
+        $this->assertNotNull(StoreDatabaseGuard::violation('', true));
+    }
+
+    public function test_landing_pages_default_to_physical_products(): void
+    {
+        $page = (object) ['lp_product_kind' => 'script'];
+        $this->assertSame('physical', LandingPageContent::productKind($page));
+    }
+
+    public function test_deployment_env_requires_a_separate_database(): void
+    {
+        $path = base_path('.env.esipres.example');
+        $contents = file_get_contents($path);
+        $this->assertNotFalse($contents);
+        $this->assertStringContainsString('APP_URL=https://esipres.com', $contents);
+        $this->assertStringContainsString('STORE_MODE=physical', $contents);
+        $this->assertStringContainsString('DB_DATABASE=esipres', $contents);
+        $this->assertStringContainsString('STORE_ENFORCE_DATABASE=true', $contents);
+        $this->assertStringContainsString('STRIPE_CHARGES_ENABLED=false', $contents);
+        $this->assertStringNotContainsString('DB_DATABASE=autoscripthub', $contents);
+        $this->assertStringNotContainsString('sk_live_', $contents);
+        $this->assertDoesNotMatchRegularExpression('/^DB_PASSWORD=.+$/m', $contents);
+    }
+}

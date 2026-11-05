@@ -458,7 +458,7 @@ $extend_item_price = 0;
             <form action="{{ route('cart') }}" class="setting_form" method="post" id="contact_form" enctype="multipart/form-data">
             {{ csrf_field() }} 
             <div class="cz-sidebar-static h-100 ml-auto border-left">
-               @if($item['item']->free_download == 1)
+               @if($item['item']->free_download == 1 && !\Fickrr\Support\Store::isPhysical())
                <div class="bg-secondary rounded p-3 mb-4">
                <p>{{ __('This item is one of the') }} <strong>{{ __('Free Files') }}</strong>. {{ __('You are able to download this item for free for a limited time. Updates and support are only available if you purchase this item.') }}</p>
                @php if($item['item']->download_count == "") { $dcount = 0; } else { $dcount = $item['item']->download_count; } @endphp
@@ -484,7 +484,7 @@ $extend_item_price = 0;
                 </div>
                </div>
                @else
-               @if($addition_settings->subscription_mode == 1)
+               @if($addition_settings->subscription_mode == 1 && !\Fickrr\Support\Store::isPhysical())
                @if($item['item']->subscription_item == 1)
                <div class="bg-secondary rounded p-3 mb-4">
                @if(Auth::guest())
@@ -549,7 +549,7 @@ $extend_item_price = 0;
                   <div class="card-header d-flex justify-content-between align-items-center py-3 border-0">
                     <div class="custom-control custom-radio">
                       <input class="custom-control-input" type="radio" name="item_price" value="{{ base64_encode($item_price) }}_regular" id="license-std" @if($item['item']->extended_price == 0) checked @endif>
-                      <label class="custom-control-label font-weight-medium text-dark" for="license-std" data-toggle="collapse" data-target="#standard-license">{{ __('Regular License') }}</label>
+                      <label class="custom-control-label font-weight-medium text-dark" for="license-std" data-toggle="collapse" data-target="#standard-license">{{ \Fickrr\Support\Store::isPhysical() ? __('Price') : __('Regular License') }}</label>
                     </div>
                     <h5 class="mb-0 text-accent font-weight-normal">
                     @if($item['item']->item_flash == 1)<del class="price-old fontsize17">{{ Helper::price_format($allsettings->site_currency_position,$item['item']->regular_price,$currency_symbol,$multicurrency) }}</del>@endif <span class="bg-faded-accent rounded-sm py-1 px-2 fontsize17">{{ Helper::price_format($allsettings->site_currency_position,$item_price,$currency_symbol,$multicurrency) }}</span>
@@ -576,7 +576,7 @@ $extend_item_price = 0;
                   </div>
                 </div>
                 @endif
-                @if($item['item']->extended_price != 0)
+                @if($item['item']->extended_price != 0 && !\Fickrr\Support\Store::isPhysical())
                 <div class="card border-bottom-0 border-left-0 border-right-0">
                   <div class="card-header d-flex justify-content-between align-items-center py-3 border-0">
                     <div class="custom-control custom-radio">
@@ -608,7 +608,7 @@ $extend_item_price = 0;
                 @endif
               </div>
               @endif
-              @if($item['item']->file_type == 'serial')
+              @if($item['item']->file_type == 'serial' && !\Fickrr\Support\Store::isPhysical())
               @php
               if($item['item']->item_delimiter == 'comma')
               {
@@ -629,7 +629,24 @@ $extend_item_price = 0;
                   </div>
               <hr> 
               @else
+              @if(\Fickrr\Support\Store::isPhysical())
+              <div class="d-flex justify-content-between align-items-center py-3 border-0 stockqty">
+                <div class="float-left">
+                  <label class="font-weight-medium text-dark" for="qty">{{ __('Quantity') }}</label>
+                  @if(isset($item['item']->stock_quantity))
+                  <div class="font-size-xs text-muted">{{ __('In stock') }}: {{ (int) $item['item']->stock_quantity }}</div>
+                  @endif
+                  @if(isset($item['item']->sku) && $item['item']->sku)
+                  <div class="font-size-xs text-muted">{{ __('SKU') }}: {{ $item['item']->sku }}</div>
+                  @endif
+                </div>
+                <h5 class="mb-0 text-accent font-weight-normal" style="max-width: 5rem;">
+                  <input class="form-control qty" type="number" name="qty" id="qty" value="1" min="1" max="99">
+                </h5>
+              </div>
+              @else
               <input class="qty" type="hidden"  name="qty" id="qty" value="1" min="1">
+              @endif
               @endif 
               @if($allsettings->item_support_link !='')
               @if($item['item']->free_download == 1)
@@ -651,7 +668,7 @@ $extend_item_price = 0;
                   </div>
                 @endif
                 
-                @if($item['item']->file_type == 'link' && !empty($versionLinks) && count($versionLinks) > 0)
+                @if(!\Fickrr\Support\Store::isPhysical() && $item['item']->file_type == 'link' && !empty($versionLinks) && count($versionLinks) > 0)
                 <!-- Version Selector -->
                 <div class="card border-0 mb-3" style="background-color: #f8f9fa;">
                   <div class="card-body py-3">
@@ -744,7 +761,7 @@ $extend_item_price = 0;
                 </div>
                 @endif
                 @endif
-                @if($item['item']->file_type == 'serial')
+                @if($item['item']->file_type == 'serial' && !\Fickrr\Support\Store::isPhysical())
                 @php
                 if($item['item']->item_delimiter == 'comma')
                 {

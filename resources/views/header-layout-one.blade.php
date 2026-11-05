@@ -25,9 +25,9 @@
             @endif
             <div class="topbar-text text-nowrap d-none d-md-inline-block border-left border-light pl-3 ml-3"></div>
           </div>
-          <div class="topbar-text dropdown d-md-none ml-auto"><a class="topbar-link dropdown-toggle" href="#" data-toggle="dropdown">@if($addition_settings->verify_mode == 1){{ __('Verify Purchase') }} / @endif @if($addition_settings->subscription_mode == 1){{ __('Subscription') }} / @endif {{ __('Contact') }}@if($allsettings->site_blog_display == 1) / {{ __('Blog') }}@endif</a>
+          <div class="topbar-text dropdown d-md-none ml-auto"><a class="topbar-link dropdown-toggle" href="#" data-toggle="dropdown">@if($addition_settings->verify_mode == 1 && !\Fickrr\Support\Store::isPhysical()){{ __('Verify Purchase') }} / @endif @if($addition_settings->subscription_mode == 1 && !\Fickrr\Support\Store::isPhysical()){{ __('Subscription') }} / @endif {{ __('Contact') }}@if($allsettings->site_blog_display == 1) / {{ __('Blog') }}@endif</a>
             <ul class="dropdown-menu dropdown-menu-right">
-              @if($addition_settings->verify_mode == 1) 
+              @if($addition_settings->verify_mode == 1 && !\Fickrr\Support\Store::isPhysical()) 
               <li><a class="dropdown-item" href="{{ URL::to('/verify') }}"><i class="dwg-check text-muted mr-2"></i>{{ __('Verify Purchase') }}</a></li>
               @endif
               {{-- @if(Auth::guest())
@@ -37,7 +37,7 @@
               <li><a class="dropdown-item" href="{{ URL::to('/manage-item') }}"><i class="dwg-cart text-muted mr-2"></i>{{ __('Start Selling') }}</a></li>
               @endif
               @endif --}}
-              @if($addition_settings->subscription_mode == 1)
+              @if($addition_settings->subscription_mode == 1 && !\Fickrr\Support\Store::isPhysical())
               <li><a class="dropdown-item" href="{{ url('/subscription') }}"><i class="dwg-book text-muted mr-2"></i>{{ __('Subscription') }}</a></li>
               @endif
               <li><a class="dropdown-item" href="{{ URL::to('/contact') }}"><i class="dwg-support text-muted mr-2"></i>{{ __('Contact') }}</a></li>
@@ -47,7 +47,7 @@
             </ul>
           </div>
           <div class="d-none d-md-block ml-3 text-nowrap">
-          @if($addition_settings->verify_mode == 1)
+          @if($addition_settings->verify_mode == 1 && !\Fickrr\Support\Store::isPhysical())
           <a class="topbar-link ml-3 pl-3 d-none d-md-inline-block" href="{{ URL::to('/verify') }}"><i class="dwg-check mt-n1"></i>{{ __('Verify Purchase') }}</a>
           @endif
           {{-- @if($allsettings->site_selling_display == 1)
@@ -59,7 +59,7 @@
           @endif
           @endif
           @endif --}}
-          @if($addition_settings->subscription_mode == 1)
+          @if($addition_settings->subscription_mode == 1 && !\Fickrr\Support\Store::isPhysical())
           <a class="topbar-link ml-3 border-left border-light pl-3 d-none d-md-inline-block" href="{{ url('/subscription') }}"><i class="dwg-book mt-n1"></i>{{ __('Subscription') }}</a>
           @endif
           <a class="topbar-link ml-3 pl-3 border-left border-light d-none d-md-inline-block" href="{{ URL::to('/contact') }}"><i class="dwg-support mt-n1"></i>{{ __('Contact') }}</a>
@@ -105,8 +105,10 @@
                 <a class="dropdown-item d-flex align-items-center" href="{{ URL::to('/coupon') }}"><i class="dwg-gift opacity-60 mr-2"></i>{{ __('Coupon') }}</a>
                 <a class="dropdown-item d-flex align-items-center" href="{{ URL::to('/sales') }}"><i class="dwg-cart opacity-60 mr-2"></i>{{ __('Sales') }}</a>
                 <a class="dropdown-item d-flex align-items-center" href="{{ URL::to('/manage-item') }}"><i class="dwg-briefcase opacity-60 mr-2"></i>{{ __('Manage Items') }}</a>
+                @if(!\Fickrr\Support\Store::isPhysical())
                 <a class="dropdown-item d-flex align-items-center" href="{{ URL::to('/deposit') }}"><i class="dwg-money-bag opacity-60 mr-2"></i>{{ __('Deposit') }}</a>
                 <a class="dropdown-item d-flex align-items-center" href="{{ URL::to('/withdrawal') }}"><i class="dwg-currency-exchange opacity-60 mr-2"></i>{{ __('Withdrawals') }}</a>
+                @endif
                 <div class="dropdown-divider"></div>
                 <a class="dropdown-item d-flex align-items-center" href="{{ url('/logout') }}"><i class="dwg-sign-out opacity-60 mr-2"></i>{{ __('Logout') }}</a>
                 @endif
@@ -115,8 +117,10 @@
                 <a class="dropdown-item d-flex align-items-center" href="{{ URL::to('/profile-settings') }}"><i class="dwg-settings opacity-60 mr-2"></i>{{ __('Setting') }}</a> 
                 <a class="dropdown-item d-flex align-items-center" href="{{ URL::to('/purchases') }}"><i class="dwg-basket opacity-60 mr-2"></i>{{ __('Purchase') }}</a>
                 <a class="dropdown-item d-flex align-items-center" href="{{ URL::to('/favourites') }}"><i class="dwg-heart opacity-60 mr-2"></i>{{ __('Favourite') }}</a>
+                @if(!\Fickrr\Support\Store::isPhysical())
                 <a class="dropdown-item d-flex align-items-center" href="{{ URL::to('/deposit') }}"><i class="dwg-money-bag opacity-60 mr-2"></i>{{ __('Deposit') }}</a>
                 <a class="dropdown-item d-flex align-items-center" href="{{ URL::to('/withdrawal') }}"><i class="dwg-currency-exchange opacity-60 mr-2"></i>{{ __('Withdrawals') }}</a>
+                @endif
                 <div class="dropdown-divider"></div>
                 <a class="dropdown-item d-flex align-items-center" href="{{ url('/logout') }}"><i class="dwg-sign-out opacity-60 mr-2"></i>{{ __('Logout') }}</a>
                 @endif
@@ -236,13 +240,13 @@
                 <li class="nav-item dropdown d-none d-md-block"><a class="nav-link dropdown-toggle" href="{{ url('/shop') }}">{{ __('All Items') }}</a>
                   <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="{{ url('/') }}/featured-items">{{ __('Featured Items') }}</a></li>
-                    <li><a class="dropdown-item" href="{{ url('/free-items') }}">{{ __('Free Items') }}</a></li>
+                    @if(!\Fickrr\Support\Store::isPhysical())<li><a class="dropdown-item" href="{{ url('/free-items') }}">{{ __('Free Items') }}</a></li>@endif
                     <li><a class="dropdown-item" href="{{ url('/') }}/new-releases">{{ __('New Releases') }}</a></li>
                     <li><a class="dropdown-item" href="{{ url('/') }}/popular-items">{{ __('Popular Items') }}</a></li>
-                    @if($addition_settings->subscription_mode == 1)
+                    @if($addition_settings->subscription_mode == 1 && !\Fickrr\Support\Store::isPhysical())
                     <li><a class="dropdown-item" href="{{ url('/') }}/subscriber-downloads">{{ __('Subscriber Downloads') }}</a></li>
                     @endif
-                    <li><a class="dropdown-item" href="{{ url('/top-authors') }}">{{ __('Top Authors') }}</a></li>
+                    @if(!\Fickrr\Support\Store::isPhysical())<li><a class="dropdown-item" href="{{ url('/top-authors') }}">{{ __('Top Authors') }}</a></li>@endif
                    </ul>
                 </li>
                 @if(count($categories['menu']) != 0)
@@ -263,13 +267,13 @@
                 <li class="nav-item dropdown d-md-none"><a class="nav-link dropdown-toggle" href="{{ url('/shop') }}" data-toggle="dropdown">{{ __('All Items') }}</a>
                   <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="{{ url('/featured-items') }}">{{ __('Featured Items') }}</a></li>
-                    <li><a class="dropdown-item" href="{{ url('/free-items') }}">{{ __('Free Items') }}</a></li>
+                    @if(!\Fickrr\Support\Store::isPhysical())<li><a class="dropdown-item" href="{{ url('/free-items') }}">{{ __('Free Items') }}</a></li>@endif
                     <li><a class="dropdown-item" href="{{ url('/new-releases') }}">{{ __('New Releases') }}</a></li>
                     <li><a class="dropdown-item" href="{{ url('/popular-items') }}">{{ __('Popular Items') }}</a></li>
-                    @if($addition_settings->subscription_mode == 1)
+                    @if($addition_settings->subscription_mode == 1 && !\Fickrr\Support\Store::isPhysical())
                     <li><a class="dropdown-item" href="{{ url('/subscriber-downloads') }}">{{ __('Subscriber Downloads') }}</a></li>
                     @endif
-                    <li><a class="dropdown-item" href="{{ url('/top-authors') }}">{{ __('Top Authors') }}</a></li>
+                    @if(!\Fickrr\Support\Store::isPhysical())<li><a class="dropdown-item" href="{{ url('/top-authors') }}">{{ __('Top Authors') }}</a></li>@endif
                    </ul>
                 </li>
                 @if(count($categories['menu']) != 0)

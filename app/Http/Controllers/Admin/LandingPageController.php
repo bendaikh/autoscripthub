@@ -90,7 +90,7 @@ class LandingPageController extends Controller
             'lp_product_file' => 'nullable',
             'gallery_images' => 'nullable|array|max:20',
             'gallery_images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'lp_product_kind' => 'nullable|in:script,sheet,product',
+            'lp_product_kind' => 'nullable|in:script,sheet,product,physical',
             'lp_content_language' => 'required|string|max:10',
             'lp_target_country' => 'required|string|size:2',
             'lp_source_url' => 'nullable|url|max:2048',
@@ -141,8 +141,12 @@ class LandingPageController extends Controller
         $product_file_type = 'file';
         $product_link = null;
         $delivery_method = $request->lp_delivery_method ?? 'upload';
-        
-        if ($delivery_method == 'link') {
+
+        if (\Fickrr\Support\Store::isPhysical()) {
+            $delivery_method = 'shipping';
+            $product_file = null;
+            $product_link = null;
+        } elseif ($delivery_method == 'link') {
             // Save product link
             $product_link = $request->lp_product_link;
         } else {
@@ -236,6 +240,7 @@ class LandingPageController extends Controller
 
         // Get the last inserted ID
         $landing_page_id = \DB::getPdo()->lastInsertId();
+        \Fickrr\Services\Physical\PhysicalCatalog::syncLanding((int) $landing_page_id, $request);
 
         // Handle gallery images
         if ($request->hasFile('gallery_images')) {
@@ -306,7 +311,7 @@ class LandingPageController extends Controller
             'lp_product_file' => 'nullable',
             'gallery_images' => 'nullable|array|max:20',
             'gallery_images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'lp_product_kind' => 'nullable|in:script,sheet,product',
+            'lp_product_kind' => 'nullable|in:script,sheet,product,physical',
             'lp_content_language' => 'required|string|max:10',
             'lp_target_country' => 'required|string|size:2',
             'lp_source_url' => 'nullable|url|max:2048',
@@ -365,8 +370,12 @@ class LandingPageController extends Controller
         $product_file_type = $landing_page->lp_product_file_type ?? 'file';
         $product_link = $landing_page->lp_product_link;
         $delivery_method = $request->lp_delivery_method ?? 'upload';
-        
-        if ($delivery_method == 'link') {
+
+        if (\Fickrr\Support\Store::isPhysical()) {
+            $delivery_method = 'shipping';
+            $product_file = null;
+            $product_link = null;
+        } elseif ($delivery_method == 'link') {
             // Update product link
             $product_link = $request->lp_product_link;
             
@@ -506,6 +515,7 @@ class LandingPageController extends Controller
         }
 
         LandingPage::updateLandingPage($request->lp_id, $data);
+        \Fickrr\Services\Physical\PhysicalCatalog::syncLanding((int) $request->lp_id, $request);
 
         // Handle new gallery images
         if ($request->hasFile('gallery_images')) {
@@ -1564,6 +1574,10 @@ class LandingPageController extends Controller
 
     protected function normalizeProductKind($kind): string
     {
+        if (\Fickrr\Support\Store::isPhysical()) {
+            return 'physical';
+        }
+
         $kind = strtolower(trim((string) $kind));
         if (in_array($kind, ['sheet', 'product'], true)) {
             return $kind;

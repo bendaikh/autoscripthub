@@ -4487,6 +4487,9 @@ class CommonController extends Controller
 	
 	public function view_subscriber_downloads(Request $request)
 	{
+	   if ($redirect = \Fickrr\Support\Store::denyDigitalFulfillment()) {
+	       return $redirect;
+	   }
 	   $sid = 1;
 	   $setting['setting'] = Settings::editGeneral($sid);
 	   $today = date("Y-m-d");
@@ -4844,6 +4847,9 @@ class CommonController extends Controller
 	
 	public function view_subscription()
 	{
+	 if ($redirect = \Fickrr\Support\Store::denyDigitalFulfillment()) {
+	     return $redirect;
+	 }
 	 $subscription['view'] = Subscription::viewSubscription();
 	 $data = array('subscription' => $subscription);  
 	 return view('subscription')->with($data);
@@ -5027,6 +5033,9 @@ class CommonController extends Controller
 	
 	public function view_free_item($download,$item_token)
 	{
+	 if ($redirect = \Fickrr\Support\Store::denyDigitalFulfillment()) {
+	     return $redirect;
+	 }
 	 
 	 if(Auth::check())
 	 {
