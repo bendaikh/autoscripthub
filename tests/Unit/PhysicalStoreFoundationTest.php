@@ -123,6 +123,16 @@ class PhysicalStoreFoundationTest extends TestCase
             $src
         );
         $this->assertStringContainsString('Quality products delivered to your door', $src);
+        $this->assertSame(3, substr_count($src, 'hv-stat hv-stat--center'));
+        $homeCss = file_get_contents(public_path('assets/home-theme.css'));
+        $this->assertMatchesRegularExpression(
+            '/\.hv-stat\.hv-stat--center\s*\{[^}]*text-align:\s*center/s',
+            $homeCss
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.hv-stat\.hv-stat--center\s*\{[^}]*align-items:\s*center/s',
+            $homeCss
+        );
         $this->assertStringContainsString('hv-dash', $src);
         $this->assertStringNotContainsString('hv-hero--shop', $src);
         $this->assertStringNotContainsString('hero-still.svg', $src);

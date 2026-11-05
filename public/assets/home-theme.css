@@ -935,6 +935,39 @@ body.home-v2 .hv-stat small {
   color: rgba(226, 232, 240, .5);
 }
 
+/* Pay, Ship, and Stock: center the icon and copy inside each column. */
+body.home-v2 .hv-stat.hv-stat--center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+}
+
+body.home-v2 .hv-stat.hv-stat--center > .hv-stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+body.home-v2 .hv-stat.hv-stat--center > .hv-stat-icon svg {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+body.home-v2 .hv-stat.hv-stat--center > strong,
+body.home-v2 .hv-stat.hv-stat--center > span:not(.hv-stat-icon),
+body.home-v2 .hv-stat.hv-stat--center > small {
+  text-align: center;
+  width: 100%;
+}
+
 /* ==========================================================================
    Buttons
    ========================================================================== */
@@ -1198,10 +1231,24 @@ body.home-v2 .hv-stat-icon svg {
   body.home-v2 .hv-visual { margin-top: 2.5rem; }
   body.home-v2 .hv-section { padding: 3rem 0; }
   body.home-v2 .hv-stats { padding: 1.75rem; }
+  body.home-v2 .hv-stat.hv-stat--center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
   body.home-v2 .hv-cta { margin-top: 1.5rem; }
 }
 
 @media (max-width: 767.98px) {
+  body.home-v2 .hv-stat.hv-stat--center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
   body.home-v2 .hv-hero h1 { font-size: 1.85rem; }
   body.home-v2 .hv-hero-sub { font-size: .94rem; }
 

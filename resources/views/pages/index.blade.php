@@ -449,7 +449,7 @@
         <div class="col-lg-7">
           <div class="row">
             <div class="col-6 col-md-4">
-              <div class="hv-stat">
+              <div class="hv-stat hv-stat--center">
                 <span class="hv-stat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M2 10h20" fill="none" stroke="currentColor" stroke-width="1.7"/></svg></span>
                 <strong>{{ __('Pay') }}</strong>
                 <span>{{ __('Card or PayPal') }}</span>
@@ -457,7 +457,7 @@
               </div>
             </div>
             <div class="col-6 col-md-4">
-              <div class="hv-stat">
+              <div class="hv-stat hv-stat--center">
                 <span class="hv-stat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="7" cy="18" r="1.6" fill="currentColor"/><circle cx="17" cy="18" r="1.6" fill="currentColor"/></svg></span>
                 <strong>{{ __('Ship') }}</strong>
                 <span>{{ __('To your address') }}</span>
@@ -465,7 +465,7 @@
               </div>
             </div>
             <div class="col-6 col-md-4">
-              <div class="hv-stat">
+              <div class="hv-stat hv-stat--center">
                 <span class="hv-stat-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8l8-4 8 4-8 4-8-4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M4 8v8l8 4 8-4V8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 12v8" fill="none" stroke="currentColor" stroke-width="1.7"/></svg></span>
                 <strong>{{ __('Stock') }}</strong>
                 <span>{{ __('Checked on confirm') }}</span>
