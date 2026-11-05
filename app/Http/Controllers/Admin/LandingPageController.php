@@ -833,17 +833,11 @@ class LandingPageController extends Controller
             return redirect()->route('admin.landing-pages');
         }
 
-        $days = (int) $request->get('days', 30);
-        if ($days <= 0) {
-            $days = 30;
-        }
-        if ($days > 365) {
-            $days = 365;
-        }
-
-        $from = now()->subDays($days);
+        $range = $this->resolveAnalyticsRange($request);
         $country = $this->parseAnalyticsCountryFilter($request);
-        $analytics = $this->buildLandingPageAnalytics($lp_id, $from, $days, $country);
+        $analytics = $this->buildLandingPageAnalytics($lp_id, $range['from'], $range['days'], $country, $range['to']);
+        $analytics['range'] = $range;
+        $analytics['range_params'] = $range['params'];
         $analytics['landing_page'] = $landingPage;
 
         $sid = 1;
@@ -869,6 +863,89 @@ class LandingPageController extends Controller
             'success' => true,
             'data' => $this->getLiveVisitorStats($lp_id, $country),
         ]);
+    }
+
+    /**
+     * Resolve the analytics period from the request: a preset (?days=N) or a
+     * custom inclusive range (?from=Y-m-d&to=Y-m-d, single day when equal or
+     * when only one is given). Dates are interpreted in the app timezone.
+     */
+    public function resolveAnalyticsRange(Request $request): array
+    {
+        $tz = config('app.timezone') ?: 'UTC';
+        $fromRaw = trim((string) $request->get('from', ''));
+        $toRaw = trim((string) $request->get('to', ''));
+        $error = '';
+        $daysRaw = (string) $request->get('days', '');
+        if ($fromRaw === '' && $toRaw === '' && in_array($daysRaw, ['today', 'yesterday'], true)) {
+            $fromRaw = $toRaw = now($tz)->subDays($daysRaw === 'yesterday' ? 1 : 0)->format('Y-m-d');
+        }
+
+        if ($fromRaw !== '' || $toRaw !== '') {
+            $parse = function ($v) use ($tz) {
+                if ($v === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $v)) {
+                    return null;
+                }
+                try {
+                    $d = \Carbon\Carbon::createFromFormat('!Y-m-d', $v, $tz);
+                } catch (\Throwable $e) {
+                    return null;
+                }
+                return ($d && $d->format('Y-m-d') === $v) ? $d : null;
+            };
+            $f = $parse($fromRaw);
+            $t = $parse($toRaw);
+            if (($fromRaw !== '' && !$f) || ($toRaw !== '' && !$t)) {
+                $error = __('Invalid date. Showing the last 30 days instead.');
+            } else {
+                $f = $f ?: $t->copy();
+                $t = $t ?: $f->copy();
+                if ($f->gt($t)) {
+                    $error = __('The start date must be on or before the end date. Showing the last 30 days instead.');
+                } elseif ($f->diffInDays($t) > 730) {
+                    $error = __('Please choose a range of at most 2 years. Showing the last 30 days instead.');
+                } else {
+                    $from = $f->copy()->startOfDay();
+                    $to = $t->copy()->endOfDay();
+                    $days = (int) $f->diffInDays($t) + 1;
+                    $single = $f->isSameDay($t);
+                    return [
+                        'mode' => 'custom',
+                        'from' => $from,
+                        'to' => $to,
+                        'days' => $days,
+                        'from_date' => $f->format('Y-m-d'),
+                        'to_date' => $t->format('Y-m-d'),
+                        'single_day' => $single,
+                        'label' => $single ? $f->format('M j, Y') : $f->format('M j, Y') . ' – ' . $t->format('M j, Y'),
+                        'error' => '',
+                        'params' => ['from' => $f->format('Y-m-d'), 'to' => $t->format('Y-m-d')],
+                    ];
+                }
+            }
+        }
+
+        $days = $error === '' ? (int) $request->get('days', 30) : 30;
+        if ($days <= 0) {
+            $days = 30;
+        }
+        if ($days > 365) {
+            $days = 365;
+        }
+        $now = now($tz);
+
+        return [
+            'mode' => 'preset',
+            'from' => $now->copy()->subDays($days),
+            'to' => $now,
+            'days' => $days,
+            'from_date' => $now->copy()->subDays($days)->format('Y-m-d'),
+            'to_date' => $now->format('Y-m-d'),
+            'single_day' => false,
+            'label' => __('Last') . ' ' . $days . ' ' . __('days'),
+            'error' => $error,
+            'params' => ['days' => $days],
+        ];
     }
 
     /**
@@ -899,11 +976,11 @@ class LandingPageController extends Controller
     /**
      * Base query for landing page events, optionally scoped by visitor country.
      */
-    protected function landingPageEventsQuery(int $lp_id, $from, string $country = '')
+    protected function landingPageEventsQuery(int $lp_id, $from, string $country = '', $to = null)
     {
         $query = DB::table('landing_page_events')
             ->where('landing_page_events.lp_id', $lp_id)
-            ->where('landing_page_events.created_at', '>=', $from);
+            ->whereBetween('landing_page_events.created_at', [$from, $to ?: now()]);
 
         if ($country !== '') {
             $query->join(
@@ -920,11 +997,11 @@ class LandingPageController extends Controller
     /**
      * Base query for completed orders, optionally scoped by purchase visit country.
      */
-    protected function landingPageOrdersQuery(int $lp_id, $from, string $country = '')
+    protected function landingPageOrdersQuery(int $lp_id, $from, string $country = '', $to = null)
     {
         $query = DB::table('landing_page_orders')
             ->where('landing_page_orders.lp_id', $lp_id)
-            ->where('landing_page_orders.created_at', '>=', $from)
+            ->whereBetween('landing_page_orders.created_at', [$from, $to ?: now()])
             ->where('landing_page_orders.payment_status', 'completed');
 
         if ($country !== '') {
@@ -948,11 +1025,12 @@ class LandingPageController extends Controller
     /**
      * Aggregate analytics metrics for a landing page over a date range.
      */
-    protected function buildLandingPageAnalytics(int $lp_id, $from, int $days, string $country = ''): array
+    protected function buildLandingPageAnalytics(int $lp_id, $from, int $days, string $country = '', $to = null): array
     {
+        $to = $to ?: now();
         $visitsBase = DB::table('landing_page_visits')
             ->where('lp_id', $lp_id)
-            ->where('created_at', '>=', $from);
+            ->whereBetween('created_at', [$from, $to]);
         $this->applyAnalyticsCountryToVisits($visitsBase, $country);
 
         $totalVisits = (clone $visitsBase)->count();
@@ -960,12 +1038,12 @@ class LandingPageController extends Controller
         $pageviews = (int) ((clone $visitsBase)->sum('lpv_pageviews') ?? 0);
         $bounceVisits = (clone $visitsBase)->where('lpv_pageviews', '<=', 1)->count();
 
-        $ordersBase = $this->landingPageOrdersQuery($lp_id, $from, $country);
+        $ordersBase = $this->landingPageOrdersQuery($lp_id, $from, $country, $to);
 
         $completedOrders = (clone $ordersBase)->count();
         $revenueTotal = (float) ((clone $ordersBase)->sum('landing_page_orders.amount') ?? 0);
 
-        $eventsQuery = $this->landingPageEventsQuery($lp_id, $from, $country);
+        $eventsQuery = $this->landingPageEventsQuery($lp_id, $from, $country, $to);
 
         $pageViewsCount = (int) (clone $eventsQuery)
             ->where('landing_page_events.lpe_name', 'page_view')
@@ -1006,14 +1084,14 @@ class LandingPageController extends Controller
                 DB::raw('COALESCE(SUM(lpv_pageviews), 0) as pageviews')
             )
             ->where('lp_id', $lp_id)
-            ->where('created_at', '>=', $from);
+            ->whereBetween('created_at', [$from, $to]);
         $this->applyAnalyticsCountryToVisits($dailyTrends, $country);
         $dailyTrends = $dailyTrends
             ->groupBy(DB::raw('DATE(created_at)'))
             ->orderBy('date')
             ->get();
 
-        $dailyOrders = (clone $this->landingPageOrdersQuery($lp_id, $from, $country))
+        $dailyOrders = (clone $this->landingPageOrdersQuery($lp_id, $from, $country, $to))
             ->select(
                 DB::raw('DATE(landing_page_orders.created_at) as date'),
                 DB::raw('COUNT(*) as orders'),
@@ -1049,7 +1127,7 @@ class LandingPageController extends Controller
         $durationTotal = 0;
         $durationCount = 0;
 
-        $propertyEvents = (clone $this->landingPageEventsQuery($lp_id, $from, $country))
+        $propertyEvents = (clone $this->landingPageEventsQuery($lp_id, $from, $country, $to))
             ->select('landing_page_events.lpe_name', 'landing_page_events.lpe_properties')
             ->whereIn('landing_page_events.lpe_name', ['scroll_depth', 'page_exit'])
             ->get();
@@ -1087,7 +1165,7 @@ class LandingPageController extends Controller
                 DB::raw('COALESCE(SUM(lpv_pageviews),0) as pageviews')
             )
             ->where('lp_id', $lp_id)
-            ->where('created_at', '>=', $from)
+            ->whereBetween('created_at', [$from, $to])
             ->whereNotNull('lpv_country_code')
             ->where('lpv_country_code', '!=', '')
             ->groupBy('lpv_country_code')
@@ -1106,7 +1184,7 @@ class LandingPageController extends Controller
                 DB::raw('COUNT(DISTINCT lpv_visitor_id) as unique_visitors')
             )
             ->where('lp_id', $lp_id)
-            ->where('created_at', '>=', $from);
+            ->whereBetween('created_at', [$from, $to]);
         $this->applyAnalyticsCountryToVisits($utmSources, $country);
         $utmSources = $utmSources
             ->groupBy(DB::raw("COALESCE(NULLIF(lpv_utm_source, ''), '(direct / none)')"))
@@ -1121,7 +1199,7 @@ class LandingPageController extends Controller
                 DB::raw('COUNT(*) as visits')
             )
             ->where('lp_id', $lp_id)
-            ->where('created_at', '>=', $from)
+            ->whereBetween('created_at', [$from, $to])
             ->whereNotNull('lpv_utm_campaign')
             ->where('lpv_utm_campaign', '!=', '');
         $this->applyAnalyticsCountryToVisits($utmCampaigns, $country);
@@ -1141,7 +1219,7 @@ class LandingPageController extends Controller
                 DB::raw('COUNT(DISTINCT lpv_visitor_id) as unique_visitors')
             )
             ->where('lp_id', $lp_id)
-            ->where('created_at', '>=', $from);
+            ->whereBetween('created_at', [$from, $to]);
         $this->applyAnalyticsCountryToVisits($referrers, $country);
         $referrers = $referrers
             ->groupBy(DB::raw("CASE WHEN lpv_referrer IS NULL OR lpv_referrer = '' THEN '(direct)' ELSE SUBSTRING(lpv_referrer, 1, 120) END"))
@@ -1152,7 +1230,7 @@ class LandingPageController extends Controller
         $devices = ['desktop' => 0, 'mobile' => 0, 'tablet' => 0, 'other' => 0];
         $userAgentsQuery = DB::table('landing_page_visits')
             ->where('lp_id', $lp_id)
-            ->where('created_at', '>=', $from)
+            ->whereBetween('created_at', [$from, $to])
             ->whereNotNull('lpv_user_agent');
         $this->applyAnalyticsCountryToVisits($userAgentsQuery, $country);
         $userAgents = $userAgentsQuery->pluck('lpv_user_agent');
@@ -1161,13 +1239,13 @@ class LandingPageController extends Controller
             $devices[$this->detectDeviceType((string) $ua)]++;
         }
 
-        $events = (clone $this->landingPageEventsQuery($lp_id, $from, $country))
+        $events = (clone $this->landingPageEventsQuery($lp_id, $from, $country, $to))
             ->select('landing_page_events.lpe_name', DB::raw('COUNT(*) as total'))
             ->groupBy('landing_page_events.lpe_name')
             ->orderByDesc('total')
             ->get();
 
-        $paymentMethods = (clone $this->landingPageOrdersQuery($lp_id, $from, $country))
+        $paymentMethods = (clone $this->landingPageOrdersQuery($lp_id, $from, $country, $to))
             ->select(
                 'landing_page_orders.payment_method',
                 DB::raw('COUNT(*) as total'),
@@ -1177,7 +1255,7 @@ class LandingPageController extends Controller
             ->orderByDesc('total')
             ->get();
 
-        $recentOrders = (clone $this->landingPageOrdersQuery($lp_id, $from, $country))
+        $recentOrders = (clone $this->landingPageOrdersQuery($lp_id, $from, $country, $to))
             ->select(
                 'landing_page_orders.customer_email',
                 'landing_page_orders.amount',
@@ -1199,6 +1277,7 @@ class LandingPageController extends Controller
         return [
             'days' => $days,
             'from' => $from,
+            'to' => $to,
             'country_filter' => $country,
             'country_filter_name' => $country !== '' ? Helper::countryNameFromCode($country) : '',
             'country_filter_flag' => $country !== '' ? Helper::countryFlagEmoji($country) : '',
