@@ -98,6 +98,22 @@ class PhysicalStoreFoundationTest extends TestCase
         );
     }
 
+    public function test_product_cards_show_the_full_photo(): void
+    {
+        $shared = file_get_contents(public_path('assets/product-cards.css'));
+        $home = file_get_contents(public_path('assets/home-theme.css'));
+
+        $this->assertStringContainsString('aspect-ratio: 4 / 3', $shared);
+        $this->assertStringContainsString('object-fit: contain', $shared);
+        $this->assertStringNotContainsString('object-fit: cover', $shared);
+        $this->assertStringContainsString('object-fit: contain', $home);
+        $this->assertDoesNotMatchRegularExpression(
+            '/product-thumb img \{[^}]*object-fit:\s*cover/s',
+            $home
+        );
+        $this->assertStringContainsString("asset('assets/product-cards.css')", file_get_contents(base_path('resources/views/style.blade.php')));
+    }
+
     public function test_physical_homepage_hides_invented_digital_claims(): void
     {
         $src = file_get_contents(base_path('resources/views/pages/index.blade.php'));
