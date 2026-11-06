@@ -450,6 +450,11 @@ class PhysicalOrderService
             ]);
         }
 
+        $catalogId = (int) ($page->lp_product_id ?? 0);
+        if ($catalogId > 0) {
+            return $this->resolveItemLine($catalogId, $variantId, $qty);
+        }
+
         $variant = $this->variantFor($variantId, null, $lpId);
         $track = $this->inventory->tracksLanding($page);
         $available = $this->inventory->availableForLanding($lpId, $variantId, $track);

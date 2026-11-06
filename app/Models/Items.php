@@ -1305,7 +1305,7 @@ class Items extends Model
   {
     $today = date("Y-m-d");
     $additional['settings'] = Settings::editAdditional();
-	if($additional['settings']->subscription_mode == 1)
+	if(\Fickrr\Support\Store::catalogRequiresVendorSubscription($additional['settings']))
 	{
     $value=DB::table('items')->join('users','users.id','items.user_id')->where('users.user_subscr_date','>=',$today)->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.item_slug','=',$item_slug)->first(); 
 	}
@@ -1322,7 +1322,7 @@ class Items extends Model
   {
     $today = date("Y-m-d");
     $additional['settings'] = Settings::editAdditional();
-	if($additional['settings']->subscription_mode == 1)
+	if(\Fickrr\Support\Store::catalogRequiresVendorSubscription($additional['settings']))
 	{
     $get=DB::table('items')->join('users','users.id','items.user_id')->where('users.user_subscr_date','>=',$today)->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.item_slug','=',$item_slug)->get(); 
 	}
@@ -1353,7 +1353,7 @@ class Items extends Model
   {
     $today = date("Y-m-d");
     $additional['settings'] = Settings::editAdditional();
-	if($additional['settings']->subscription_mode == 1)
+	if(\Fickrr\Support\Store::catalogRequiresVendorSubscription($additional['settings']))
 	{
     $get=DB::table('items')->join('users','users.id','items.user_id')->where('users.user_subscr_date','>=',$today)->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.item_slug','=',$item_slug)->get(); 
 	}

@@ -8,6 +8,63 @@ use Illuminate\Support\Facades\Schema;
 
 class PhysicalCatalog
 {
+    /**
+     * Published catalog products a landing page may use.
+     * Approval and "not deleted" are the only gates. File type, featured flag,
+     * vendor, and a digital download file are not.
+     */
+    public static function publishedProducts()
+    {
+        if (!Schema::hasTable('items')) {
+            return collect();
+        }
+
+        return DB::table('items')
+            ->where('drop_status', 'no')
+            ->where('item_status', 1)
+            ->orderBy('item_name')
+            ->get();
+    }
+
+    /**
+     * When a landing page is tied to a catalog product, sell that product's
+     * current price and stock instead of a separate copy.
+     */
+    public static function applyCatalogItem(object $page): object
+    {
+        $id = (int) ($page->lp_product_id ?? 0);
+        if ($id < 1 || !Schema::hasTable('items')) {
+            return $page;
+        }
+
+        $item = self::publishedProducts()->first(function ($row) use ($id) {
+            return (int) $row->item_id === $id;
+        });
+        if (!$item) {
+            return $page;
+        }
+
+        $page->lp_price = $item->regular_price;
+        if (isset($item->sku)) {
+            $page->lp_sku = $item->sku;
+        }
+        if (isset($item->stock_quantity)) {
+            $page->lp_stock_quantity = $item->stock_quantity;
+        }
+        if (isset($item->shipping_fee)) {
+            $page->lp_shipping_fee = $item->shipping_fee;
+        }
+        if (isset($item->weight_grams)) {
+            $page->lp_weight_grams = $item->weight_grams;
+        }
+        if (isset($item->track_inventory)) {
+            $page->lp_track_inventory = $item->track_inventory;
+        }
+        $page->catalog_item_id = (int) $item->item_id;
+
+        return $page;
+    }
+
     public static function applyItemRequest(?string $itemToken, Request $request): void
     {
         if (!\Fickrr\Support\Store::isPhysical() || !$request->boolean('physical_fields_present')) {

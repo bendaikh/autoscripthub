@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use Fickrr\Services\Physical\CheckoutValidationException;
+use Fickrr\Services\Physical\PhysicalCatalog;
+use Fickrr\Support\Store;
 use Fickrr\Services\Physical\InsufficientStockException;
 use Fickrr\Services\Physical\InvalidStatusTransitionException;
 use Fickrr\Services\Physical\OnlinePaymentService;
@@ -266,6 +268,80 @@ class PhysicalStoreOrderTest extends TestCase
         $this->assertSame('confirmed', DB::table('landing_page_orders')->where('order_token', $order->landing_order_token)->value('fulfillment_status'));
     }
 
+    public function test_landing_pages_list_published_physical_products(): void
+    {
+        $visible = DB::table('items')->insertGetId([
+            'item_name' => 'Linen towel',
+            'item_token' => 'tok-towel',
+            'regular_price' => 18,
+            'item_status' => 1,
+            'drop_status' => 'no',
+            'file_type' => 'physical',
+            'item_featured' => 'no',
+            'user_id' => 44,
+            'item_shortdesc' => 'Washed linen towel',
+            'sku' => 'TOWEL',
+            'stock_quantity' => 6,
+            'shipping_fee' => 2,
+            'weight_grams' => 150,
+            'requires_shipping' => 1,
+            'track_inventory' => 1,
+            'product_type' => 'physical',
+        ]);
+        DB::table('items')->insert([
+            'item_name' => 'Hidden draft',
+            'item_token' => 'tok-draft',
+            'regular_price' => 9,
+            'item_status' => 0,
+            'drop_status' => 'no',
+            'file_type' => 'physical',
+            'item_featured' => 'yes',
+            'user_id' => 1,
+            'sku' => 'DRAFT',
+            'stock_quantity' => 3,
+            'product_type' => 'physical',
+        ]);
+        DB::table('items')->insert([
+            'item_name' => 'Deleted mug',
+            'item_token' => 'tok-gone',
+            'regular_price' => 9,
+            'item_status' => 1,
+            'drop_status' => 'yes',
+            'file_type' => 'file',
+            'item_featured' => 'yes',
+            'user_id' => 1,
+            'sku' => 'GONE',
+            'stock_quantity' => 3,
+            'product_type' => 'physical',
+        ]);
+
+        $listed = PhysicalCatalog::publishedProducts()->pluck('item_name')->all();
+        $this->assertSame(['Linen towel'], $listed);
+        $this->assertFalse(Store::catalogRequiresVendorSubscription((object) ['subscription_mode' => 1]));
+
+        $lpId = DB::table('landing_pages')->insertGetId([
+            'lp_title' => 'Towel offer',
+            'lp_slug' => 'towel-offer',
+            'lp_price' => 1,
+            'lp_currency' => 'USD',
+            'lp_status' => 1,
+            'lp_product_id' => (string) $visible,
+            'lp_stock_quantity' => 99,
+            'lp_shipping_fee' => 0,
+            'lp_track_inventory' => 1,
+        ]);
+        $page = DB::table('landing_pages')->where('lp_id', $lpId)->first();
+        $applied = PhysicalCatalog::applyCatalogItem($page);
+        $this->assertEquals(18.0, (float) $applied->lp_price);
+        $this->assertSame(6, (int) $applied->lp_stock_quantity);
+
+        $order = $this->orders()->placeLanding($page, $this->customer(['quantity' => 2]));
+        $this->orders()->recordPayment((int) $order->id, 'pi_towel');
+
+        $this->assertSame(4, (int) DB::table('items')->where('item_id', $visible)->value('stock_quantity'));
+        $this->assertSame(99, (int) DB::table('landing_pages')->where('lp_id', $lpId)->value('lp_stock_quantity'));
+    }
+
     private function orders(): PhysicalOrderService
     {
         return app(PhysicalOrderService::class);
@@ -313,6 +389,11 @@ class PhysicalStoreOrderTest extends TestCase
             $table->decimal('extended_price', 12, 2)->default(0);
             $table->unsignedTinyInteger('item_status')->default(1);
             $table->string('drop_status')->default('no');
+            $table->string('file_type')->nullable();
+            $table->string('item_featured')->default('no');
+            $table->unsignedInteger('user_id')->nullable();
+            $table->string('item_shortdesc')->nullable();
+            $table->text('item_desc')->nullable();
         });
 
         Schema::create('landing_pages', function (Blueprint $table) {
@@ -326,6 +407,7 @@ class PhysicalStoreOrderTest extends TestCase
             $table->string('lp_delivery_method', 20)->nullable();
             $table->string('lp_product_file')->nullable();
             $table->string('lp_product_link')->nullable();
+            $table->string('lp_product_id')->nullable();
         });
 
         Schema::create('landing_page_orders', function (Blueprint $table) {

@@ -67,7 +67,7 @@
                                             <!-- Basic Information -->
                                             <div class="form-group">
                                                 <label>{{ __('Page Title') }} <span class="text-danger">*</span></label>
-                                                <input type="text" name="lp_title" class="form-control" value="{{ old('lp_title') }}" required>
+                                                <input type="text" name="lp_title" class="form-control" value="{{ old('lp_title', optional($catalog_prefill ?? null)->item_name ?? '') }}" required>
                                                 @if ($errors->has('lp_title'))
                                                 <span class="text-danger">{{ $errors->first('lp_title') }}</span>
                                                 @endif
@@ -91,7 +91,7 @@
 
                                             <div class="form-group">
                                                 <label>{{ __('Hero Description') }} <span class="text-danger">*</span></label>
-                                                <textarea name="lp_description" id="hero_description" class="form-control" rows="3" maxlength="220" required>{{ old('lp_description') }}</textarea>
+                                                <textarea name="lp_description" id="hero_description" class="form-control" rows="3" maxlength="220" required>{{ old('lp_description', !empty($catalog_prefill) ? \Illuminate\Support\Str::limit(trim(strip_tags($catalog_prefill->item_shortdesc ?? $catalog_prefill->item_desc ?? '')), 200, '') : '') }}</textarea>
                                                 <small class="form-text text-muted">{{ __('Short text under the title in the hero section — about 200 characters max.') }}</small>
                                                 @if ($errors->has('lp_description'))
                                                 <span class="text-danger">{{ $errors->first('lp_description') }}</span>
@@ -218,7 +218,7 @@
                                             <!-- Pricing -->
                                             <div class="form-group">
                                                 <label>{{ __('Regular Price') }} <span class="text-danger">*</span></label>
-                                                <input type="number" name="lp_price" class="form-control" value="{{ old('lp_price', 0) }}" step="0.01" min="0" required>
+                                                <input type="number" name="lp_price" class="form-control" value="{{ old('lp_price', optional($catalog_prefill ?? null)->regular_price ?? 0) }}" step="0.01" min="0" required>
                                                 @if ($errors->has('lp_price'))
                                                 <span class="text-danger">{{ $errors->first('lp_price') }}</span>
                                                 @endif

@@ -27,6 +27,10 @@ class LandingPagePublicController extends Controller
             abort(404);
         }
 
+        if (\Fickrr\Support\Store::isPhysical()) {
+            $data['landing_page'] = \Fickrr\Services\Physical\PhysicalCatalog::applyCatalogItem($data['landing_page']);
+        }
+
         // Decode features
         $data['features'] = json_decode($data['landing_page']->lp_features, true) ?? [];
         

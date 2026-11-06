@@ -23,6 +23,7 @@ class LandingPageController extends Controller
     public function index()
     {
         $data['landing_pages'] = LandingPage::getAllLandingPages();
+        $data['catalog_products'] = $this->catalogProducts();
         $sid = 1;
         $data['setting'] = Settings::editGeneral($sid);
         
@@ -68,6 +69,11 @@ class LandingPageController extends Controller
         $data['ai'] = Settings::editAiSettings();
         $data['openai_ready'] = (int) ($data['ai']->openai_enabled ?? 0) === 1
             && !empty($data['ai']->openai_api_key);
+        $data['catalog_products'] = $this->catalogProducts();
+        $requested = (int) request()->query('item', 0);
+        $data['catalog_prefill'] = $data['catalog_products']->first(function ($item) use ($requested) {
+            return (int) $item->item_id === $requested;
+        });
         
         return view('admin.landing-pages.create', $data);
     }
@@ -224,6 +230,7 @@ class LandingPageController extends Controller
             'lp_content_language' => $contentLanguage,
             'lp_target_country' => strtoupper((string) $request->input('lp_target_country', '')),
             'lp_source_url' => $this->normalizeSourceUrl($request->input('lp_source_url')),
+            'lp_product_id' => $this->publishedCatalogId($request),
             'created_at' => now(),
             'updated_at' => now(),
         ];
@@ -288,6 +295,7 @@ class LandingPageController extends Controller
         $data['ai'] = Settings::editAiSettings();
         $data['openai_ready'] = (int) ($data['ai']->openai_enabled ?? 0) === 1
             && !empty($data['ai']->openai_api_key);
+        $data['catalog_products'] = $this->catalogProducts();
         
         return view('admin.landing-pages.edit', $data);
     }
@@ -504,6 +512,7 @@ class LandingPageController extends Controller
             'lp_content_language' => $contentLanguage,
             'lp_target_country' => strtoupper((string) $request->input('lp_target_country', '')),
             'lp_source_url' => $this->normalizeSourceUrl($request->input('lp_source_url')),
+            'lp_product_id' => $this->publishedCatalogId($request),
             'updated_at' => now(),
         ];
 
@@ -642,6 +651,7 @@ class LandingPageController extends Controller
             'lp_content_language' => $landing_page->lp_content_language ?? 'en',
             'lp_target_country' => $landing_page->lp_target_country ?? null,
             'lp_source_url' => $landing_page->lp_source_url ?? null,
+            'lp_product_id' => $landing_page->lp_product_id ?? null,
             'lp_reviews' => $landing_page->lp_reviews ?? null,
             'created_at' => now(),
             'updated_at' => now(),
@@ -1664,6 +1674,29 @@ class LandingPageController extends Controller
         }
 
         return json_encode($decoded);
+    }
+
+    protected function catalogProducts()
+    {
+        if (!\Fickrr\Support\Store::isPhysical()) {
+            return collect();
+        }
+
+        return \Fickrr\Services\Physical\PhysicalCatalog::publishedProducts();
+    }
+
+    protected function publishedCatalogId(Request $request): ?string
+    {
+        $id = (int) $request->input('lp_product_id');
+        if ($id < 1 || !\Fickrr\Support\Store::isPhysical()) {
+            return null;
+        }
+
+        $match = $this->catalogProducts()->first(function ($item) use ($id) {
+            return (int) $item->item_id === $id;
+        });
+
+        return $match ? (string) $match->item_id : null;
     }
 }
 

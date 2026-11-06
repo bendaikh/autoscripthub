@@ -14,6 +14,20 @@ class Store
         return self::mode() === 'physical';
     }
 
+    /**
+     * Digital marketplace listings require the seller's subscription to be paid
+     * and unexpired. A physical store has one seller, so that filter would hide
+     * products created in the admin.
+     */
+    public static function catalogRequiresVendorSubscription($settings): bool
+    {
+        if (self::isPhysical()) {
+            return false;
+        }
+
+        return $settings && (int) ($settings->subscription_mode ?? 0) === 1;
+    }
+
     public static function name(): string
     {
         $name = trim((string) config('store.name', 'ESIPRES'));
