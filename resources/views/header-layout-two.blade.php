@@ -15,7 +15,7 @@
                         <div class="author-area">
                             <div class="author__notification_area">
                                 <ul class="topmenu">
-                                   @if($addition_settings->verify_mode == 1)
+                                   @if($addition_settings->verify_mode == 1 && !\Fickrr\Support\Store::isPhysical())
                                    <li><a href="{{ URL::to('/verify') }}">{{ __('Verify Purchase') }}</a></li>
                                    @endif
                                    {{-- @if(Auth::guest())
@@ -379,6 +379,7 @@
                                             <a href="{{ URL::to('/manage-item') }}">
                                                 <i class="dwg-briefcase opacity-60 mr-2"></i>{{ __('Manage Items') }}</a>
                                         </li>
+                                        @if(!\Fickrr\Support\Store::isPhysical())
                                         <li>
                                             <a href="{{ URL::to('/deposit') }}">
                                                 <i class="dwg-money-bag opacity-60 mr-2"></i>{{ __('Deposit') }}</a>
@@ -388,6 +389,7 @@
                                             <a href="{{ URL::to('/withdrawal') }}">
                                                 <i class="dwg-currency-exchange opacity-60 mr-2"></i>{{ __('Withdrawals') }}</a>
                                         </li>
+                                        @endif
                                         <li>
                                             <a href="{{ url('/logout') }}">
                                                 <i class="dwg-sign-out opacity-60 mr-2"></i>{{ __('Logout') }}</a>
@@ -410,6 +412,7 @@
                                             <a href="{{ URL::to('/favourites') }}">
                                                 <i class="dwg-heart opacity-60 mr-2"></i>{{ __('Favourite') }}</a>
                                       </li>
+                                      @if(!\Fickrr\Support\Store::isPhysical())
                                       <li>
                                             <a href="{{ URL::to('/deposit') }}">
                                                <i class="dwg-money-bag opacity-60 mr-2"></i>{{ __('Deposit') }}</a>
@@ -419,6 +422,7 @@
                                             <a href="{{ URL::to('/withdrawal') }}">
                                                 <i class="dwg-currency-exchange opacity-60 mr-2"></i>{{ __('Withdrawals') }}</a>
                                       </li>
+                                      @endif
                                       <li>
                                             <a href="{{ url('/logout') }}">
                                                 <i class="dwg-sign-out opacity-60 mr-2"></i>{{ __('Logout') }}</a>
@@ -504,6 +508,7 @@
                                             <a href="{{ URL::to('/manage-item') }}">
                                                 <i class="dwg-briefcase opacity-60 mr-2"></i>{{ __('Manage Items') }}</a>
                                         </li>
+                                        @if(!\Fickrr\Support\Store::isPhysical())
                                         <li>
                                             <a href="{{ URL::to('/deposit') }}">
                                                 <i class="dwg-money-bag opacity-60 mr-2"></i>{{ __('Deposit') }}</a>
@@ -513,6 +518,7 @@
                                             <a href="{{ URL::to('/withdrawal') }}">
                                                 <i class="dwg-currency-exchange opacity-60 mr-2"></i>{{ __('Withdrawals') }}</a>
                                         </li>
+                                        @endif
                                         <li>
                                             <a href="{{ url('/logout') }}">
                                                 <i class="dwg-sign-out opacity-60 mr-2"></i>{{ __('Logout') }}</a>
@@ -535,6 +541,7 @@
                                             <a href="{{ URL::to('/favourites') }}">
                                                 <i class="dwg-heart opacity-60 mr-2"></i>{{ __('Favourite') }}</a>
                                       </li>
+                                      @if(!\Fickrr\Support\Store::isPhysical())
                                       <li>
                                             <a href="{{ URL::to('/deposit') }}">
                                                <i class="dwg-money-bag opacity-60 mr-2"></i>{{ __('Deposit') }}</a>
@@ -544,6 +551,7 @@
                                             <a href="{{ URL::to('/withdrawal') }}">
                                                 <i class="dwg-currency-exchange opacity-60 mr-2"></i>{{ __('Withdrawals') }}</a>
                                       </li>
+                                      @endif
                                       <li>
                                             <a href="{{ url('/logout') }}">
                                                 <i class="dwg-sign-out opacity-60 mr-2"></i>{{ __('Logout') }}</a>
@@ -612,7 +620,7 @@
                                                 <li>
                                                     <a href="{{ url('/popular-items') }}">{{ __('Popular Items') }}</a>
                                                 </li>
-                                                @if($addition_settings->subscription_mode == 1)
+                                                @if($addition_settings->subscription_mode == 1 && !\Fickrr\Support\Store::isPhysical())
                                                 <li>
                                                     <a href="{{ url('/subscriber-downloads') }}">{{ __('Subscriber Downloads') }}</a>
                                                 </li>
@@ -654,7 +662,7 @@
                                         </div>
                                     </li>
                                     @endif
-                                    @if($addition_settings->subscription_mode == 1)
+                                    @if($addition_settings->subscription_mode == 1 && !\Fickrr\Support\Store::isPhysical())
                                     <li><a href="{{ url('/subscription') }}">{{ __('Subscription') }}</a></li>
                                     @endif
                                     <li>

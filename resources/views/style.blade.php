@@ -60,6 +60,7 @@ src="https://www.facebook.com/tr?id=4153934531541650&ev=PageView&noscript=1"
 <link href="{{ asset('theme/emojione/emojione.picker.css') }}" rel="stylesheet" type="text/css">
 <link rel="stylesheet" type="text/css" href="{{ asset('admin/dropzone/min/dropzone.min.css')}}">
 @endif
+<link rel="stylesheet" href="{{ asset('assets/product-cards.css') }}?v={{ file_exists(public_path('assets/product-cards.css')) ? filemtime(public_path('assets/product-cards.css')) : 1 }}">
 @if($current_locale == 'ar')
 <link rel="stylesheet" href="{{ asset('theme/css/rtl.css') }}" />
 @endif

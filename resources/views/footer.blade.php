@@ -62,7 +62,7 @@
             <h6 class="pr-3 mr-3"><span class="text-primary">{{ $total_sale }} </span><span class="font-weight-normal text-white">{{ __('Sales') }}</span></h6>
             @endif --}}
             @if($addition_settings->files_count == 1)
-            <h6 class="mr-3"><span class="text-primary">{{ $total_files }} </span><span class="font-weight-normal text-white">{{ __('Files') }}</span></h6>
+            <h6 class="mr-3"><span class="text-primary">{{ $total_files }} </span><span class="font-weight-normal text-white">{{ \Fickrr\Support\Store::isPhysical() ? __('Products') : __('Files') }}</span></h6>
             @endif 
             <div class="widget mt-4 text-md-nowrap text-center text-md-left">
             @if($allsettings->facebook_url != '')
@@ -168,7 +168,7 @@
                     <button class="btn btn-primary" type="submit" name="subscribe" id="mc-embedded-subscribe">{{ __('Subscribe') }}</button>
                   </div>
                 </div>
-                <small class="form-text text-light opacity-50" id="mc-helper">{{ $allsettings->site_newsletter }}</small>
+                <small class="form-text text-light opacity-50" id="mc-helper">{{ \Fickrr\Support\Store::newsletterText($allsettings->site_newsletter ?? '') }}</small>
                 <div class="subscribe-status"></div>
               </form>
             </div>

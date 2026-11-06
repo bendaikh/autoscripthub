@@ -357,6 +357,7 @@
                                                 <small>({{ __('Add a YouTube video link to help customers install/setup this script') }})</small>
                                             </div>
                                             
+                                            @if(!\Fickrr\Support\Store::isPhysical())
                                             <div class="form-group">
                                                 <label for="name" class="control-label mb-1">Upload Main File Type <span class="require">*</span></label>
                                                <select name="file_type1" id="file_type1" class="form-control" data-bvalidator="required">
@@ -492,6 +493,14 @@
                                             </div>
                                             @else
                                             <input type="hidden" name="extended_price" value="0">
+                                            @endif
+                                            @else
+                                            <input type="hidden" name="file_type1" value="physical">
+                                            <input type="hidden" name="item_file1" value="physical-no-file">
+                                            <input type="hidden" name="free_download" value="0">
+                                            <input type="hidden" name="item_support" value="0">
+                                            <input type="hidden" name="extended_price" value="0">
+                                            @include('admin.partials.physical-product-fields')
                                             @endif
                                             @if($custom_settings->author_key == Helper::Key_Owner())
                                             @if(count($other_market) != 0)

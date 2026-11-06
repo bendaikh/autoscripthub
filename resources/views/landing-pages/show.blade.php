@@ -99,9 +99,11 @@
         'tagline' => $landing_page->lp_tagline ?: $content['shortDescription'],
         'shortDescription' => $content['shortDescription'],
         'badge' => $content['badge'],
-        'cta' => $landing_page->lp_cta_text ?: ($lpProductKind === 'sheet' || $lpProductKind === 'product'
+        'cta' => $landing_page->lp_cta_text ?: ($lpProductKind === 'physical'
+            ? $lpT('Order for delivery')
+            : ($lpProductKind === 'sheet' || $lpProductKind === 'product'
             ? $lpT('Get Instant Download')
-            : $lpT('Get Instant Access')),
+            : $lpT('Get Instant Access'))),
         'descriptionHtml' => $aboutHtml,
         'whatYouGetHtml' => $landing_page->lp_what_you_get,
         'whatYouGetItems' => $content['whatYouGetItems'],
@@ -136,14 +138,18 @@
         'productKind' => $content['productKind'] ?? 'script',
         'i18n' => [
             'onlyPrice' => $lpT('Only'),
-            'paymentNote' => ($lpProductKind === 'sheet' || $lpProductKind === 'product')
+            'paymentNote' => $lpProductKind === 'physical'
+                ? $lpT('Pay by card or PayPal • Then we ship it')
+                : (($lpProductKind === 'sheet' || $lpProductKind === 'product')
                 ? $lpT('One-time payment • Instant download')
-                : $lpT('One-time payment • Instant access'),
-            'instantAccess' => $lpProductKind === 'sheet'
+                : $lpT('One-time payment • Instant access')),
+            'instantAccess' => $lpProductKind === 'physical'
+                ? $lpT('We ship this to the address you enter.')
+                : ($lpProductKind === 'sheet'
                 ? $lpT('Download the spreadsheet as soon as your payment is confirmed')
                 : ($lpProductKind === 'product'
                     ? $lpT('Download your files as soon as your payment is confirmed')
-                    : $lpT('Instant access as soon as your payment is confirmed')),
+                    : $lpT('Instant access as soon as your payment is confirmed'))),
             'hostingHeading' => $content['hosting']['heading'],
             'hostingText' => $content['hosting']['text'],
             'watchDemo' => $lpT('Watch the demo'),
@@ -159,14 +165,20 @@
             'outcomesHeading' => $lpT('What this changes for you'),
             'whatYouGetHeading' => $lpT('What you get after payment'),
             'pricingHeading' => $lpT('Simple, one-time pricing'),
-            'pricingSub' => $lpT('Pay once and keep access to the product'),
-            'lifetimeLabel' => $lpT('Full access'),
-            'extendedNote' => $lpT('An extended licence is also available — send us a message for details.'),
+            'pricingSub' => $lpProductKind === 'physical'
+                ? $lpT('Pay by card or PayPal, then we ship it')
+                : $lpT('Pay once and keep access to the product'),
+            'lifetimeLabel' => $lpProductKind === 'physical' ? $lpT('Ships to you') : $lpT('Full access'),
+            'extendedNote' => $lpProductKind === 'physical'
+                ? ''
+                : $lpT('An extended licence is also available — send us a message for details.'),
             'includedLabel' => $lpT("What's included"),
             'faqHeading' => $lpT('Questions before you buy'),
             'finalHeading' => $lpT('Ready to get started?'),
             'featuresIncluded' => $lpT('features included'),
-            'secureNote' => $lpT('Secure checkout with PayPal or card'),
+            'secureNote' => $lpProductKind === 'physical'
+                ? $lpT('Pay by card or PayPal, then we ship it.')
+                : $lpT('Secure checkout with PayPal or card'),
             'prev' => $lpT('Previous'),
             'next' => $lpT('Next'),
             'close' => $lpT('Close'),
@@ -174,7 +186,7 @@
             'reviewsCountLabel' => $lpT('reviews'),
             'reviewsAiLead' => $lpT('What buyers say, summarized by AI:'),
             'itemQuality' => $lpT('Item quality'),
-            'shippingLabel' => ($lpProductKind === 'sheet' || $lpProductKind === 'product') ? $lpT('Delivery') : $lpT('Shipping'),
+            'shippingLabel' => $lpProductKind === 'physical' ? $lpT('Shipping') : (($lpProductKind === 'sheet' || $lpProductKind === 'product') ? $lpT('Delivery') : $lpT('Shipping')),
             'serviceLabel' => $lpT('Customer service'),
             'recommendLabel' => $lpT('Buyers recommend'),
             'thisItem' => $lpT('This item'),
@@ -188,7 +200,7 @@
 
 <header class="lp-topbar">
     <div class="lp-container lp-topbar-inner">
-        <a href="{{ url('/') }}" class="lp-logo" aria-label="AutoScriptHub">
+        <a href="{{ url('/') }}" class="lp-logo" aria-label="{{ \Fickrr\Support\Store::publicName($setting->site_title ?? null) }}">
             @include('partials.brand', ['brandCompact' => false, 'brandLight' => true])
         </a>
     </div>
@@ -732,6 +744,66 @@
                 @php $landingPaymentMethods = $landing_payment_methods ?? []; @endphp
                 <form id="paymentForm" action="{{ url('/landing/' . $landing_page->lp_slug . '/process-payment') }}" method="POST">
                     @csrf
+                    @if(\Fickrr\Support\Store::isPhysical())
+                    <div id="lpPaymentSelect">
+                    <div id="lpPaymentError" class="alert alert-danger" style="display:none;"></div>
+                    <div class="form-group">
+                        <label for="customer_name">{{ $lpT('Full name') }} *</label>
+                        <input type="text" name="customer_name" id="customer_name" class="form-control lp-modal-input" required value="{{ old('customer_name') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="customer_email" style="font-weight:600;">{{ $lpT('Email Address') }} *</label>
+                        <input type="email" name="customer_email" id="customer_email" class="form-control lp-modal-input" required value="{{ old('customer_email') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="customer_phone">{{ $lpT('Phone') }} *</label>
+                        <input type="text" name="customer_phone" id="customer_phone" class="form-control lp-modal-input" required value="{{ old('customer_phone') }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="address">{{ $lpT('Street address') }} *</label>
+                        <textarea name="address" id="address" class="form-control lp-modal-input" required>{{ old('address') }}</textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label for="city">{{ $lpT('City') }} *</label>
+                            <input type="text" name="city" id="city" class="form-control lp-modal-input" required value="{{ old('city') }}">
+                        </div>
+                        <div class="form-group col-6">
+                            <label for="country">{{ $lpT('Country') }} *</label>
+                            <input type="text" name="country" id="country" class="form-control lp-modal-input" required value="{{ old('country') }}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="quantity">{{ $lpT('Quantity') }} *</label>
+                        <input type="number" name="quantity" id="quantity" class="form-control lp-modal-input" min="1" max="99" value="{{ old('quantity', 1) }}" required>
+                    </div>
+                    @php
+                        $lpShip = (float) ($landing_page->lp_shipping_fee ?? 0) + (float) config('store.shipping.flat_fee', 0);
+                    @endphp
+                    <p class="text-muted">{{ $lpT('Shipping') }}: {{ number_format($lpShip, 2) }} {{ $landing_page->lp_currency ?? 'USD' }} {{ $lpT('per unit, plus any store flat fee already included above.') }}</p>
+                    <div class="payment-option selected" onclick="selectPayment('stripe')">
+                        <div class="d-flex align-items-center">
+                            <input type="radio" name="payment_method" id="stripe_radio" value="stripe" checked>
+                            <div>
+                                <h5><i class="fas fa-credit-card"></i> {{ $lpT('Card') }}</h5>
+                                <p>{{ $lpT('Pay by card, then we ship the order. No charge is taken until card payments are turned on.') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="payment-option" onclick="selectPayment('paypal')">
+                        <div class="d-flex align-items-center">
+                            <input type="radio" name="payment_method" id="paypal_radio" value="paypal">
+                            <div>
+                                <h5><i class="fab fa-paypal"></i> {{ $lpT('PayPal') }}</h5>
+                                <p>{{ $lpT('Pay with PayPal, then we ship the order.') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" id="paymentBtn" class="lp-modal-submit">
+                        <i class="fas fa-box mr-2"></i> {{ $lpT('Place order') }}
+                    </button>
+                    </div>
+                    @else
                     <div id="lpPaymentSelect">
                     <div id="lpPaymentError" class="alert alert-danger" style="display:none;"></div>
                     <div class="form-group">
@@ -779,6 +851,7 @@
                         <i class="fas fa-lock mr-2"></i> {{ $lpT('Proceed to Payment') }}
                     </button>
                     </div>
+                    @endif
                     <div id="lpCheckoutEmbedWrap" style="display:none;">
                         <div id="lpCheckoutEmbedError" class="alert alert-danger" style="display:none;"></div>
                         <iframe id="lpCheckoutEmbed" title="{{ $lpT('Secure Checkout') }}"></iframe>
@@ -834,7 +907,11 @@ function selectPayment(method) {
 function checkFormValidity() {
     var email = $('#customer_email').val();
     var paymentMethod = $('input[name="payment_method"]:checked').val();
-    $('#paymentBtn').prop('disabled', !(email && email.includes('@') && paymentMethod));
+    var physicalOk = true;
+    if ($('#customer_name').length) {
+        physicalOk = $('#customer_name').val() && $('#customer_phone').val() && $('#address').val() && $('#city').val() && $('#country').val();
+    }
+    $('#paymentBtn').prop('disabled', !(email && email.includes('@') && paymentMethod && physicalOk));
 }
 function showEmbeddedCheckout(embedUrl) {
     $('#lpPaymentSelect').hide();
@@ -851,7 +928,7 @@ $('#paymentModal').on('hidden.bs.modal', resetPaymentModal);
 $('#paymentForm').on('submit', function (e) {
     var method = $('input[name="payment_method"]:checked').val();
     if (typeof window.lpTrack === 'function') window.lpTrack('initiate_checkout', { method: method || null, has_email: !!$('#customer_email').val() });
-    if (method === 'paypal') {
+    if (method === 'paypal' || method === 'stripe' || method === 'cod') {
         return true;
     }
     e.preventDefault();

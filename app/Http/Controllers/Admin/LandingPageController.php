@@ -23,6 +23,7 @@ class LandingPageController extends Controller
     public function index()
     {
         $data['landing_pages'] = LandingPage::getAllLandingPages();
+        $data['catalog_products'] = $this->catalogProducts();
         $sid = 1;
         $data['setting'] = Settings::editGeneral($sid);
         
@@ -68,6 +69,11 @@ class LandingPageController extends Controller
         $data['ai'] = Settings::editAiSettings();
         $data['openai_ready'] = (int) ($data['ai']->openai_enabled ?? 0) === 1
             && !empty($data['ai']->openai_api_key);
+        $data['catalog_products'] = $this->catalogProducts();
+        $requested = (int) request()->query('item', 0);
+        $data['catalog_prefill'] = $data['catalog_products']->first(function ($item) use ($requested) {
+            return (int) $item->item_id === $requested;
+        });
         
         return view('admin.landing-pages.create', $data);
     }
@@ -90,7 +96,7 @@ class LandingPageController extends Controller
             'lp_product_file' => 'nullable',
             'gallery_images' => 'nullable|array|max:20',
             'gallery_images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'lp_product_kind' => 'nullable|in:script,sheet,product',
+            'lp_product_kind' => 'nullable|in:script,sheet,product,physical',
             'lp_content_language' => 'required|string|max:10',
             'lp_target_country' => 'required|string|size:2',
             'lp_source_url' => 'nullable|url|max:2048',
@@ -141,8 +147,12 @@ class LandingPageController extends Controller
         $product_file_type = 'file';
         $product_link = null;
         $delivery_method = $request->lp_delivery_method ?? 'upload';
-        
-        if ($delivery_method == 'link') {
+
+        if (\Fickrr\Support\Store::isPhysical()) {
+            $delivery_method = 'shipping';
+            $product_file = null;
+            $product_link = null;
+        } elseif ($delivery_method == 'link') {
             // Save product link
             $product_link = $request->lp_product_link;
         } else {
@@ -220,6 +230,7 @@ class LandingPageController extends Controller
             'lp_content_language' => $contentLanguage,
             'lp_target_country' => strtoupper((string) $request->input('lp_target_country', '')),
             'lp_source_url' => $this->normalizeSourceUrl($request->input('lp_source_url')),
+            'lp_product_id' => $this->publishedCatalogId($request),
             'created_at' => now(),
             'updated_at' => now(),
         ];
@@ -236,6 +247,7 @@ class LandingPageController extends Controller
 
         // Get the last inserted ID
         $landing_page_id = \DB::getPdo()->lastInsertId();
+        \Fickrr\Services\Physical\PhysicalCatalog::syncLanding((int) $landing_page_id, $request);
 
         // Handle gallery images
         if ($request->hasFile('gallery_images')) {
@@ -283,6 +295,7 @@ class LandingPageController extends Controller
         $data['ai'] = Settings::editAiSettings();
         $data['openai_ready'] = (int) ($data['ai']->openai_enabled ?? 0) === 1
             && !empty($data['ai']->openai_api_key);
+        $data['catalog_products'] = $this->catalogProducts();
         
         return view('admin.landing-pages.edit', $data);
     }
@@ -306,7 +319,7 @@ class LandingPageController extends Controller
             'lp_product_file' => 'nullable',
             'gallery_images' => 'nullable|array|max:20',
             'gallery_images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'lp_product_kind' => 'nullable|in:script,sheet,product',
+            'lp_product_kind' => 'nullable|in:script,sheet,product,physical',
             'lp_content_language' => 'required|string|max:10',
             'lp_target_country' => 'required|string|size:2',
             'lp_source_url' => 'nullable|url|max:2048',
@@ -365,8 +378,12 @@ class LandingPageController extends Controller
         $product_file_type = $landing_page->lp_product_file_type ?? 'file';
         $product_link = $landing_page->lp_product_link;
         $delivery_method = $request->lp_delivery_method ?? 'upload';
-        
-        if ($delivery_method == 'link') {
+
+        if (\Fickrr\Support\Store::isPhysical()) {
+            $delivery_method = 'shipping';
+            $product_file = null;
+            $product_link = null;
+        } elseif ($delivery_method == 'link') {
             // Update product link
             $product_link = $request->lp_product_link;
             
@@ -495,6 +512,7 @@ class LandingPageController extends Controller
             'lp_content_language' => $contentLanguage,
             'lp_target_country' => strtoupper((string) $request->input('lp_target_country', '')),
             'lp_source_url' => $this->normalizeSourceUrl($request->input('lp_source_url')),
+            'lp_product_id' => $this->publishedCatalogId($request),
             'updated_at' => now(),
         ];
 
@@ -506,6 +524,7 @@ class LandingPageController extends Controller
         }
 
         LandingPage::updateLandingPage($request->lp_id, $data);
+        \Fickrr\Services\Physical\PhysicalCatalog::syncLanding((int) $request->lp_id, $request);
 
         // Handle new gallery images
         if ($request->hasFile('gallery_images')) {
@@ -632,6 +651,7 @@ class LandingPageController extends Controller
             'lp_content_language' => $landing_page->lp_content_language ?? 'en',
             'lp_target_country' => $landing_page->lp_target_country ?? null,
             'lp_source_url' => $landing_page->lp_source_url ?? null,
+            'lp_product_id' => $landing_page->lp_product_id ?? null,
             'lp_reviews' => $landing_page->lp_reviews ?? null,
             'created_at' => now(),
             'updated_at' => now(),
@@ -1564,6 +1584,10 @@ class LandingPageController extends Controller
 
     protected function normalizeProductKind($kind): string
     {
+        if (\Fickrr\Support\Store::isPhysical()) {
+            return 'physical';
+        }
+
         $kind = strtolower(trim((string) $kind));
         if (in_array($kind, ['sheet', 'product'], true)) {
             return $kind;
@@ -1650,6 +1674,29 @@ class LandingPageController extends Controller
         }
 
         return json_encode($decoded);
+    }
+
+    protected function catalogProducts()
+    {
+        if (!\Fickrr\Support\Store::isPhysical()) {
+            return collect();
+        }
+
+        return \Fickrr\Services\Physical\PhysicalCatalog::publishedProducts();
+    }
+
+    protected function publishedCatalogId(Request $request): ?string
+    {
+        $id = (int) $request->input('lp_product_id');
+        if ($id < 1 || !\Fickrr\Support\Store::isPhysical()) {
+            return null;
+        }
+
+        $match = $this->catalogProducts()->first(function ($item) use ($id) {
+            return (int) $item->item_id === $id;
+        });
+
+        return $match ? (string) $match->item_id : null;
     }
 }
 

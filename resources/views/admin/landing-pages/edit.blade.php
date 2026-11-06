@@ -232,6 +232,7 @@
 
                                             @include('admin.landing-pages.partials.product-video')
 
+                                            @if(!\Fickrr\Support\Store::isPhysical())
                                             <!-- Product Delivery Method -->
                                             <div class="form-group">
                                                 <label>{{ __('Product Delivery Method') }} <span class="text-danger">*</span></label>
@@ -281,6 +282,7 @@
                                                 <input type="url" name="lp_product_link" class="form-control" id="product_link" placeholder="https://example.com/file.zip" value="{{ old('lp_product_link', $landing_page->lp_product_link) }}">
                                                 <small class="form-text text-muted">{{ __('Provide a direct download link (e.g., Google Drive, Dropbox, etc.)') }}</small>
                                             </div>
+                                            @endif
                                         </div>
 
                                         <div class="col-md-4">
@@ -295,10 +297,14 @@
                                                 @endif
                                             </div>
 
+                                            @if(!\Fickrr\Support\Store::isPhysical())
                                             <div class="form-group">
                                                 <label>{{ __('Extended Price') }} (Optional)</label>
                                                 <input type="number" name="lp_extended_price" class="form-control" value="{{ old('lp_extended_price', $landing_page->lp_extended_price) }}" step="0.01" min="0">
                                             </div>
+                                            @else
+                                            <input type="hidden" name="lp_extended_price" value="0">
+                                            @endif
 
                                             <div class="form-group">
                                                 <label>{{ __('Currency') }}</label>

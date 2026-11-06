@@ -152,6 +152,44 @@
         @endphp
 
         <div class="content mt-3">
+            @if(\Fickrr\Support\Store::isPhysical())
+            <div class="card mb-3">
+                <div class="card-header">
+                    <strong class="card-title">{{ __('Products') }}</strong>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">{{ __('Published products from Items. Use one on a landing page and the page sells that product at its current price and stock.') }}</p>
+                    @if(($catalog_products ?? collect())->isEmpty())
+                        <p class="mb-0">{{ __('No published products yet. Approve a product under Items and it will be listed here.') }}</p>
+                    @else
+                        <div class="table-responsive">
+                            <table class="table table-striped mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>{{ __('Product') }}</th>
+                                        <th>{{ __('Price') }}</th>
+                                        <th>{{ __('Stock') }}</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($catalog_products as $product)
+                                    <tr>
+                                        <td>{{ $product->item_name }}</td>
+                                        <td>{{ number_format((float) $product->regular_price, 2) }}</td>
+                                        <td>{{ $product->stock_quantity ?? '—' }}</td>
+                                        <td class="text-right">
+                                            <a class="btn btn-primary btn-sm" href="{{ route('admin.add-landing-page', ['item' => $product->item_id]) }}">{{ __('Use on a landing page') }}</a>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+            </div>
+            @endif
             <div id="landing-admin-app" v-cloak></div>
             <script id="landing-admin-data" type="application/json">{!! $landing_admin_json !!}</script>
         </div>

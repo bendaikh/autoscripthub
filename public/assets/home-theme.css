@@ -731,14 +731,18 @@ body.home-v2 .hv-section .product-card-alt:hover {
 }
 
 body.home-v2 .hv-section .product-card-alt .product-thumb {
-  background: var(--hv-soft);
+  background: #f3f4f6;
   border-bottom: 1px solid var(--hv-line);
+  aspect-ratio: 4 / 3;
+  padding: 0.85rem;
 }
 
 body.home-v2 .hv-section .product-card-alt .product-thumb img {
   width: 100%;
-  height: 178px;
-  object-fit: cover;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  background: transparent;
 }
 
 body.home-v2 .hv-section .product-card-alt .card-body {
@@ -819,10 +823,13 @@ body.home-v2 .hv-mini:hover {
 }
 
 body.home-v2 .hv-mini img {
-  width: 64px;
-  height: 48px;
-  flex: 0 0 64px;
-  object-fit: cover;
+  width: 72px;
+  height: 72px;
+  flex: 0 0 72px;
+  object-fit: contain;
+  object-position: center;
+  background: #f3f4f6;
+  padding: 4px;
   border-radius: 8px;
 }
 
@@ -926,6 +933,39 @@ body.home-v2 .hv-stat small {
   display: block;
   font-size: .7rem;
   color: rgba(226, 232, 240, .5);
+}
+
+/* Pay, Ship, and Stock: center the icon and copy inside each column. */
+body.home-v2 .hv-stat.hv-stat--center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+}
+
+body.home-v2 .hv-stat.hv-stat--center > .hv-stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+body.home-v2 .hv-stat.hv-stat--center > .hv-stat-icon svg {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+body.home-v2 .hv-stat.hv-stat--center > strong,
+body.home-v2 .hv-stat.hv-stat--center > span:not(.hv-stat-icon),
+body.home-v2 .hv-stat.hv-stat--center > small {
+  text-align: center;
+  width: 100%;
 }
 
 /* ==========================================================================
@@ -1154,6 +1194,26 @@ body.home-v2 .hv-news-form button:hover {
   box-shadow: 0 8px 20px rgba(0, 0, 0, .22);
 }
 
+body.home-v2 .hv-pill svg,
+body.home-v2 .hv-trust-item > svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+
+body.home-v2 .hv-pill svg {
+  color: var(--hv-sky);
+}
+
+body.home-v2 .hv-trust-item > svg {
+  color: var(--hv-purple);
+}
+
+body.home-v2 .hv-stat-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
 /* ==========================================================================
    Responsive
    ========================================================================== */
@@ -1171,10 +1231,24 @@ body.home-v2 .hv-news-form button:hover {
   body.home-v2 .hv-visual { margin-top: 2.5rem; }
   body.home-v2 .hv-section { padding: 3rem 0; }
   body.home-v2 .hv-stats { padding: 1.75rem; }
+  body.home-v2 .hv-stat.hv-stat--center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
   body.home-v2 .hv-cta { margin-top: 1.5rem; }
 }
 
 @media (max-width: 767.98px) {
+  body.home-v2 .hv-stat.hv-stat--center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
   body.home-v2 .hv-hero h1 { font-size: 1.85rem; }
   body.home-v2 .hv-hero-sub { font-size: .94rem; }
 
