@@ -250,8 +250,8 @@
                     <li><a class="dropdown-item" href="{{ url('/top-authors') }}">{{ __('Top Authors') }}</a></li>
                    </ul>
                 </li>
-                @foreach($headerMenus['visible'] as $menu)
-                <li class="nav-item dropdown d-none d-md-block"><a class="nav-link dropdown-toggle" href="{{ URL::to('/shop/category/') }}/{{$menu->category_slug}}">{{ $menu->category_name }}</a>
+                @foreach($headerMenus['visible'] as $index => $menu)
+                <li class="nav-item dropdown d-none d-md-block{{ $index >= ($headerMenus['narrow'] ?? 2) ? ' hv-nav-wide-only' : '' }}"><a class="nav-link dropdown-toggle" href="{{ URL::to('/shop/category/') }}/{{$menu->category_slug}}">{{ $menu->category_name }}</a>
                   @if(count($menu->subcategory) != 0)
                   <ul class="dropdown-menu">
                     @foreach($menu->subcategory as $sub_category)
@@ -276,8 +276,8 @@
                     <li><a class="dropdown-item" href="{{ url('/top-authors') }}">{{ __('Top Authors') }}</a></li>
                    </ul>
                 </li>
-                @foreach($headerMenus['visible'] as $menu)
-                <li class="nav-item dropdown d-md-none"><a class="nav-link dropdown-toggle" href="{{ URL::to('/shop/category/') }}/{{$menu->category_slug}}" data-toggle="dropdown">{{ $menu->category_name }}</a>
+                @foreach($headerMenus['visible'] as $index => $menu)
+                <li class="nav-item dropdown d-md-none{{ $index >= ($headerMenus['narrow'] ?? 2) ? ' hv-nav-wide-only' : '' }}"><a class="nav-link dropdown-toggle" href="{{ URL::to('/shop/category/') }}/{{$menu->category_slug}}" data-toggle="dropdown">{{ $menu->category_name }}</a>
                   @if(count($menu->subcategory) != 0)
                   <ul class="dropdown-menu">
                     @foreach($menu->subcategory as $sub_category)

@@ -359,10 +359,11 @@ class OsLicenseCatalogTest extends TestCase
             array_column($menus['license'], 'category_name')
         );
         $this->assertSame(
-            ['desktop app', 'Scripts', 'Themes', 'Graphics', 'Print'],
+            ['desktop app', 'Scripts', 'Themes', 'Graphics'],
             array_column($menus['visible'], 'category_name')
         );
-        $this->assertSame(['Mobile Apps'], array_column($menus['more'], 'category_name'));
+        $this->assertSame(2, $menus['narrow']);
+        $this->assertSame(['Print', 'Mobile Apps'], array_column($menus['more'], 'category_name'));
 
         $smaller = OsLicenseCatalog::headerMenus([
             ['cat_id' => 8, 'category_name' => 'Scripts', 'category_slug' => 'scripts'],

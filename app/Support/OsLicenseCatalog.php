@@ -269,9 +269,15 @@ class OsLicenseCatalog
 
     /**
      * How many non-license categories stay as their own top-level header
-     * items. The rest go under More so the bar stays on one line at 1280px.
+     * items at 1200px and wider. The rest go under More.
      */
-    public const HEADER_VISIBLE_CATEGORIES = 5;
+    public const HEADER_VISIBLE_CATEGORIES = 4;
+
+    /**
+     * How many of those stay on the bar below 1200px. The others join More
+     * so the icons are not crowded on a shorter desktop width.
+     */
+    public const HEADER_NARROW_CATEGORIES = 2;
 
     /**
      * Split header categories into single-price parents and everything else.
@@ -312,17 +318,19 @@ class OsLicenseCatalog
      *
      * @param  iterable<int, object|array>  $parents
      * @param  array{slugs?:array,names?:array,ids?:array}  $config
-     * @return array{license:array, visible:array, more:array}
+     * @return array{license:array, visible:array, narrow:int, more:array}
      */
     public static function headerMenus(iterable $parents, array $config, int $menuLimit = 0): array
     {
         $split = self::partitionMenu($parents, $config);
         $limit = $menuLimit > 0 ? $menuLimit : self::HEADER_VISIBLE_CATEGORIES;
         $visibleCap = min($limit, self::HEADER_VISIBLE_CATEGORIES);
+        $visible = array_slice($split['other'], 0, $visibleCap);
 
         return [
             'license' => $split['license'],
-            'visible' => array_slice($split['other'], 0, $visibleCap),
+            'visible' => $visible,
+            'narrow' => min(self::HEADER_NARROW_CATEGORIES, count($visible)),
             'more' => array_slice($split['other'], $visibleCap),
         ];
     }

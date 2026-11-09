@@ -630,8 +630,8 @@
                                             </ul>
                                         </div>
                                     </li>
-                                    @foreach($headerMenus['visible'] as $menu)
-                                    <li class="has_dropdown">
+                                    @foreach($headerMenus['visible'] as $index => $menu)
+                                    <li class="has_dropdown{{ $index >= ($headerMenus['narrow'] ?? 2) ? ' hv-nav-wide-only' : '' }}">
                                         <a href="{{ URL::to('/shop/category/') }}/{{$menu->category_slug}}">{{ $menu->category_name }}</a>
                                         <div class="dropdowns dropdown--menu">
                                             <ul>
