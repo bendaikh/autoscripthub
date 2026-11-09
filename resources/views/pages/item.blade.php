@@ -105,7 +105,7 @@ $extend_item_price = 0;
                       }
                   }
               }
-              $heroImage = Helper::best_product_image($heroCandidates);
+              $heroImage = !empty($item['item']->item_preview) ? $item['item']->item_preview : Helper::best_product_image($heroCandidates);
               @endphp
               <div class="cz-gallery">
                       @if($item['item']->video_preview_type!='')
