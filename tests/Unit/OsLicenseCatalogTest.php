@@ -139,6 +139,58 @@ class OsLicenseCatalogTest extends TestCase
         $this->assertFalse(OsLicenseCatalog::matchesSelection('category_15', $resolved));
     }
 
+    public function test_home_slides_use_single_price_parents_and_hide_when_none_match(): void
+    {
+        $parents = [
+            [
+                'cat_id' => 4,
+                'category_name' => 'Scripts',
+                'category_slug' => 'scripts',
+                'category_status' => 1,
+                'drop_status' => 'no',
+                'subcategories' => [
+                    ['subcat_id' => 41, 'cat_id' => 4, 'subcategory_name' => 'PHP Scripts', 'subcategory_slug' => 'php-scripts', 'subcategory_status' => 1, 'drop_status' => 'no'],
+                ],
+            ],
+            [
+                'cat_id' => 9,
+                'category_name' => ' office licenses ',
+                'category_slug' => 'office-licenses',
+                'category_status' => 1,
+                'drop_status' => 'no',
+                'category_image' => 'office.png',
+                'subcategories' => [
+                    ['subcat_id' => 21, 'cat_id' => 9, 'subcategory_name' => 'Word', 'subcategory_slug' => 'word', 'subcategory_status' => 1, 'drop_status' => 'no'],
+                ],
+            ],
+            [
+                'cat_id' => 15,
+                'category_name' => 'Themes',
+                'category_slug' => 'themes',
+                'category_status' => 1,
+                'drop_status' => 'no',
+                'single_price' => 0,
+                'subcategories' => [
+                    ['subcat_id' => 77, 'cat_id' => 15, 'subcategory_name' => 'VPN Keys', 'subcategory_slug' => 'vpn-keys', 'subcategory_status' => 1, 'drop_status' => 'no', 'single_price' => 1],
+                    ['subcat_id' => 78, 'cat_id' => 15, 'subcategory_name' => 'Hidden', 'subcategory_slug' => 'hidden', 'subcategory_status' => 0, 'drop_status' => 'no', 'single_price' => 1],
+                ],
+            ],
+        ];
+
+        $slides = OsLicenseCatalog::homeSlides($parents, [
+            'slugs' => OsLicenseCatalog::FALLBACK_PARENT_SLUGS,
+            'names' => OsLicenseCatalog::FALLBACK_PARENT_NAMES,
+            'ids' => [],
+        ]);
+
+        $this->assertSame(['category', 'subcategory'], array_column($slides, 'kind'));
+        $this->assertSame([9, 77], array_column($slides, 'id'));
+        $this->assertSame('office.png', $slides[0]['image']);
+        $this->assertSame([], OsLicenseCatalog::homeSlides([
+            ['cat_id' => 4, 'category_name' => 'Scripts', 'category_slug' => 'scripts', 'category_status' => 1, 'drop_status' => 'no'],
+        ], ['slugs' => [], 'names' => [], 'ids' => []]));
+    }
+
     public function test_explicit_category_id_is_included_with_children(): void
     {
         [$categories, $subcategories] = $this->tree();

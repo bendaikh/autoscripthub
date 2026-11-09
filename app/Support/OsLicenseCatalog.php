@@ -203,6 +203,160 @@ class OsLicenseCatalog
         return $value === 1 || $value === '1' || $value === true;
     }
 
+    /**
+     * Home-page slides: single-price parents, plus a sub-category only when
+     * it is switched on by itself and its parent is not already a slide.
+     *
+     * @param  iterable<int, object|array>  $parents
+     * @return array<int, array{kind:string,id:int,name:string,slug:string,image:?string}>
+     */
+    public static function homeSlides(iterable $parents, array $config): array
+    {
+        $parentRows = [];
+        $subRows = [];
+        foreach ($parents as $parent) {
+            $row = self::record($parent);
+            if (! self::isActiveCategory($row)) {
+                continue;
+            }
+            $subs = self::childRecords($parent, $row);
+            unset($row['subcategories'], $row['subcategory'], $row['sub_category']);
+            $parentRows[] = $row;
+            foreach ($subs as $sub) {
+                $subRow = self::record($sub);
+                if (! self::isActiveSubcategory($subRow)) {
+                    continue;
+                }
+                $subRow['cat_id'] = $subRow['cat_id'] ?? $row['cat_id'];
+                $subRows[] = $subRow;
+            }
+        }
+
+        $resolved = self::resolve($parentRows, $subRows, $config);
+        $parentOn = array_flip($resolved['category_ids']);
+        $subOn = array_flip($resolved['subcategory_ids']);
+        $slides = [];
+        $shownParents = [];
+
+        foreach ($parentRows as $row) {
+            $id = (int) ($row['cat_id'] ?? 0);
+            if ($id <= 0 || ! isset($parentOn[$id])) {
+                continue;
+            }
+            $slides[] = self::slide('category', $id, (string) ($row['category_name'] ?? ''), (string) ($row['category_slug'] ?? ''), self::imageFrom($row));
+            $shownParents[$id] = true;
+        }
+
+        foreach ($subRows as $row) {
+            $id = (int) ($row['subcat_id'] ?? 0);
+            $parentId = (int) ($row['cat_id'] ?? 0);
+            if ($id <= 0 || ! isset($subOn[$id]) || isset($shownParents[$parentId])) {
+                continue;
+            }
+            $slides[] = self::slide('subcategory', $id, (string) ($row['subcategory_name'] ?? ''), (string) ($row['subcategory_slug'] ?? ''), self::imageFrom($row));
+        }
+
+        return $slides;
+    }
+
+    /**
+     * @param  object|array  $value
+     * @return array<string, mixed>
+     */
+    private static function record($value): array
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+        if (! is_object($value)) {
+            return [];
+        }
+        $row = get_object_vars($value);
+        foreach (['category_image', 'image', 'category_icon', 'subcategory_image', 'single_price', 'cat_id', 'subcat_id', 'category_name', 'category_slug', 'category_status', 'drop_status', 'subcategory_name', 'subcategory_slug', 'subcategory_status'] as $field) {
+            if (! array_key_exists($field, $row) && isset($value->{$field})) {
+                $row[$field] = $value->{$field};
+            }
+        }
+
+        return $row;
+    }
+
+    /**
+     * @param  object|array  $parent
+     * @param  array<string, mixed>  $row
+     * @return array<int, object|array>
+     */
+    private static function childRecords($parent, array $row): array
+    {
+        if (is_object($parent) && method_exists($parent, 'SubCategory')) {
+            $children = $parent->subcategory;
+            if ($children instanceof \Traversable) {
+                return iterator_to_array($children);
+            }
+            if (is_array($children)) {
+                return $children;
+            }
+        }
+        foreach (['subcategories', 'subcategory', 'sub_category'] as $key) {
+            if (isset($row[$key]) && is_iterable($row[$key])) {
+                return is_array($row[$key]) ? $row[$key] : iterator_to_array($row[$key]);
+            }
+        }
+
+        return [];
+    }
+
+    /**
+     * @param  array<string, mixed>  $row
+     */
+    private static function isActiveCategory(array $row): bool
+    {
+        $status = (string) ($row['category_status'] ?? '1');
+        $drop = (string) ($row['drop_status'] ?? 'no');
+
+        return $status !== '0' && $drop === 'no' && (int) ($row['cat_id'] ?? 0) > 0;
+    }
+
+    /**
+     * @param  array<string, mixed>  $row
+     */
+    private static function isActiveSubcategory(array $row): bool
+    {
+        $status = (string) ($row['subcategory_status'] ?? '1');
+        $drop = (string) ($row['drop_status'] ?? 'no');
+
+        return $status !== '0' && $drop === 'no' && (int) ($row['subcat_id'] ?? 0) > 0;
+    }
+
+    /**
+     * @param  array<string, mixed>  $row
+     */
+    private static function imageFrom(array $row): ?string
+    {
+        foreach (['category_image', 'subcategory_image', 'image', 'category_icon'] as $field) {
+            $value = trim((string) ($row[$field] ?? ''));
+            if ($value !== '') {
+                return $value;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array{kind:string,id:int,name:string,slug:string,image:?string}
+     */
+    private static function slide(string $kind, int $id, string $name, string $slug, ?string $image): array
+    {
+        return [
+            'kind' => $kind,
+            'id' => $id,
+            'name' => $name,
+            'slug' => $slug,
+            'image' => $image,
+        ];
+    }
+
     public static function isFallbackParentName($name, array $names): bool
     {
         $key = self::normalizeKey($name);
