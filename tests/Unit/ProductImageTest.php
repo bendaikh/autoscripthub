@@ -2,10 +2,12 @@
 
 namespace Tests\Unit;
 
+use Fickrr\Helpers\Helper;
 use Fickrr\Support\ProductImage;
 use PHPUnit\Framework\TestCase;
 
 require_once dirname(__DIR__, 2).'/app/Support/ProductImage.php';
+require_once dirname(__DIR__, 2).'/app/Helpers/Helper.php';
 
 class ProductImageTest extends TestCase
 {
@@ -23,7 +25,30 @@ class ProductImageTest extends TestCase
         $this->assertSame([1200, 800], ProductImage::outputSize(1200, 800));
     }
 
-    public function test_sharpest_file_wins_and_unknown_sizes_keep_the_first_candidate(): void
+    public function test_display_uses_the_image_the_admin_chose(): void
+    {
+        $item = (object) [
+            'item_preview' => 'preview-361.jpg',
+            'item_thumbnail' => 'thumb-2000.jpg',
+        ];
+        $this->assertSame('preview-361.jpg', Helper::card_image($item));
+
+        $thumbnailOnly = (object) [
+            'item_preview' => '',
+            'item_thumbnail' => 'thumb-only.jpg',
+        ];
+        $this->assertSame('thumb-only.jpg', Helper::card_image($thumbnailOnly));
+        $this->assertNull(Helper::card_image((object) ['item_preview' => '', 'item_thumbnail' => '']));
+
+        $preview = 'preview-361.jpg';
+        $heroCandidates = ['preview-361.jpg', 'gallery-750.jpg'];
+        $heroImage = !empty($preview) ? $preview : ProductImage::pickSharpest($heroCandidates, function () {
+            return 750;
+        });
+        $this->assertSame('preview-361.jpg', $heroImage);
+    }
+
+    public function test_sharpest_file_is_only_a_fallback_when_no_main_image_is_set(): void
     {
         $widths = [
             'preview.jpg' => 361,

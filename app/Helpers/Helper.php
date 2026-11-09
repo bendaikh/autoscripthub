@@ -139,7 +139,7 @@ class Helper {
 	}
 
 	/**
-	 * Card image: the wider of preview and thumbnail when both are on the row.
+	 * Card image: the preview the admin chose, then the thumbnail. Never a different file.
 	 */
 	public static function card_image($item)
 	{
@@ -152,7 +152,7 @@ class Helper {
 			}
 		}
 
-		return self::best_product_image($names);
+		return $names[0] ?? null;
 	}
 	
 	
