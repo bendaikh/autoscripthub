@@ -262,6 +262,7 @@
         <p>{{ __('Operating systems, office, security and more, sold at one price') }}</p>
       </div>
     </div>
+    <div class="hv-license-row">
     <div class="hv-license-wrap">
       <button type="button" class="hv-license-arrow hv-license-prev" aria-label="{{ __('Previous') }}">&#8249;</button>
       <div class="owl-carousel hv-license-slider">
@@ -305,6 +306,36 @@
       <button type="button" class="hv-license-arrow hv-license-next" aria-label="{{ __('Next') }}">&#8250;</button>
     </div>
     <div class="hv-license-dots" role="tablist" aria-label="{{ __('License Keys') }}"></div>
+    </div>
+    @if(count($category['license_items'] ?? []) != 0)
+    <div class="hv-head hv-license-products-head">
+      <div>
+        <h2>{{ __('License Products') }}</h2>
+        <p>{{ __('Newest keys from these categories') }}</p>
+      </div>
+    </div>
+    <div class="hv-license-row">
+    <div class="hv-license-wrap">
+      <button type="button" class="hv-license-arrow hv-license-prev" aria-label="{{ __('Previous') }}">&#8249;</button>
+      <div class="owl-carousel hv-license-slider hv-license-products">
+        @foreach($category['license_items'] as $licenseItem)
+        @php
+          $featured = $licenseItem;
+          $price = Helper::catalog_price($featured);
+          $price_exact = true;
+          $count_rating = Helper::count_rating($featured->ratings);
+          $hvTag = $hvTagClass = null;
+        @endphp
+        <div class="hv-license-product-slide">
+          @include('partials.product-card')
+        </div>
+        @endforeach
+      </div>
+      <button type="button" class="hv-license-arrow hv-license-next" aria-label="{{ __('Next') }}">&#8250;</button>
+    </div>
+    <div class="hv-license-dots" role="tablist" aria-label="{{ __('License Products') }}"></div>
+    </div>
+    @endif
   </div>
 </section>
 @endif
@@ -700,54 +731,65 @@
 <script src="{{ asset('assets/js/vendor/owl.carousel.min.js') }}"></script>
 <script>
 jQuery(function ($) {
-  var $slider = $('.hv-license-slider');
-  if (!$slider.length || typeof $.fn.owlCarousel !== 'function') {
-    return;
+  // This Owl build calls jQuery's .andSelf(), removed in jQuery 3 (the theme
+  // loads 3.4.1). The call throws after Owl adds .owl-loading { opacity: 0 },
+  // so the cards stay in the HTML but the slider is an empty block.
+  if (!$.fn.andSelf && $.fn.addBack) {
+    $.fn.andSelf = $.fn.addBack;
   }
-  var count = $slider.children().length;
-  $slider.owlCarousel({
-    items: 1,
-    margin: 16,
-    loop: count > 1,
-    autoplay: count > 1,
-    autoplayTimeout: 4200,
-    autoplayHoverPause: true,
-    smartSpeed: 450,
-    mouseDrag: true,
-    touchDrag: true,
-    nav: false,
-    dots: false,
-    responsive: {
-      0: { items: 1 },
-      576: { items: 2 },
-      768: { items: 3 },
-      1100: { items: Math.min(4, count) }
+  $('.hv-license-row').each(function () {
+    var $row = $(this);
+    var $slider = $row.find('.hv-license-slider');
+    var $dots = $row.find('.hv-license-dots');
+    if (!$slider.length || typeof $.fn.owlCarousel !== 'function') {
+      $slider.addClass('is-static');
+      return;
     }
+    var count = $slider.children().length;
+    $slider.owlCarousel({
+      items: 1,
+      margin: 16,
+      loop: count > 1,
+      autoplay: count > 1,
+      autoplayTimeout: 4200,
+      autoplayHoverPause: true,
+      smartSpeed: 450,
+      mouseDrag: true,
+      touchDrag: true,
+      nav: false,
+      dots: false,
+      responsive: {
+        0: { items: 1 },
+        576: { items: 2 },
+        768: { items: 3 },
+        1100: { items: Math.min(4, count) }
+      }
+    });
+    $slider.trigger('refresh.owl.carousel');
+    if (count < 2) {
+      $row.find('.hv-license-arrow, .hv-license-dots').hide();
+      return;
+    }
+    for (var i = 0; i < count; i++) {
+      $dots.append('<button type="button" class="hv-license-dot' + (i === 0 ? ' is-active' : '') + '" data-index="' + i + '" aria-label="' + (i + 1) + '"></button>');
+    }
+    function realIndex(event) {
+      var clones = event.relatedTarget && event.relatedTarget._clones ? event.relatedTarget._clones.length / 2 : 0;
+      var index = event.item.index - clones;
+      index = ((index % count) + count) % count;
+      return index;
+    }
+    $slider.on('changed.owl.carousel', function (event) {
+      if (!event.namespace) return;
+      var index = realIndex(event);
+      $dots.children().removeClass('is-active').eq(index).addClass('is-active');
+    });
+    $dots.on('click', '.hv-license-dot', function () {
+      $slider.trigger('to.owl.carousel', [$(this).data('index'), 400, true]);
+    });
+    $row.find('.hv-license-next').on('click', function () { $slider.trigger('next.owl.carousel'); });
+    $row.find('.hv-license-prev').on('click', function () { $slider.trigger('prev.owl.carousel'); });
   });
-  if (count < 2) {
-    $('.hv-license-arrow, .hv-license-dots').hide();
-    return;
-  }
-  var $dots = $('.hv-license-dots');
-  for (var i = 0; i < count; i++) {
-    $dots.append('<button type="button" class="hv-license-dot' + (i === 0 ? ' is-active' : '') + '" data-index="' + i + '" aria-label="' + (i + 1) + '"></button>');
-  }
-  function realIndex(event) {
-    var clones = event.relatedTarget && event.relatedTarget._clones ? event.relatedTarget._clones.length / 2 : 0;
-    var index = event.item.index - clones;
-    index = ((index % count) + count) % count;
-    return index;
-  }
-  $slider.on('changed.owl.carousel', function (event) {
-    if (!event.namespace) return;
-    var index = realIndex(event);
-    $dots.children().removeClass('is-active').eq(index).addClass('is-active');
-  });
-  $dots.on('click', '.hv-license-dot', function () {
-    $slider.trigger('to.owl.carousel', [$(this).data('index'), 400, true]);
-  });
-  $('.hv-license-next').on('click', function () { $slider.trigger('next.owl.carousel'); });
-  $('.hv-license-prev').on('click', function () { $slider.trigger('prev.owl.carousel'); });
 });
 </script>
 @endif

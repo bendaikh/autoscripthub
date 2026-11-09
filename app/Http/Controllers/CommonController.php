@@ -4976,10 +4976,56 @@ class CommonController extends Controller
 			   ? (int) ($category['counts'][$licenseSlide['id']] ?? 0)
 			   : (int) ($subSlideCounts[$licenseSlide['id']] ?? 0);
 	   }
+	   $category['license_items'] = $this->licenseHomeItems($category['license_slides']);
 	   $data = array('blog' => $blog, 'comments' => $comments, 'review' => $review, 'totalmembers' => $totalmembers, 'totalsales' => $totalsales, 'totalfiles' => $totalfiles, 'totalearning' => $totalearning, 'featured' => $featured, 'newest' => $newest, 'free' => $free, 'popular' => $popular, 'flash' => $flash, 'category' => $category);
 	  //SitemapGenerator::create(URL::to('/'))->writeToFile('sitemap.xml');
 	  
 	  return view('index')->with($data);
+	}
+
+	/**
+	 * Newest approved license products for the home carousel.
+	 * Includes every single-price parent and that parent's sub-categories.
+	 */
+	private function licenseHomeItems(array $slides)
+	{
+	   $buckets = \Fickrr\Support\OsLicenseCatalog::slideBuckets($slides);
+	   $parents = $buckets['parents'];
+	   $subs = $buckets['subcategories'];
+	   if ($parents === [] && $subs === []) {
+		   return collect();
+	   }
+
+	   $query = Items::with('ratings')->select(
+		   'items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_thumbnail',
+		   'items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username',
+		   'users.user_document_verified','items.updated_item','items.item_sold','items.free_download',
+		   'items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id',
+		   'items.file_type','items.item_delimiter','items.item_serials_list',
+		   'items.item_category','items.item_category_parent','items.item_category_type'
+	   )->leftjoin('users', 'users.id', '=', 'items.user_id')
+		   ->where('items.item_status', '=', 1)
+		   ->where('items.drop_status', '=', 'no')
+		   ->where(function ($filter) use ($parents, $subs) {
+			   $started = false;
+			   if ($parents !== []) {
+				   $filter->whereIn('items.item_category_parent', $parents)
+					   ->orWhere(function ($nested) use ($parents) {
+						   $nested->where('items.item_category_type', '=', 'category')
+							   ->whereIn('items.item_category', $parents);
+					   });
+				   $started = true;
+			   }
+			   if ($subs !== []) {
+				   $method = $started ? 'orWhere' : 'where';
+				   $filter->{$method}(function ($nested) use ($subs) {
+					   $nested->where('items.item_category_type', '=', 'subcategory')
+						   ->whereIn('items.item_category', $subs);
+				   });
+			   }
+		   });
+
+	   return $query->orderBy('items.item_id', 'desc')->take(16)->get();
 	}
 	
 	public function payment_cancel()
