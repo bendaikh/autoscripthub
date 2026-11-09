@@ -722,6 +722,36 @@ body.home-v2 .hv-license-slider {
   min-width: 0;
 }
 
+/* Owl's own CSS hides .owl-carousel until .owl-loaded, and .owl-loading sets
+   opacity: 0. If init throws, that leaves a tall invisible block. Keep this
+   carousel visible, and let Owl clip the stage once it is loaded. */
+body.home-v2 .hv-license .owl-carousel,
+body.home-v2 .hv-license .owl-carousel.owl-loading,
+body.home-v2 .hv-license .owl-carousel.owl-loaded,
+body.home-v2 .hv-license .owl-carousel.is-static {
+  display: block;
+  opacity: 1;
+}
+
+body.home-v2 .hv-license-products-head {
+  margin-top: 2.25rem;
+}
+
+body.home-v2 .hv-license-products .hv-license-product-slide > [class*="col-"] {
+  width: 100%;
+  max-width: 100%;
+  flex: 0 0 100%;
+  margin-bottom: 0;
+}
+
+body.home-v2 .hv-license-products .product-thumb img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 178px;
+  object-fit: contain;
+}
+
 body.home-v2 .hv-license-slide {
   padding: 4px 2px 8px;
 }

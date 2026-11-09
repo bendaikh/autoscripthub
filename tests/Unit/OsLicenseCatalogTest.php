@@ -272,4 +272,95 @@ class OsLicenseCatalogTest extends TestCase
         $this->assertSame(12.99, OsLicenseCatalog::roundAmount(12.99, true));
         $this->assertSame(13.0, OsLicenseCatalog::roundAmount(12.99, false));
     }
+
+    public function test_new_vpn_parent_stays_on_the_slider_when_config_is_stale(): void
+    {
+        $vpn = new CatalogAttributeRow([
+            'cat_id' => 20,
+            'category_name' => 'VPN Licenses',
+            'category_slug' => 'vpn-licenses',
+            'category_status' => '1',
+            'drop_status' => 'no',
+            'single_price' => 0,
+        ]);
+        $vpnNull = new CatalogAttributeRow([
+            'cat_id' => 21,
+            'category_name' => 'VPN Licenses',
+            'category_slug' => 'vpn-licenses-2',
+            'category_status' => '1',
+            'drop_status' => 'no',
+            'single_price' => null,
+        ]);
+        $inactive = new CatalogAttributeRow([
+            'cat_id' => 22,
+            'category_name' => 'VPN Licenses',
+            'category_slug' => 'vpn-licenses-old',
+            'category_status' => '0',
+            'drop_status' => 'no',
+            'single_price' => 1,
+        ]);
+
+        $slides = OsLicenseCatalog::homeSlides([$vpn, $inactive], [
+            'slugs' => ['operating-system-licenses'],
+            'names' => ['Operating System Licenses'],
+            'ids' => [],
+        ]);
+        $this->assertSame(['VPN Licenses'], array_column($slides, 'name'));
+        $this->assertSame([20], array_column($slides, 'id'));
+
+        $nullSlides = OsLicenseCatalog::homeSlides([$vpnNull], [
+            'slugs' => [],
+            'names' => [],
+            'ids' => [],
+        ]);
+        $this->assertSame([21], array_column($nullSlides, 'id'));
+
+        $child = (object) [
+            'item_category_parent' => 20,
+            'item_category' => 90,
+            'item_category_type' => 'subcategory',
+        ];
+        $direct = (object) [
+            'item_category_parent' => 0,
+            'item_category' => 20,
+            'item_category_type' => 'category',
+        ];
+        $script = (object) [
+            'item_category_parent' => 4,
+            'item_category' => 41,
+            'item_category_type' => 'subcategory',
+        ];
+        $this->assertTrue(OsLicenseCatalog::itemInSlides($child, $slides));
+        $this->assertTrue(OsLicenseCatalog::itemInSlides($direct, $slides));
+        $this->assertFalse(OsLicenseCatalog::itemInSlides($script, $slides));
+    }
+}
+
+/**
+ * Stands in for an Eloquent row: columns live behind getAttributes(), and
+ * isset() is false when the column is null.
+ */
+class CatalogAttributeRow
+{
+    private $attributes;
+
+    public function __construct(array $attributes)
+    {
+        $this->attributes = $attributes;
+    }
+
+    public function getAttributes(): array
+    {
+        return $this->attributes;
+    }
+
+    public function __get($key)
+    {
+        return $this->attributes[$key] ?? null;
+    }
+
+    public function __isset($key)
+    {
+        return array_key_exists($key, $this->attributes) && $this->attributes[$key] !== null;
+    }
 }

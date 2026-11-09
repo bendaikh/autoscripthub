@@ -57,7 +57,15 @@ class OsLicenseCatalog
     public static function resolve(iterable $categories, iterable $subcategories, array $config): array
     {
         $needles = [];
-        foreach (array_merge($config['slugs'] ?? [], $config['names'] ?? []) as $needle) {
+        // Always union the built-in names. A cached config file from before
+        // VPN Licenses (or any later name) was added must not hide that parent
+        // when its single_price column is still null or 0.
+        foreach (array_merge(
+            self::FALLBACK_PARENT_SLUGS,
+            self::FALLBACK_PARENT_NAMES,
+            $config['slugs'] ?? [],
+            $config['names'] ?? []
+        ) as $needle) {
             $key = self::normalizeKey($needle);
             if ($key !== '') {
                 $needles[$key] = true;
@@ -260,6 +268,60 @@ class OsLicenseCatalog
     }
 
     /**
+     * Parent ids and lone subcategory ids represented by home slides.
+     *
+     * @param  array<int, array{kind?:string,id?:int}>  $slides
+     * @return array{parents:array<int,int>,subcategories:array<int,int>}
+     */
+    public static function slideBuckets(array $slides): array
+    {
+        $parents = [];
+        $subs = [];
+        foreach ($slides as $slide) {
+            $id = (int) ($slide['id'] ?? 0);
+            if ($id <= 0) {
+                continue;
+            }
+            if (($slide['kind'] ?? '') === 'subcategory') {
+                $subs[$id] = $id;
+            } else {
+                $parents[$id] = $id;
+            }
+        }
+
+        return ['parents' => array_values($parents), 'subcategories' => array_values($subs)];
+    }
+
+    /**
+     * An item belongs on the license product row when it sits in a slide
+     * parent (including that parent's sub-categories) or in a lone sub-category slide.
+     *
+     * @param  object|array  $item
+     * @param  array<int, array{kind?:string,id?:int}>  $slides
+     */
+    public static function itemInSlides($item, array $slides): bool
+    {
+        $buckets = self::slideBuckets($slides);
+        $parents = array_flip($buckets['parents']);
+        $subs = array_flip($buckets['subcategories']);
+        $row = self::record($item);
+        $parent = (int) ($row['item_category_parent'] ?? 0);
+        $category = (int) ($row['item_category'] ?? 0);
+        $type = (string) ($row['item_category_type'] ?? '');
+        if ($parent > 0 && isset($parents[$parent])) {
+            return true;
+        }
+        if ($type === 'category' && isset($parents[$category])) {
+            return true;
+        }
+        if ($type === 'subcategory' && isset($subs[$category])) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param  object|array  $value
      * @return array<string, mixed>
      */
@@ -271,8 +333,15 @@ class OsLicenseCatalog
         if (! is_object($value)) {
             return [];
         }
-        $row = get_object_vars($value);
-        foreach (['category_image', 'image', 'category_icon', 'subcategory_image', 'single_price', 'cat_id', 'subcat_id', 'category_name', 'category_slug', 'category_status', 'drop_status', 'subcategory_name', 'subcategory_slug', 'subcategory_status'] as $field) {
+        // Eloquent keeps columns in a protected $attributes array. get_object_vars()
+        // from here only sees public flags, and isset() is false for null columns
+        // such as single_price, so a new "VPN Licenses" row would lose its name.
+        if (method_exists($value, 'getAttributes')) {
+            $row = $value->getAttributes();
+        } else {
+            $row = get_object_vars($value);
+        }
+        foreach (['category_image', 'image', 'category_icon', 'subcategory_image', 'single_price', 'cat_id', 'subcat_id', 'category_name', 'category_slug', 'category_status', 'drop_status', 'subcategory_name', 'subcategory_slug', 'subcategory_status', 'item_category', 'item_category_parent', 'item_category_type'] as $field) {
             if (! array_key_exists($field, $row) && isset($value->{$field})) {
                 $row[$field] = $value->{$field};
             }
