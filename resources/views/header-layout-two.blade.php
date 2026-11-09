@@ -596,6 +596,9 @@
                             </button>
                             <!-- Collect the nav links, forms, and other content for toggling -->
                             <div class="collapse navbar-collapse" id="navbarNav">
+                                @php
+                                  $headerMenus = \Fickrr\Support\OsLicenseCatalog::headerMenus($categories['menu'] ?? [], config('os_licenses', []), (int) ($allsettings->site_menu_category ?? 0));
+                                @endphp
                                 <ul class="navbar-nav">
                                     
                                     <li class="has_dropdown">
@@ -627,8 +630,7 @@
                                             </ul>
                                         </div>
                                     </li>
-                                    @if(count($categories['menu']) != 0)
-                                    @foreach($categories['menu'] as $menu)
+                                    @foreach($headerMenus['visible'] as $menu)
                                     <li class="has_dropdown">
                                         <a href="{{ URL::to('/shop/category/') }}/{{$menu->category_slug}}">{{ $menu->category_name }}</a>
                                         <div class="dropdowns dropdown--menu">
@@ -641,8 +643,8 @@
                                             </ul>
                                         </div>
                                     </li>
-                                   @endforeach 
-                                   @endif
+                                   @endforeach
+                                   @include('partials.header-license-menu', ['menuVariant' => 'two'])
                                    @if(count($allpages['pages']) != 0)
                                    <li class="has_dropdown">
                                         <a href="javascript:void(0);">{{ __('Pages') }}</a>

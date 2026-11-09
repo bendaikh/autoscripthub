@@ -85,3 +85,38 @@ img.product-photo {
 .cz-gallery .thumber > img {
   max-height: 110px;
 }
+
+/* Header stays on one line. License parents are one item, and extra
+   categories sit in More, so the cart and account icons are not pushed off. */
+@media (min-width: 992px) {
+  header.navbar-sticky .navbar > .container {
+    flex-wrap: nowrap;
+  }
+  header.navbar-sticky .navbar-collapse {
+    min-width: 0;
+  }
+  header.navbar-sticky .navbar-nav {
+    flex-wrap: nowrap;
+  }
+  header.navbar-sticky .navbar-nav > .nav-item > .nav-link {
+    white-space: nowrap;
+  }
+  header.navbar-sticky .navbar-brand,
+  header.navbar-sticky .navbar-toolbar {
+    flex-shrink: 0;
+  }
+}
+
+@media (min-width: 768px) {
+  .mainmenu__menu .navbar-nav {
+    flex-wrap: nowrap;
+  }
+  .mainmenu__menu .navbar-nav > li > a {
+    white-space: nowrap;
+  }
+}
+
+.dropdown-menu .hv-menu-sub,
+.dropdowns .hv-menu-sub > a {
+  padding-left: 1.75rem;
+}

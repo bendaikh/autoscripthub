@@ -334,6 +334,44 @@ class OsLicenseCatalogTest extends TestCase
         $this->assertTrue(OsLicenseCatalog::itemInSlides($direct, $slides));
         $this->assertFalse(OsLicenseCatalog::itemInSlides($script, $slides));
     }
+
+    public function test_header_groups_license_parents_and_caps_the_rest(): void
+    {
+        $menus = OsLicenseCatalog::headerMenus([
+            ['cat_id' => 17, 'category_name' => 'desktop app', 'category_slug' => 'desktop-app', 'single_price' => 0],
+            ['cat_id' => 19, 'category_name' => 'Office Licenses', 'category_slug' => 'office-licenses', 'single_price' => 1],
+            ['cat_id' => 20, 'category_name' => 'Antivirus Licenses', 'category_slug' => 'antivirus-licenses', 'single_price' => 0],
+            ['cat_id' => 23, 'category_name' => 'VPN Licenses', 'category_slug' => 'vpn-licenses', 'single_price' => null],
+            ['cat_id' => 8, 'category_name' => 'Scripts', 'category_slug' => 'scripts', 'single_price' => 0],
+            ['cat_id' => 9, 'category_name' => 'Themes', 'category_slug' => 'themes', 'single_price' => 0],
+            ['cat_id' => 12, 'category_name' => 'Graphics', 'category_slug' => 'graphics', 'single_price' => 0],
+            ['cat_id' => 11, 'category_name' => 'Print', 'category_slug' => 'print', 'single_price' => 0],
+            ['cat_id' => 13, 'category_name' => 'Mobile Apps', 'category_slug' => 'mobile-apps', 'single_price' => 0],
+            ['cat_id' => 18, 'category_name' => 'Operating System Licenses', 'category_slug' => 'operating-system-licenses', 'single_price' => 1],
+        ], [
+            'slugs' => ['operating-system-licenses'],
+            'names' => ['Operating System Licenses'],
+            'ids' => [],
+        ], 8);
+
+        $this->assertSame(
+            ['Office Licenses', 'Antivirus Licenses', 'VPN Licenses', 'Operating System Licenses'],
+            array_column($menus['license'], 'category_name')
+        );
+        $this->assertSame(
+            ['desktop app', 'Scripts', 'Themes', 'Graphics', 'Print'],
+            array_column($menus['visible'], 'category_name')
+        );
+        $this->assertSame(['Mobile Apps'], array_column($menus['more'], 'category_name'));
+
+        $smaller = OsLicenseCatalog::headerMenus([
+            ['cat_id' => 8, 'category_name' => 'Scripts', 'category_slug' => 'scripts'],
+            ['cat_id' => 9, 'category_name' => 'Themes', 'category_slug' => 'themes'],
+        ], ['names' => [], 'slugs' => [], 'ids' => []], 1);
+        $this->assertSame(['Scripts'], array_column($smaller['visible'], 'category_name'));
+        $this->assertSame(['Themes'], array_column($smaller['more'], 'category_name'));
+        $this->assertSame([], $smaller['license']);
+    }
 }
 
 /**
