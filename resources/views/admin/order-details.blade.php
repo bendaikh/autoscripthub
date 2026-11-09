@@ -75,6 +75,7 @@
                                     <tbody>
                                     @php $no = 1; @endphp
                                     @foreach($itemData['item'] as $order)
+                                        @php $orderExact = Helper::is_single_price_item($order); @endphp
                                         <tr>
                                             <td>{{ $no }}</td>
                                             <td>{{ $order->item_name }} </td>
@@ -103,9 +104,9 @@
                                             @else
                                             <td align="center">-</td>
                                             @endif
-                                            <td>{{ Helper::plan_format($allsettings->site_currency_position,$order->vendor_amount,$order->currency_type) }} </td>
-                                            <td>{{ Helper::plan_format($allsettings->site_currency_position,$order->admin_amount,$order->currency_type) }}</td>
-                                            <td>{{ Helper::plan_format($allsettings->site_currency_position,$order->total_price,$order->currency_type) }}</td>
+                                            <td>{{ Helper::plan_format($allsettings->site_currency_position,$order->vendor_amount,$order->currency_type,$orderExact) }} </td>
+                                            <td>{{ Helper::plan_format($allsettings->site_currency_position,$order->admin_amount,$order->currency_type,$orderExact) }}</td>
+                                            <td>{{ Helper::plan_format($allsettings->site_currency_position,$order->total_price,$order->currency_type,$orderExact) }}</td>
                                             <td>@if($order->order_status == 'completed') <span class="badge badge-success">{{ __('Completed') }}</span> @else <span class="badge badge-danger">{{ __('Pending') }}</span> @endif</td>
                                             <td>
                                             @if($order->approval_status == '')

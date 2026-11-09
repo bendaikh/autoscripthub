@@ -35,7 +35,8 @@
                 @php $no = 1; @endphp
                 @foreach($fav['item'] as $featured)
                 @php
-                $price = Helper::price_info($featured->item_flash,$featured->extended_price);
+                $price = Helper::catalog_price($featured);
+                $price_exact = Helper::is_single_price_item($featured);
                 @endphp
               <div class="media d-block d-sm-flex align-items-center py-4 border-bottom">
               <a class="d-block position-relative mb-3 mb-sm-0 mr-sm-4 mx-auto cart-img" href="{{ url('/favourites') }}/{{ base64_encode($featured->fav_id) }}/{{ base64_encode($featured->item_id) }}" onClick="return confirm('{{ __('Are you sure you want to remove from favourites?') }}');">
@@ -53,7 +54,7 @@
 				  {{ $featured->item_name }}	  
 				  @endif
 				  </a></h3>
-                  <div class="d-inline-block text-accent">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency) }}</div><a class="d-inline-block text-accent font-size-ms border-left ml-2 pl-2" href="{{ URL::to('/shop') }}/item-type/{{ $featured->item_type }}">{{ Helper::ItemTypeIdGetData($featured->item_type_id) }}</a>
+                  <div class="d-inline-block text-accent">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency,$price_exact) }}</div><a class="d-inline-block text-accent font-size-ms border-left ml-2 pl-2" href="{{ URL::to('/shop') }}/item-type/{{ $featured->item_type }}">{{ Helper::ItemTypeIdGetData($featured->item_type_id) }}</a>
                   <div class="form-inline pt-2">
                     {{ mb_substr($featured->item_shortdesc,0,60,'utf-8').'...' }}
                     <a class="btn btn-primary btn-sm mx-auto mx-sm-0 my-2" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"><i class="dwg-cart mr-1"></i>{{ __('View Product') }}</a></div>

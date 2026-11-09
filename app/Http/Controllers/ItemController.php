@@ -1162,7 +1162,7 @@ class ItemController extends Controller
 		  $user_id = $order_details->user_id;
 		  $currency_type = $order_details->currency_type;
 		  $user_details = Members::singlebuyerData($user_id);
-		  $data = ['order_id' => $order_details->purchase_token, 'purchase_id' => $order_details->purchase_code, 'purchase_date' => $order_details->start_date, 'expiry_date' => $order_details->end_date, 'license' => $order_details->license, 'product_name' => $order_details->item_name, 'product_slug' => $product_slug, 'payment_token' => $order_details->payment_token, 'payment_type' => $order_details->payment_type, 'product_price' => $order_details->item_price, 'username' => $user_details->username, 'product_id' => $product_id, 'currency_type' => $currency_type ];
+		  $data = ['order_id' => $order_details->purchase_token, 'purchase_id' => $order_details->purchase_code, 'purchase_date' => $order_details->start_date, 'expiry_date' => $order_details->end_date, 'license' => $order_details->license, 'product_name' => $order_details->item_name, 'product_slug' => $product_slug, 'payment_token' => $order_details->payment_token, 'payment_type' => $order_details->payment_type, 'product_price' => $order_details->item_price, 'username' => $user_details->username, 'product_id' => $product_id, 'currency_type' => $currency_type, 'single_price_item' => \Fickrr\Support\OsLicense::isItem($item['data']) ];
         
         $pdf = PDF::loadView('pdf_view', $data);  
         return $pdf->download($pdf_filename);
@@ -1717,6 +1717,10 @@ class ItemController extends Controller
 		   $extended_price = $request->input('extended_price');
 		   }
 		   else
+		   {
+			$extended_price = 0;
+		   }
+		   if(\Fickrr\Support\OsLicense::isSelection($item_category))
 		   {
 			$extended_price = 0;
 		   }
@@ -2404,6 +2408,10 @@ class ItemController extends Controller
 	   else
 	   {
 	    $extended_price = 0;
+	   }
+	   if(\Fickrr\Support\OsLicense::isSelection($item_category))
+	   {
+		$extended_price = 0;
 	   }
 	   
 	   if(!empty($request->input('future_update')))

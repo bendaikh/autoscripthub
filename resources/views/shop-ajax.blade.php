@@ -144,7 +144,8 @@
         @php $no = 1; @endphp
         @foreach($itemData['item'] as $featured)
         @php
-        $price = Helper::price_info($featured->item_flash,$featured->extended_price);
+        $price = Helper::catalog_price($featured);
+        $price_exact = Helper::is_single_price_item($featured);
         $count_rating = Helper::count_rating($featured->ratings);
         @endphp
         <div class="col-lg-4 col-md-4 col-sm-6 px-2 mb-3 list-item box" data-price="{{ $price }}">
@@ -225,7 +226,7 @@
               <span class="popular-items" style="display:none;">{{ $featured->item_liked }}</span>
               <span class="new-items" style="display:none;">{{ $featured->item_id }}</span>
               <span class="free-items" style="display:none;">{{ $featured->free_download }}</span>
-              <span class="like" style="display:none;">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency) }}</span>
+              <span class="like" style="display:none;">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency,$price_exact) }}</span>
               <div class="text-muted font-size-xs mr-1"><a class="product-meta font-weight-medium" href="{{ URL::to('/shop') }}/item-type/{{ $featured->item_type }}">{{ Helper::ItemTypeIdGetData($featured->item_type_id) }}</a></div>
                 <div class="star-rating">
                     @if($count_rating == 0)
@@ -319,7 +320,7 @@
                 @endif
                 <div>
                 @if($featured->free_download == 0)
-                @if($featured->item_flash == 1)<del class="price-old">{{ Helper::price_format($allsettings->site_currency_position,$featured->extended_price,$currency_symbol,$multicurrency) }}</del>@endif <span class="bg-faded-accent text-accent rounded-sm py-1 px-2">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency) }}</span>
+                @if($featured->item_flash == 1)<del class="price-old">{{ Helper::price_format($allsettings->site_currency_position,($price_exact ? $featured->regular_price : $featured->extended_price),$currency_symbol,$multicurrency,$price_exact) }}</del>@endif <span class="bg-faded-accent text-accent rounded-sm py-1 px-2">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency,$price_exact) }}</span>
                 @else
                 <span class="price-badge rounded-sm py-1 px-2">{{ __('Free') }}</span> 
                 @endif

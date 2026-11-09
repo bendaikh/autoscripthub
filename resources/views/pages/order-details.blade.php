@@ -88,8 +88,12 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                        @php $earn = 0; @endphp
+                                        @php $earn = 0; $receiptExact = false; @endphp
                                         @foreach($order['view'] as $order)
+                                        @php
+                                        $lineExact = Helper::is_single_price_item($order);
+                                        if ($lineExact) { $receiptExact = true; }
+                                        @endphp
                                         <tr>
                                                 <td>{{ date("d M Y", strtotime($order->start_date)) }}</td>
                                                 <td>{{ date("d M Y", strtotime($order->end_date)) }}</td>
@@ -103,8 +107,8 @@
 													</a> {{ __('by') }} <a href="{{ URL::to('/user') }}/{{ $order->username }}" class="theme-color">{{ $order->username }}</a>
                                                 </td>
                                                 <td>{{ $order->payment_type }}</td>
-                                                <td>{{ Helper::plan_format($allsettings->site_currency_position,$order->item_price,$currency_sign) }}</td>
-                                                <td>{{ Helper::plan_format($allsettings->site_currency_position,$order->vendor_amount,$currency_sign) }}</td>
+                                                <td>{{ Helper::plan_format($allsettings->site_currency_position,$order->item_price,$currency_sign,$lineExact) }}</td>
+                                                <td>{{ Helper::plan_format($allsettings->site_currency_position,$order->vendor_amount,$currency_sign,$lineExact) }}</td>
                                                 <td @if($order->approval_status == 'payment released to buyer') class="red-clr" @else class="green-clr" @endif>{{ $order->approval_status }}</td>
                                                 <?php /*?><td><a href="{{ url('/conversation-to-buyer') }}/{{ $order->username }}/{{ $encrypter->encrypt($order->ord_id) }}" class="btn btn-primary btn-sm">Start Conversation ({{ $countdata->has($order->ord_id) ? count($countdata[$order->ord_id]) : 0 }})</a></td><?php */?>
                                             </tr>
@@ -119,8 +123,8 @@
                    <hr/>
                    <div class="row mt-3 pt-3">
                    <div class="pricing_info col pull-right">
-                        <p>{{ __('Sub Total') }} : {{ Helper::plan_format($allsettings->site_currency_position,$earn,$currency_sign) }}</p>
-                        <p class="bold">{{ __('Total') }} : {{ Helper::plan_format($allsettings->site_currency_position,$earn,$currency_sign) }}</p>
+                        <p>{{ __('Sub Total') }} : {{ Helper::plan_format($allsettings->site_currency_position,$earn,$currency_sign,$receiptExact) }}</p>
+                        <p class="bold">{{ __('Total') }} : {{ Helper::plan_format($allsettings->site_currency_position,$earn,$currency_sign,$receiptExact) }}</p>
                   </div>
                   </div>
                </div>

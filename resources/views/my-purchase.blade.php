@@ -70,7 +70,7 @@
               </a>
                 <div class="d-block mb-3 mb-sm-0 mr-sm-4 mx-auto">
                   <h3 class="h6 product-title mb-2"><a href="{{ url('/item') }}/{{ $item->item_slug }}">{{ $item->item_name }}</a></h3>
-                  <div class="font-size-sm"><strong>{{ __('Price') }}:</strong> {{ Helper::plan_format($allsettings->site_currency_position,$item->item_price,$item->currency_type) }}</div>
+                  <div class="font-size-sm"><strong>{{ __('Price') }}:</strong> {{ Helper::plan_format($allsettings->site_currency_position,$item->item_price,$item->currency_type,Helper::is_single_price_item($item)) }}</div>
                   <div class="d-flex align-items-center justify-content-center justify-content-sm-start">
                    @if($item->approval_status != 'payment released to customer')
                    @if($item->approval_status == 'payment released to vendor')
@@ -149,7 +149,9 @@
                 <?php /*?><div class="font-size-sm mb-1"><strong>{{ __('Purchase Id') }}:</strong> {{ $item->purchase_token }}</div><?php */?>
                 <div class="font-size-sm mb-1"><strong>{{ __('Purchase Date') }} : </strong> {{ date("d F Y", strtotime($item->start_date)) }}</div>
                 <div class="font-size-sm mb-1"><strong>{{ __('Expiry Date') }} : </strong> {{ date("d F Y", strtotime($item->end_date)) }}</div>
+                @if(!Helper::is_single_price_item($item))
                 <div class="font-size-sm mb-1"><strong>{{ __('License') }} : </strong> {{ $item->license }}</div>
+                @endif
                 @if(!empty($item->purchased_version))
                 <div class="font-size-sm mb-1"><strong><i class="dwg-package mr-1"></i>{{ __('Version') }} : </strong> <span class="badge badge-info">{{ $item->purchased_version }}</span></div>
                 @endif

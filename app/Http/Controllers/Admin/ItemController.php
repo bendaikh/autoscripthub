@@ -3226,6 +3226,10 @@ class ItemController extends Controller
 		   {
 			$extended_price = 0;
 		   }
+		   if(\Fickrr\Support\OsLicense::isSelection($item_category))
+		   {
+			$extended_price = 0;
+		   }
 	   }	   
 	   
 	   if(!empty($request->input('future_update')))
@@ -3745,6 +3749,10 @@ class ItemController extends Controller
 	   else
 	   {
 	    $extended_price = 0;
+	   }
+	   if(\Fickrr\Support\OsLicense::isSelection($item_category))
+	   {
+		$extended_price = 0;
 	   }
 	   
 	   if(!empty($request->input('future_update')))

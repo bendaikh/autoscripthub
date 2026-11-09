@@ -5,6 +5,12 @@
 --}}
 @php
   $checkif_purchased = Helper::if_purchased($featured->item_token);
+  if (Helper::is_single_price_item($featured)) {
+    $price = Helper::catalog_price($featured);
+    $price_exact = true;
+  }
+  $price_exact = !empty($price_exact ?? false);
+  $compare_price = $price_exact ? $featured->regular_price : $featured->extended_price;
 @endphp
 <div class="col-lg-3 col-md-4 col-sm-6 px-2 mb-grid-gutter">
   <div class="card product-card-alt">
@@ -108,7 +114,7 @@
         @endif
         <div>
           @if($featured->free_download == 0)
-          @if($featured->item_flash == 1)<del class="price-old">{{ Helper::price_format($allsettings->site_currency_position,$featured->extended_price,$currency_symbol,$multicurrency) }}</del>@endif <span class="bg-faded-accent text-accent rounded-sm py-1 px-2">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency) }}</span>
+          @if($featured->item_flash == 1)<del class="price-old">{{ Helper::price_format($allsettings->site_currency_position,$compare_price,$currency_symbol,$multicurrency,$price_exact) }}</del>@endif <span class="bg-faded-accent text-accent rounded-sm py-1 px-2">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency,$price_exact) }}</span>
           @else
           <span class="price-badge rounded-sm py-1 px-2">{{ __('Free') }}</span>
           @endif

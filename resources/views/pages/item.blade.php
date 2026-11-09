@@ -543,6 +543,16 @@ $extend_item_price = 0;
                 $extend_item_price = $item['item']->extended_price; 
                 } 
                 @endphp
+              @php $singlePriceItem = Helper::is_single_price_item($item['item']); @endphp
+              @if($singlePriceItem)
+              <div class="d-flex justify-content-between align-items-center py-3 border-0">
+                <span class="font-weight-medium text-dark">{{ __('Price') }}</span>
+                <h5 class="mb-0 text-accent font-weight-normal">
+                  @if($item['item']->item_flash == 1)<del class="price-old fontsize17">{{ Helper::price_format($allsettings->site_currency_position,$item['item']->regular_price,$currency_symbol,$multicurrency,true) }}</del>@endif <span class="bg-faded-accent rounded-sm py-1 px-2 fontsize17">{{ Helper::price_format($allsettings->site_currency_position,$item_price,$currency_symbol,$multicurrency,true) }}</span>
+                </h5>
+              </div>
+              <input type="hidden" name="item_price" value="{{ base64_encode($item_price) }}_regular">
+              @else
               <div class="accordion" id="licenses">
                 @if($item['item']->regular_price != 0)
                 <div class="card border-top-0 border-left-0 border-right-0">
@@ -607,6 +617,7 @@ $extend_item_price = 0;
                 </div>
                 @endif
               </div>
+              @endif
               @endif
               @if($item['item']->file_type == 'serial')
               @php
@@ -1062,7 +1073,8 @@ $extend_item_price = 0;
         @php $no = 1; @endphp
         @foreach($related['items'] as $featured)
         @php
-        $price = Helper::price_info($featured->item_flash,$featured->extended_price);
+        $price = Helper::catalog_price($featured);
+        $price_exact = Helper::is_single_price_item($featured);
         $count_rating = Helper::count_rating($featured->ratings);
         @endphp
         <div class="col-lg-3 col-md-4 col-sm-6 px-2 mb-grid-gutter prod-item">
@@ -1215,7 +1227,7 @@ $extend_item_price = 0;
                 </div>
                 <div>
                 @if($featured->free_download == 0)
-                @if($featured->item_flash == 1)<del class="price-old">{{ Helper::price_format($allsettings->site_currency_position,$featured->extended_price,$currency_symbol,$multicurrency) }}</del>@endif <span class="bg-faded-accent text-accent rounded-sm py-1 px-2">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency) }}</span>
+                @if($featured->item_flash == 1)<del class="price-old">{{ Helper::price_format($allsettings->site_currency_position,($price_exact ? $featured->regular_price : $featured->extended_price),$currency_symbol,$multicurrency,$price_exact) }}</del>@endif <span class="bg-faded-accent text-accent rounded-sm py-1 px-2">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency,$price_exact) }}</span>
                 @else
                 <span class="price-badge rounded-sm py-1 px-2">{{ __('Free') }}</span> 
                 @endif

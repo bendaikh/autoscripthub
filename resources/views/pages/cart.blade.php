@@ -78,7 +78,10 @@
               <img class="lazy rounded-lg" width="70" height="54" src="{{ url('/') }}/public/img/no-image.png"  alt="{{ $cart->item_name }}">
               @endif
               <label class="para product-title d-inline-block"><a href="{{ url('/item') }}/{{ $cart->item_slug }}">{{ $cart->item_name }}</a></label><br/>
+              @php $singlePriceItem = Helper::is_single_price_item($cart); @endphp
+              @if(!$singlePriceItem)
               <a class="text-accent font-size-ms" href="{{ url('/item') }}/{{ $cart->item_slug }}">{{ $cart->license }} @if($cart->license == 'regular') ( {{ $addition_settings->regular_license }} @if($cart->item_support == 1) {{ __('Support') }} @else {{ __('not support') }} @endif) @elseif($cart->license == 'extended') ( {{ $addition_settings->extended_license }} @if($cart->item_support == 1) {{ __('Support') }} @else {{ __('not support') }} @endif) @endif</a>
+              @endif
               </td>
               <td style="width:20%;">
                 <div class="currency">
@@ -88,9 +91,9 @@
                   <span class="pricemove">{{ $currency_symbol }}</span><input type="text" name="price[]" id="coster" class="price" value="{{ $cart->item_price }}" readonly>
                   @endif<?php */?>
                   @if($allsettings->site_currency_position == "left")
-                  <span class="pricemove">{{ $currency_symbol }}</span><input type="text" name="price[]" id="coster" class="price" value="{{ Helper::price_value($cart->item_single_price,$multicurrency) }}" readonly> 
+                  <span class="pricemove">{{ $currency_symbol }}</span><input type="text" name="price[]" id="coster" class="price" value="{{ Helper::price_value($cart->item_single_price,$multicurrency,!empty($singlePriceItem)) }}" readonly> 
                   @else
-                  <span class="pricemove"><input type="text" name="price[]" id="coster-right" class="price" value="{{ Helper::price_value($cart->item_single_price,$multicurrency) }}" readonly>{{ $currency_symbol }}</span> 
+                  <span class="pricemove"><input type="text" name="price[]" id="coster-right" class="price" value="{{ Helper::price_value($cart->item_single_price,$multicurrency,!empty($singlePriceItem)) }}" readonly>{{ $currency_symbol }}</span> 
                   @endif
                 </div>
               </td>

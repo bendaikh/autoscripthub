@@ -165,10 +165,12 @@
                 <div class="dropdown-menu dropdown-menu-right" style="width: 20rem;">
                   <div class="widget widget-cart px-3 pt-2 pb-3">
                     <div data-simplebar data-simplebar-auto-hide="false">
-                      @php $subtotall = 0; @endphp
+                      @php $subtotall = 0; $osCart = false; @endphp
                       @foreach($cartitem['item'] as $cart)
                       @php 
                       $itemprice = $cart->item_single_price * $cart->item_serial_stock;
+                      $lineExact = Helper::is_single_price_item($cart);
+                      if ($lineExact) { $osCart = true; }
                       @endphp
                       <div class="widget-cart-item pb-2 mb-2 border-bottom">
                         <a href="{{ url('/cart') }}/{{ base64_encode($cart->ord_id) }}" class="close text-danger" onClick="return confirm('{{ __('Are you sure you want to delete?') }}');"><span aria-hidden="true">&times;</span></a>
@@ -187,7 +189,7 @@
 							{{ $cart->item_name }}	  
 							@endif
 							</a></h6>
-                            <div class="widget-product-meta"><span class="text-accent mr-2">{{ Helper::price_format($allsettings->site_currency_position,$itemprice,$currency_symbol,$multicurrency) }}</span></div>
+                            <div class="widget-product-meta"><span class="text-accent mr-2">{{ Helper::price_format($allsettings->site_currency_position,$itemprice,$currency_symbol,$multicurrency,$lineExact) }}</span></div>
                           </div>
                         </div>
                       </div>
@@ -195,7 +197,7 @@
                       @endforeach
                      </div>
                     <div class="d-flex flex-wrap justify-content-between align-items-center py-3">
-                      <div class="font-size-sm mr-2 py-2"><span class="text-muted">{{ __('Total') }}:</span><span class="text-accent font-size-base ml-1">{{ Helper::price_format($allsettings->site_currency_position,$subtotall,$currency_symbol,$multicurrency) }}</span></div><a class="btn btn-outline-secondary btn-sm" href="{{ url('/cart') }}">{{ __('View Cart') }}<i class="dwg-arrow-right ml-1 mr-n1"></i></a></div><a class="btn btn-primary btn-sm btn-block" href="{{ url('/checkout') }}"><i class="dwg-card mr-2 font-size-base align-middle"></i>{{ __('Checkout') }}</a>
+                      <div class="font-size-sm mr-2 py-2"><span class="text-muted">{{ __('Total') }}:</span><span class="text-accent font-size-base ml-1">{{ Helper::price_format($allsettings->site_currency_position,$subtotall,$currency_symbol,$multicurrency,$osCart) }}</span></div><a class="btn btn-outline-secondary btn-sm" href="{{ url('/cart') }}">{{ __('View Cart') }}<i class="dwg-arrow-right ml-1 mr-n1"></i></a></div><a class="btn btn-primary btn-sm btn-block" href="{{ url('/checkout') }}"><i class="dwg-card mr-2 font-size-base align-middle"></i>{{ __('Checkout') }}</a>
                   </div>
                 </div>
                 @endif
