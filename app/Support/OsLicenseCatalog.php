@@ -8,6 +8,30 @@ namespace Fickrr\Support;
  */
 class OsLicenseCatalog
 {
+    /**
+     * Parent names that sell as one price even when the admin toggle was not
+     * stored yet. Matching is exact after trim and case-folding.
+     */
+    public const FALLBACK_PARENT_NAMES = [
+        'Operating System Licenses',
+        'Operating System License',
+        'Office Licenses',
+        'Antivirus Licenses',
+        'Graphics & Design Licenses',
+        'Games',
+        'VPN Licenses',
+    ];
+
+    public const FALLBACK_PARENT_SLUGS = [
+        'operating-system-licenses',
+        'operating-system-license',
+        'office-licenses',
+        'antivirus-licenses',
+        'graphics-design-licenses',
+        'games',
+        'vpn-licenses',
+    ];
+
     public static function normalizeKey($value): string
     {
         $value = strtolower(trim((string) $value));
@@ -55,7 +79,7 @@ class OsLicenseCatalog
             if ($id <= 0) {
                 continue;
             }
-            if (isset($explicit[$id]) || self::matchesRoot($row, $needles)) {
+            if (isset($explicit[$id]) || self::flagOn($row['single_price'] ?? null) || self::matchesRoot($row, $needles)) {
                 $categoryIds[$id] = $id;
             }
         }
@@ -65,7 +89,7 @@ class OsLicenseCatalog
             $row = (array) $row;
             $id = (int) ($row['subcat_id'] ?? 0);
             $parent = (int) ($row['cat_id'] ?? 0);
-            if ($id > 0 && isset($categoryIds[$parent])) {
+            if ($id > 0 && (isset($categoryIds[$parent]) || self::flagOn($row['single_price'] ?? null))) {
                 $subcategoryIds[$id] = $id;
             }
         }
@@ -174,6 +198,26 @@ class OsLicenseCatalog
         return (float) round((float) $amount);
     }
 
+    public static function flagOn($value): bool
+    {
+        return $value === 1 || $value === '1' || $value === true;
+    }
+
+    public static function isFallbackParentName($name, array $names): bool
+    {
+        $key = self::normalizeKey($name);
+        if ($key === '') {
+            return false;
+        }
+        foreach ($names as $needle) {
+            if ($key === self::normalizeKey($needle)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * @param  array<string, mixed>  $row
      * @param  array<string, bool>  $needles
@@ -182,14 +226,7 @@ class OsLicenseCatalog
     {
         foreach (['category_slug', 'category_name'] as $field) {
             $key = self::normalizeKey($row[$field] ?? '');
-            if ($key === '') {
-                continue;
-            }
-            if (isset($needles[$key])) {
-                return true;
-            }
-            // "Operating System License" and "Operating System Licenses".
-            if (str_starts_with($key, 'operating-system-license')) {
+            if ($key !== '' && isset($needles[$key])) {
                 return true;
             }
         }

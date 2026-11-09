@@ -80,7 +80,8 @@
                                              <div class="form-group">
                                                 <label for="name" class="control-label mb-1">{{ __('Display Order') }}</label>
                                                 <input id="menu_order" name="menu_order" type="text" class="form-control">
-                                            </div>   
+                                            </div>
+                                            @include('admin.partials.single-price-category', ['singlePriceOn' => false, 'singlePriceHint' => __('One price with cents and no Regular/Extended choice. This also covers every sub-category. Named license categories stay single-price even if this box is left unchecked.')])   
                                                 
                                         
                                      </div>

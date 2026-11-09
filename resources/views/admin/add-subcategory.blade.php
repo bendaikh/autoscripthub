@@ -82,6 +82,7 @@
                                                 <label for="subcategory_name" class="control-label mb-1">{{ __('Display Order') }}</label>
                                                 <input id="subcategory_order" name="subcategory_order" type="text" class="form-control">
                                             </div>
+                                            @include('admin.partials.single-price-category', ['singlePriceOn' => false, 'singlePriceHint' => __('One price with cents and no Regular/Extended choice for this sub-category only.')])
                                             
                                              <!--<div class="form-group">
                                                 <label for="subcategory_status" class="control-label mb-1"> Status <span class="require">*</span></label>

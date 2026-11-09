@@ -164,7 +164,7 @@ class CategoryController extends Controller
 		
 		
 		 
-		$data = array('category_name' => $category_name, 'category_slug' => $category_slug, 'category_status' => $category_status, 'menu_order' => $menu_order, 'category_allow_seo' => $category_allow_seo, 'category_seo_keyword' => $category_seo_keyword, 'category_seo_desc' => $category_seo_desc);
+		$data = array('category_name' => $category_name, 'category_slug' => $category_slug, 'category_status' => $category_status, 'menu_order' => $menu_order, 'category_allow_seo' => $category_allow_seo, 'category_seo_keyword' => $category_seo_keyword, 'category_seo_desc' => $category_seo_desc, 'single_price' => $request->input('single_price') ? 1 : 0);
         Category::insertcategoryData($data);
 		return redirect('/admin/category')->with('success', 'Insert successfully.');
             
@@ -282,7 +282,7 @@ class CategoryController extends Controller
 		{
 		
 		
-		$data = array('category_name' => $category_name, 'category_slug' => $category_slug, 'category_status' => $category_status, 'menu_order' => $menu_order, 'category_allow_seo' => $category_allow_seo, 'category_seo_keyword' => $category_seo_keyword, 'category_seo_desc' => $category_seo_desc);
+		$data = array('category_name' => $category_name, 'category_slug' => $category_slug, 'category_status' => $category_status, 'menu_order' => $menu_order, 'category_allow_seo' => $category_allow_seo, 'category_seo_keyword' => $category_seo_keyword, 'category_seo_desc' => $category_seo_desc, 'single_price' => $request->input('single_price') ? 1 : 0);
         Category::updatecategoryData($cat_id, $data);
         return redirect('/admin/category')->with('success', 'Update successfully.');	
             
@@ -395,7 +395,7 @@ class CategoryController extends Controller
 		
 		
 		 
-		$data = array('cat_id' => $cat_id, 'subcategory_name' => $subcategory_name, 'subcategory_slug' => $subcategory_slug, 'subcategory_status' => $subcategory_status, 'subcategory_order' => $subcategory_order, 'subcategory_allow_seo' => $subcategory_allow_seo, 'subcategory_seo_keyword' => $subcategory_seo_keyword, 'subcategory_seo_desc' => $subcategory_seo_desc);
+		$data = array('cat_id' => $cat_id, 'subcategory_name' => $subcategory_name, 'subcategory_slug' => $subcategory_slug, 'subcategory_status' => $subcategory_status, 'subcategory_order' => $subcategory_order, 'subcategory_allow_seo' => $subcategory_allow_seo, 'subcategory_seo_keyword' => $subcategory_seo_keyword, 'subcategory_seo_desc' => $subcategory_seo_desc, 'single_price' => $request->input('single_price') ? 1 : 0);
         Category::insertsubcategoryData($data);
         return redirect('/admin/sub-category')->with('success', 'Insert successfully.');   
  
@@ -507,7 +507,7 @@ class CategoryController extends Controller
 		else
 		{
 		
-		$data = array('cat_id' => $cat_id, 'subcategory_name' => $subcategory_name, 'subcategory_slug' => $subcategory_slug, 'subcategory_status' => $subcategory_status, 'subcategory_order' => $subcategory_order, 'subcategory_allow_seo' => $subcategory_allow_seo, 'subcategory_seo_keyword' => $subcategory_seo_keyword, 'subcategory_seo_desc' => $subcategory_seo_desc);
+		$data = array('cat_id' => $cat_id, 'subcategory_name' => $subcategory_name, 'subcategory_slug' => $subcategory_slug, 'subcategory_status' => $subcategory_status, 'subcategory_order' => $subcategory_order, 'subcategory_allow_seo' => $subcategory_allow_seo, 'subcategory_seo_keyword' => $subcategory_seo_keyword, 'subcategory_seo_desc' => $subcategory_seo_desc, 'single_price' => $request->input('single_price') ? 1 : 0);
 		
         Category::updatesubcategoryData($subcat_id, $data);
         return redirect('/admin/sub-category')->with('success', 'Update successfully.');    

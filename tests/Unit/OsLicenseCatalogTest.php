@@ -50,20 +50,93 @@ class OsLicenseCatalogTest extends TestCase
         $this->assertNotContains('subcategory_40', $resolved['selection_values']);
     }
 
-    public function test_parent_matched_by_name_and_plural_stem(): void
+    public function test_fallback_names_are_exact_and_cover_the_license_parents(): void
     {
+        $names = OsLicenseCatalog::FALLBACK_PARENT_NAMES;
+        foreach ([
+            'Operating System Licenses',
+            '  office licenses ',
+            'Antivirus Licenses',
+            'Graphics & Design Licenses',
+            'Games',
+            'vpn licenses',
+        ] as $name) {
+            $this->assertTrue(OsLicenseCatalog::isFallbackParentName($name, $names), $name);
+        }
+        $this->assertFalse(OsLicenseCatalog::isFallbackParentName('Operating System License Keys', $names));
+        $this->assertFalse(OsLicenseCatalog::isFallbackParentName('Scripts', $names));
+        $this->assertFalse(OsLicenseCatalog::isFallbackParentName('Themes', $names));
+        $this->assertFalse(OsLicenseCatalog::isFallbackParentName('Game Keys', $names));
+
         [$categories, $subcategories] = $this->tree();
         $categories[1]['category_slug'] = 'os-keys';
-        $categories[1]['category_name'] = 'Operating System License';
+        $categories[1]['category_name'] = '  Operating System Licenses  ';
+        $categories[] = ['cat_id' => 16, 'category_slug' => 'office', 'category_name' => 'Office Licenses'];
+        $categories[] = ['cat_id' => 17, 'category_slug' => 'themes', 'category_name' => 'Themes'];
 
         $resolved = OsLicenseCatalog::resolve($categories, $subcategories, [
-            'slugs' => ['operating-system-licenses'],
-            'names' => ['Operating System Licenses'],
+            'slugs' => [],
+            'names' => $names,
             'ids' => [],
         ]);
 
-        $this->assertSame([9], $resolved['category_ids']);
+        $this->assertContains(9, $resolved['category_ids']);
+        $this->assertContains(16, $resolved['category_ids']);
+        $this->assertNotContains(17, $resolved['category_ids']);
+        $this->assertNotContains(4, $resolved['category_ids']);
         $this->assertContains(21, $resolved['subcategory_ids']);
+        $this->assertNotContains(41, $resolved['subcategory_ids']);
+    }
+
+    public function test_admin_toggle_covers_a_parent_or_one_subcategory(): void
+    {
+        [$categories, $subcategories] = $this->tree();
+        foreach ($categories as &$category) {
+            $category['category_slug'] = 'custom-'.$category['cat_id'];
+            $category['category_name'] = 'Custom '.$category['cat_id'];
+            $category['single_price'] = $category['cat_id'] === 4 ? 1 : 0;
+        }
+        unset($category);
+        $subcategories[] = [
+            'subcat_id' => 77,
+            'cat_id' => 15,
+            'subcategory_slug' => 'one-antivirus',
+            'subcategory_name' => 'One Antivirus',
+            'single_price' => 1,
+        ];
+
+        $resolved = OsLicenseCatalog::resolve($categories, $subcategories, [
+            'slugs' => [],
+            'names' => [],
+            'ids' => [],
+        ]);
+
+        $this->assertSame([4], $resolved['category_ids']);
+        $this->assertContains(41, $resolved['subcategory_ids']);
+        $this->assertContains(77, $resolved['subcategory_ids']);
+        $this->assertNotContains(40, $resolved['subcategory_ids']);
+        $this->assertNotContains(21, $resolved['subcategory_ids']);
+
+        $scriptChild = (object) [
+            'item_category_type' => 'subcategory',
+            'item_category' => 41,
+            'item_category_parent' => 4,
+        ];
+        $loneSub = (object) [
+            'item_category_type' => 'subcategory',
+            'item_category' => 77,
+            'item_category_parent' => 15,
+        ];
+        $steam = (object) [
+            'item_category_type' => 'subcategory',
+            'item_category' => 40,
+            'item_category_parent' => 15,
+        ];
+        $this->assertTrue(OsLicenseCatalog::matchesItem($scriptChild, $resolved));
+        $this->assertTrue(OsLicenseCatalog::matchesItem($loneSub, $resolved));
+        $this->assertFalse(OsLicenseCatalog::matchesItem($steam, $resolved));
+        $this->assertTrue(OsLicenseCatalog::matchesSelection('subcategory_77', $resolved));
+        $this->assertFalse(OsLicenseCatalog::matchesSelection('category_15', $resolved));
     }
 
     public function test_explicit_category_id_is_included_with_children(): void
