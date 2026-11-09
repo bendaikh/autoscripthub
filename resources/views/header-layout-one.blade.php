@@ -298,9 +298,6 @@
                   </ul>
                 </li>
                 @endif
-                
-                
-                <li class="nav-item dropdown"><a class="nav-link" href="{{ URL::to('/flash-sale') }}">{{ __('Flash Sale') }}</a></li>
                </ul>
             </div>
           </div>

@@ -269,9 +269,10 @@ class OsLicenseCatalog
 
     /**
      * How many non-license categories stay as their own top-level header
-     * items at 1200px and wider. The rest go under More.
+     * items at 1200px and wider. Flash Sale is not in the nav, so five fit.
+     * The rest go under More.
      */
-    public const HEADER_VISIBLE_CATEGORIES = 4;
+    public const HEADER_VISIBLE_CATEGORIES = 5;
 
     /**
      * How many of those stay on the bar below 1200px. The others join More

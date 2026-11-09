@@ -663,9 +663,6 @@
                                     @if($addition_settings->subscription_mode == 1)
                                     <li><a href="{{ url('/subscription') }}">{{ __('Subscription') }}</a></li>
                                     @endif
-                                    <li>
-                                        <a href="{{ URL::to('/flash-sale') }}" class="red-color">{{ __('Flash Sale') }}</a>
-                                    </li>
                                 </ul>
                             </div>
                             <!-- /.navbar-collapse -->
