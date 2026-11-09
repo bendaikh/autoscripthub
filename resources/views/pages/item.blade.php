@@ -93,6 +93,20 @@ $extend_item_price = 0;
           	  </div>
          	  @endif
               <!-- Product gallery-->
+              @php
+              $heroCandidates = [];
+              if (!empty($item['item']->item_preview)) {
+                  $heroCandidates[] = $item['item']->item_preview;
+              }
+              if (!empty($item_allimage)) {
+                  foreach ($item_allimage as $galleryImage) {
+                      if (!empty($galleryImage->item_image)) {
+                          $heroCandidates[] = $galleryImage->item_image;
+                      }
+                  }
+              }
+              $heroImage = Helper::best_product_image($heroCandidates);
+              @endphp
               <div class="cz-gallery">
                       @if($item['item']->video_preview_type!='')
                       @if($item['item']->video_preview_type == 'youtube')
@@ -122,9 +136,9 @@ $extend_item_price = 0;
                       @endif
                       @endif
                       @else  
-                      @if($item['item']->item_preview!='')
-                      <a class="gallery-item rounded-lg mb-grid-gutter" href="{{ Helper::Image_Path($item['item']->item_preview,'no-image.png') }}" data-sub-html="{{ $item['item']->item_name }}">
-                      <img class="lazy single-thumbnail" width="762" height="430" src="{{ Helper::Image_Path($item['item']->item_preview,'no-image.png') }}"  alt="{{ $item['item']->item_name }}">
+                      @if(!empty($heroImage))
+                      <a class="gallery-item rounded-lg mb-grid-gutter" href="{{ Helper::Image_Path($heroImage,'no-image.png') }}" data-sub-html="{{ $item['item']->item_name }}">
+                      <img class="lazy single-thumbnail product-photo" src="{{ Helper::Image_Path($heroImage,'no-image.png') }}"  alt="{{ $item['item']->item_name }}">
                       <span class="gallery-item-caption">{{ $item['item']->item_name }}</span>
                       </a>
                       @else
@@ -134,7 +148,7 @@ $extend_item_price = 0;
               @if($getcount != 0)
                 <div class="row">
                   @foreach($item_allimage as $image)
-                  <div class="col-sm-2"><a class="gallery-item rounded-lg mb-grid-gutter thumber" href="{{ Helper::Image_Path($image->item_image,'no-image.png') }}" data-sub-html="{{ $item['item']->item_name }}"><img class="lazy" width="762" height="430" src="{{ Helper::Image_Path($image->item_image,'no-image.png') }}"  alt="{{ $image->item_image }}"/><span class="gallery-item-caption">{{ $item['item']->item_name }}</span></a></div>
+                  <div class="col-sm-2"><a class="gallery-item rounded-lg mb-grid-gutter thumber" href="{{ Helper::Image_Path($image->item_image,'no-image.png') }}" data-sub-html="{{ $item['item']->item_name }}"><img class="lazy product-photo" src="{{ Helper::Image_Path($image->item_image,'no-image.png') }}"  alt="{{ $image->item_image }}"/><span class="gallery-item-caption">{{ $item['item']->item_name }}</span></a></div>
                   @endforeach 
                 </div>
                 @endif
@@ -1141,10 +1155,11 @@ $extend_item_price = 0;
                <!--- Guest Checkout OFF -->
               @endif  
               </div><a class="product-thumb-overlay" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"></a>
-                            @if($featured->item_preview!='')
-                            <img class="lazy" width="300" height="200" src="{{ Helper::Image_Path($featured->item_preview,'no-image.png') }}"  alt="{{ $featured->item_name }}">
+                            @php $cardImage = Helper::card_image($featured); @endphp
+                            @if($cardImage)
+                            <img class="lazy product-photo" src="{{ Helper::Image_Path($cardImage,'no-image.png') }}" alt="{{ $featured->item_name }}">
                             @else
-                            <img class="lazy" width="300" height="200" src="{{ url('/') }}/public/img/no-image.png"  alt="{{ $featured->item_name }}">
+                            <img class="lazy product-photo" src="{{ url('/') }}/public/img/no-image.png" alt="{{ $featured->item_name }}">
                             @endif
             </div>
             <div class="card-body">

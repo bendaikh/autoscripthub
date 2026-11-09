@@ -213,10 +213,11 @@
               @endif
               
               </div><a class="product-thumb-overlay" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"></a>
-                            @if($featured->item_preview!='')
-                            <img class="lazy" width="256" height="200" src="{{ Helper::Image_Path($featured->item_preview,'no-image.png') }}"  alt="{{ $featured->item_name }}">
+                            @php $cardImage = Helper::card_image($featured); @endphp
+                            @if($cardImage)
+                            <img class="lazy product-photo" src="{{ Helper::Image_Path($cardImage,'no-image.png') }}" alt="{{ $featured->item_name }}">
                             @else
-                            <img class="lazy" width="256" height="200" src="{{ url('/') }}/public/img/no-image.png"  alt="{{ $featured->item_name }}">
+                            <img class="lazy product-photo" src="{{ url('/') }}/public/img/no-image.png" alt="{{ $featured->item_name }}">
                             @endif
             </div>
             <div class="card-body">

@@ -17,6 +17,7 @@ use Fickrr\Models\EmailTemplate;
 use Fickrr\Models\Currencies;
 use Fickrr\Support\OsLicense;
 use Fickrr\Support\OsLicenseCatalog;
+use Fickrr\Support\ProductImage;
 use Auth;
 use League\Flysystem\Filesystem;
 use Illuminate\Support\Facades\Storage;
@@ -120,6 +121,38 @@ class Helper {
 	   return $image_path;
 	   
 	
+	}
+
+	/**
+	 * Prefer the widest local file. Remote files keep the first name in the list.
+	 */
+	public static function best_product_image(array $filenames)
+	{
+		return ProductImage::pickSharpest($filenames, function ($name) {
+			$safe = basename(str_replace('\\', '/', (string) $name));
+			if ($safe === '' || $safe === '.' || $safe === '..') {
+				return null;
+			}
+
+			return ProductImage::localWidth(base_path('public/storage/items/'.$safe));
+		});
+	}
+
+	/**
+	 * Card image: the wider of preview and thumbnail when both are on the row.
+	 */
+	public static function card_image($item)
+	{
+		$names = [];
+		if (is_object($item)) {
+			foreach (['item_preview', 'item_thumbnail'] as $field) {
+				if (isset($item->{$field}) && $item->{$field} !== '') {
+					$names[] = $item->{$field};
+				}
+			}
+		}
+
+		return self::best_product_image($names);
 	}
 	
 	
