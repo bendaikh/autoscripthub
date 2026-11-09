@@ -320,14 +320,13 @@
       <div class="owl-carousel hv-license-slider hv-license-products">
         @foreach($category['license_items'] as $licenseItem)
         @php
-          $featured = $licenseItem;
-          $price = Helper::catalog_price($featured);
+          $price = Helper::catalog_price($licenseItem);
           $price_exact = true;
-          $count_rating = Helper::count_rating($featured->ratings);
+          $count_rating = Helper::count_rating($licenseItem->ratings);
           $hvTag = $hvTagClass = null;
         @endphp
         <div class="hv-license-product-slide">
-          @include('partials.product-card')
+          @include('partials.product-card', ['featured' => $licenseItem])
         </div>
         @endforeach
       </div>
