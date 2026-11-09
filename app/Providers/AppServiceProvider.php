@@ -115,7 +115,10 @@ class AppServiceProvider extends ServiceProvider
 		$maincategory = Category::footercategoryData();
 		View::share('maincategory', $maincategory);
 		
-		$categories['menu'] = Category::with('SubCategory')->where('category_status','=','1')->where('drop_status','=','no')->take($allsettings->site_menu_category)->orderBy('menu_order',$allsettings->menu_categories_order)->get();
+		// Load every active category. The header groups single-price parents
+		// under License Keys and applies site_menu_category only to the rest,
+		// so new license categories cannot push Scripts and Themes off the bar.
+		$categories['menu'] = Category::with('SubCategory')->where('category_status','=','1')->where('drop_status','=','no')->orderBy('menu_order',$allsettings->menu_categories_order)->get();
 		View::share('categories', $categories);
 		
 		view()->composer('*', function($view){

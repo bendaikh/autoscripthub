@@ -268,6 +268,66 @@ class OsLicenseCatalog
     }
 
     /**
+     * How many non-license categories stay as their own top-level header
+     * items. The rest go under More so the bar stays on one line at 1280px.
+     */
+    public const HEADER_VISIBLE_CATEGORIES = 5;
+
+    /**
+     * Split header categories into single-price parents and everything else.
+     * Original rows are kept so the menu can still read names and children.
+     *
+     * @param  iterable<int, object|array>  $parents
+     * @param  array{slugs?:array,names?:array,ids?:array}  $config
+     * @return array{license:array<int, object|array>, other:array<int, object|array>}
+     */
+    public static function partitionMenu(iterable $parents, array $config): array
+    {
+        $rows = [];
+        $originals = [];
+        foreach ($parents as $parent) {
+            $rows[] = self::record($parent);
+            $originals[] = $parent;
+        }
+        $resolved = self::resolve($rows, [], $config);
+        $licenseIds = array_flip($resolved['category_ids']);
+        $license = [];
+        $other = [];
+        foreach ($originals as $index => $parent) {
+            $id = (int) ($rows[$index]['cat_id'] ?? 0);
+            if ($id > 0 && isset($licenseIds[$id])) {
+                $license[] = $parent;
+            } else {
+                $other[] = $parent;
+            }
+        }
+
+        return ['license' => $license, 'other' => $other];
+    }
+
+    /**
+     * License parents always collapse into one dropdown. Non-license
+     * categories keep the admin menu limit, and never more than
+     * HEADER_VISIBLE_CATEGORIES on the bar itself.
+     *
+     * @param  iterable<int, object|array>  $parents
+     * @param  array{slugs?:array,names?:array,ids?:array}  $config
+     * @return array{license:array, visible:array, more:array}
+     */
+    public static function headerMenus(iterable $parents, array $config, int $menuLimit = 0): array
+    {
+        $split = self::partitionMenu($parents, $config);
+        $limit = $menuLimit > 0 ? $menuLimit : self::HEADER_VISIBLE_CATEGORIES;
+        $visibleCap = min($limit, self::HEADER_VISIBLE_CATEGORIES);
+
+        return [
+            'license' => $split['license'],
+            'visible' => array_slice($split['other'], 0, $visibleCap),
+            'more' => array_slice($split['other'], $visibleCap),
+        ];
+    }
+
+    /**
      * Parent ids and lone subcategory ids represented by home slides.
      *
      * @param  array<int, array{kind?:string,id?:int}>  $slides

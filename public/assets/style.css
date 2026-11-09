@@ -85,3 +85,80 @@ img.product-photo {
 .cz-gallery .thumber > img {
   max-height: 110px;
 }
+
+/* Header stays on one line. License parents are one item, and extra
+   categories sit in More, so the cart and account icons are not pushed off. */
+@media (min-width: 992px) {
+  header.navbar-sticky .navbar > .container {
+    flex-wrap: nowrap;
+  }
+  header.navbar-sticky .navbar-collapse {
+    min-width: 0;
+  }
+  header.navbar-sticky .navbar-nav {
+    flex-wrap: nowrap;
+  }
+  header.navbar-sticky .navbar-nav > .nav-item > .nav-link {
+    white-space: nowrap;
+  }
+  header.navbar-sticky .navbar-brand,
+  header.navbar-sticky .navbar-toolbar {
+    flex-shrink: 0;
+  }
+}
+
+@media (min-width: 768px) {
+  .mainmenu__menu .navbar-nav {
+    flex-wrap: nowrap;
+  }
+  .mainmenu__menu .navbar-nav > li > a {
+    white-space: nowrap;
+  }
+}
+
+.dropdown-menu .hv-menu-sub,
+.dropdowns .hv-menu-sub {
+  padding-left: 1.75rem;
+  font-weight: 400;
+}
+
+.hv-menu-parent,
+.hv-menu-group > a:first-child {
+  font-weight: 600;
+}
+
+/* Long License Keys / More lists scroll, and split into columns
+   once there are many parent groups. Groups stay together. */
+.hv-menu-panel {
+  max-height: 70vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.hv-menu-group {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+header.navbar-sticky .hv-menu-drop > .dropdown-menu.hv-menu-panel {
+  left: 0;
+  right: auto;
+}
+
+@media (min-width: 992px) {
+  .hv-menu-panel--cols-2,
+  .hv-menu-panel--cols-3 {
+    column-gap: 0;
+    max-width: calc(100vw - 1rem);
+  }
+
+  .hv-menu-panel--cols-2 {
+    width: 34rem;
+    column-count: 2;
+  }
+
+  .hv-menu-panel--cols-3 {
+    width: 48rem;
+    column-count: 3;
+  }
+}

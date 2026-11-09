@@ -213,6 +213,9 @@
                 </form>
               </div>
               <!-- Primary menu-->
+              @php
+                $headerMenus = \Fickrr\Support\OsLicenseCatalog::headerMenus($categories['menu'] ?? [], config('os_licenses', []), (int) ($allsettings->site_menu_category ?? 0));
+              @endphp
               <ul class="navbar-nav">
                 <?php /*?><li class="nav-item dropdown"><a class="nav-link" href="{{ URL::to('/') }}">{{ __('Home') }}</a>
                 </li><?php */?>
@@ -247,8 +250,7 @@
                     <li><a class="dropdown-item" href="{{ url('/top-authors') }}">{{ __('Top Authors') }}</a></li>
                    </ul>
                 </li>
-                @if(count($categories['menu']) != 0)
-                @foreach($categories['menu'] as $menu)
+                @foreach($headerMenus['visible'] as $menu)
                 <li class="nav-item dropdown d-none d-md-block"><a class="nav-link dropdown-toggle" href="{{ URL::to('/shop/category/') }}/{{$menu->category_slug}}">{{ $menu->category_name }}</a>
                   @if(count($menu->subcategory) != 0)
                   <ul class="dropdown-menu">
@@ -259,7 +261,7 @@
                   @endif
                 </li>
                 @endforeach
-                @endif
+                @include('partials.header-license-menu', ['menuVariant' => 'one-desktop'])
                 <?php /* Desktop or laptop menu */ ?>
                 <?php /* Mobile menu */ ?>
                 <li class="nav-item dropdown d-md-none"><a class="nav-link dropdown-toggle" href="{{ url('/shop') }}" data-toggle="dropdown">{{ __('All Items') }}</a>
@@ -274,8 +276,7 @@
                     <li><a class="dropdown-item" href="{{ url('/top-authors') }}">{{ __('Top Authors') }}</a></li>
                    </ul>
                 </li>
-                @if(count($categories['menu']) != 0)
-                @foreach($categories['menu'] as $menu)
+                @foreach($headerMenus['visible'] as $menu)
                 <li class="nav-item dropdown d-md-none"><a class="nav-link dropdown-toggle" href="{{ URL::to('/shop/category/') }}/{{$menu->category_slug}}" data-toggle="dropdown">{{ $menu->category_name }}</a>
                   @if(count($menu->subcategory) != 0)
                   <ul class="dropdown-menu">
@@ -286,7 +287,7 @@
                   @endif
                 </li>
                 @endforeach
-                @endif
+                @include('partials.header-license-menu', ['menuVariant' => 'one-mobile'])
                 <?php /* Mobile menu */ ?>
                 @if(count($allpages['pages']) != 0)
                 <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="javascript:void(0)" data-toggle="dropdown">{{ __('Pages') }}</a>
