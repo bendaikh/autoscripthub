@@ -791,6 +791,28 @@ jQuery(function ($) {
   });
 });
 </script>
+<script>
+(function () {
+  // AOS measures offsets before Owl builds the license sliders, so every
+  // fade-up section below them never receives .aos-animate. Refresh after
+  // the sliders change the page height.
+  function refreshAos() {
+    if (window.AOS && typeof window.AOS.refreshHard === 'function') {
+      window.AOS.refreshHard();
+    }
+  }
+  if (window.jQuery) {
+    jQuery('.hv-license-slider').on('initialized.owl.carousel refreshed.owl.carousel', function () {
+      window.setTimeout(refreshAos, 50);
+    });
+    jQuery(function () {
+      window.setTimeout(refreshAos, 600);
+      window.setTimeout(refreshAos, 2000);
+    });
+    jQuery(window).on('load', refreshAos);
+  }
+})();
+</script>
 @endif
 </body>
 </html>
