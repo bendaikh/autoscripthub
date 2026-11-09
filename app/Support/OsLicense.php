@@ -5,6 +5,7 @@ namespace Fickrr\Support;
 use Fickrr\Helpers\Helper;
 use Fickrr\Models\Settings;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Throwable;
 
 /**
@@ -31,12 +32,20 @@ class OsLicense
         }
 
         try {
+            $categoryColumns = ['cat_id', 'category_slug', 'category_name'];
+            if (Schema::hasColumn('category', 'single_price')) {
+                $categoryColumns[] = 'single_price';
+            }
+            $subcategoryColumns = ['subcat_id', 'cat_id', 'subcategory_slug', 'subcategory_name'];
+            if (Schema::hasColumn('subcategory', 'single_price')) {
+                $subcategoryColumns[] = 'single_price';
+            }
             $categories = DB::table('category')
                 ->where('drop_status', '=', 'no')
-                ->get(['cat_id', 'category_slug', 'category_name']);
+                ->get($categoryColumns);
             $subcategories = DB::table('subcategory')
                 ->where('drop_status', '=', 'no')
-                ->get(['subcat_id', 'cat_id', 'subcategory_slug', 'subcategory_name']);
+                ->get($subcategoryColumns);
             $config = config('os_licenses', []);
         } catch (Throwable $e) {
             return self::$resolved = [

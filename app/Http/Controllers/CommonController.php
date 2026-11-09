@@ -4952,6 +4952,30 @@ class CommonController extends Controller
 	   
 	   $category['view'] = Category::with('SubCategory')->where('category_status','=','1')->where('drop_status','=','no')->orderBy('menu_order','asc')->get();
 	   $category['counts'] = DB::table('items')->select('item_category_parent', DB::raw('count(*) as total'))->where('item_status','=',1)->where('drop_status','=','no')->groupBy('item_category_parent')->pluck('total','item_category_parent');
+	   $category['license_slides'] = \Fickrr\Support\OsLicenseCatalog::homeSlides($category['view'], config('os_licenses', []));
+	   $subSlideIds = [];
+	   foreach ($category['license_slides'] as $licenseSlide) {
+		   if ($licenseSlide['kind'] === 'subcategory') {
+			   $subSlideIds[] = $licenseSlide['id'];
+		   }
+	   }
+	   $subSlideCounts = [];
+	   if ($subSlideIds !== []) {
+		   $subSlideCounts = DB::table('items')
+			   ->select('item_category', DB::raw('count(*) as total'))
+			   ->where('item_status', '=', 1)
+			   ->where('drop_status', '=', 'no')
+			   ->where('item_category_type', '=', 'subcategory')
+			   ->whereIn('item_category', $subSlideIds)
+			   ->groupBy('item_category')
+			   ->pluck('total', 'item_category')
+			   ->all();
+	   }
+	   foreach ($category['license_slides'] as $slideIndex => $licenseSlide) {
+		   $category['license_slides'][$slideIndex]['count'] = $licenseSlide['kind'] === 'category'
+			   ? (int) ($category['counts'][$licenseSlide['id']] ?? 0)
+			   : (int) ($subSlideCounts[$licenseSlide['id']] ?? 0);
+	   }
 	   $data = array('blog' => $blog, 'comments' => $comments, 'review' => $review, 'totalmembers' => $totalmembers, 'totalsales' => $totalsales, 'totalfiles' => $totalfiles, 'totalearning' => $totalearning, 'featured' => $featured, 'newest' => $newest, 'free' => $free, 'popular' => $popular, 'flash' => $flash, 'category' => $category);
 	  //SitemapGenerator::create(URL::to('/'))->writeToFile('sitemap.xml');
 	  

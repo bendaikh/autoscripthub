@@ -4,6 +4,9 @@
 <title>{{ $addition_settings->site_home_title }} - {{ $allsettings->site_title }}</title>
 @include('meta')
 @include('style')
+@if(!empty($category['license_slides']))
+<link rel="stylesheet" href="{{ asset('assets/css/owl.carousel.css') }}">
+@endif
 </head>
 <body class="home-v2">
 @include('header')
@@ -245,6 +248,63 @@
       </div>
       @endforeach
     </div>
+  </div>
+</section>
+@endif
+
+<!-- ============================ License categories ============================ -->
+@if(!empty($category['license_slides']))
+<section class="hv-section hv-section--soft hv-license" data-aos="fade-up" data-aos-delay="200">
+  <div class="container">
+    <div class="hv-head">
+      <div>
+        <h2>{{ __('License Keys') }}</h2>
+        <p>{{ __('Operating systems, office, security and more, sold at one price') }}</p>
+      </div>
+    </div>
+    <div class="hv-license-wrap">
+      <button type="button" class="hv-license-arrow hv-license-prev" aria-label="{{ __('Previous') }}">&#8249;</button>
+      <div class="owl-carousel hv-license-slider">
+        @foreach($category['license_slides'] as $index => $slide)
+        @php
+          $style = $hvCatStyles[$index % count($hvCatStyles)];
+          $icon = $style['icon'];
+          foreach ($hvCatIcons as $needle => $faIcon) {
+            if (stripos($slide['name'], $needle) !== false) { $icon = $faIcon; break; }
+          }
+          $slideImage = $slide['image'] ?? null;
+          $slideImageUrl = null;
+          if (!empty($slideImage)) {
+            if (preg_match('#^https?://#i', $slideImage) || str_starts_with($slideImage, '/')) {
+              $slideImageUrl = $slideImage;
+            } else {
+              foreach (['category', 'settings'] as $folder) {
+                if (is_file(base_path('public/storage/'.$folder.'/'.basename($slideImage)))) {
+                  $slideImageUrl = url('/').'/public/storage/'.$folder.'/'.basename($slideImage);
+                  break;
+                }
+              }
+            }
+          }
+          $slideCount = (int) ($slide['count'] ?? 0);
+          $slideUrl = URL::to('/shop/'.$slide['kind'].'/'.$slide['slug']);
+        @endphp
+        <div class="hv-license-slide">
+          <a class="hv-cat hv-license-card" href="{{ $slideUrl }}">
+            @if($slideImageUrl)
+            <span class="hv-license-photo"><img src="{{ $slideImageUrl }}" alt="{{ $slide['name'] }}"></span>
+            @else
+            <span class="hv-cat-icon" style="background:{{ $style['bg'] }};color:{{ $style['fg'] }};"><i class="fa {{ $icon }}"></i></span>
+            @endif
+            <h3>{{ $slide['name'] }}</h3>
+            <p>{{ $slideCount }} {{ trans_choice('Item|Items', $slideCount) }}</p>
+          </a>
+        </div>
+        @endforeach
+      </div>
+      <button type="button" class="hv-license-arrow hv-license-next" aria-label="{{ __('Next') }}">&#8250;</button>
+    </div>
+    <div class="hv-license-dots" role="tablist" aria-label="{{ __('License Keys') }}"></div>
   </div>
 </section>
 @endif
@@ -636,5 +696,60 @@
 
 @include('footer')
 @include('script')
+@if(!empty($category['license_slides']))
+<script src="{{ asset('assets/js/vendor/owl.carousel.min.js') }}"></script>
+<script>
+jQuery(function ($) {
+  var $slider = $('.hv-license-slider');
+  if (!$slider.length || typeof $.fn.owlCarousel !== 'function') {
+    return;
+  }
+  var count = $slider.children().length;
+  $slider.owlCarousel({
+    items: 1,
+    margin: 16,
+    loop: count > 1,
+    autoplay: count > 1,
+    autoplayTimeout: 4200,
+    autoplayHoverPause: true,
+    smartSpeed: 450,
+    mouseDrag: true,
+    touchDrag: true,
+    nav: false,
+    dots: false,
+    responsive: {
+      0: { items: 1 },
+      576: { items: 2 },
+      768: { items: 3 },
+      1100: { items: Math.min(4, count) }
+    }
+  });
+  if (count < 2) {
+    $('.hv-license-arrow, .hv-license-dots').hide();
+    return;
+  }
+  var $dots = $('.hv-license-dots');
+  for (var i = 0; i < count; i++) {
+    $dots.append('<button type="button" class="hv-license-dot' + (i === 0 ? ' is-active' : '') + '" data-index="' + i + '" aria-label="' + (i + 1) + '"></button>');
+  }
+  function realIndex(event) {
+    var clones = event.relatedTarget && event.relatedTarget._clones ? event.relatedTarget._clones.length / 2 : 0;
+    var index = event.item.index - clones;
+    index = ((index % count) + count) % count;
+    return index;
+  }
+  $slider.on('changed.owl.carousel', function (event) {
+    if (!event.namespace) return;
+    var index = realIndex(event);
+    $dots.children().removeClass('is-active').eq(index).addClass('is-active');
+  });
+  $dots.on('click', '.hv-license-dot', function () {
+    $slider.trigger('to.owl.carousel', [$(this).data('index'), 400, true]);
+  });
+  $('.hv-license-next').on('click', function () { $slider.trigger('next.owl.carousel'); });
+  $('.hv-license-prev').on('click', function () { $slider.trigger('prev.owl.carousel'); });
+});
+</script>
+@endif
 </body>
 </html>
