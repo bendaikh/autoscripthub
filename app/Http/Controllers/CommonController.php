@@ -6197,6 +6197,42 @@ class CommonController extends Controller
 	/* item */
 	
 	
+	/**
+	 * Same subcategory first, then the parent category. Other categories stay out.
+	 */
+	private function relatedItemsFor($current, $itemId)
+	{
+		$limit = \Fickrr\Support\RelatedItems::LIMIT;
+		$base = Items::with('ratings')
+			->leftjoin('users', 'users.id', '=', 'items.user_id')
+			->where('items.item_status', '=', 1)
+			->where('items.drop_status', '=', 'no')
+			->where('items.item_id', '!=', $itemId);
+
+		$sameCategory = (clone $base)
+			->where('items.item_category', '=', $current->item_category)
+			->where('items.item_category_type', '=', $current->item_category_type)
+			->orderBy('items.item_id', 'desc')
+			->take($limit)
+			->get();
+
+		$candidates = $sameCategory;
+		$parentId = $current->item_category_parent;
+		if ($sameCategory->count() < $limit && $parentId !== null && $parentId !== '' && (string) $parentId !== '0') {
+			$exclude = $sameCategory->pluck('item_id')->all();
+			$exclude[] = $itemId;
+			$parentFill = (clone $base)
+				->where('items.item_category_parent', '=', $parentId)
+				->whereNotIn('items.item_id', $exclude)
+				->orderBy('items.item_id', 'desc')
+				->take($limit - $sameCategory->count())
+				->get();
+			$candidates = $sameCategory->concat($parentFill);
+		}
+
+		return collect(\Fickrr\Support\RelatedItems::choose($current, $candidates, $limit));
+	}
+
 	public function view_single_item($item_slug)
 	{
 	  
@@ -6318,7 +6354,7 @@ class CommonController extends Controller
 		  $page_slug = $setting['setting']->item_support_link;
 		  $page['view'] = Pages::editpageData($page_slug);
 		  
-		  $related['items'] = Items::with('ratings')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.user_id','=',$item_user_id)->where('items.item_id','!=',$item_id)->orderBy('items.item_id', 'desc')->inRandomOrder()->take(4)->get();
+		  $related['items'] = $this->relatedItemsFor($item['item'], $item_id);
 		  if($this->custom_settings('author_key') == Helper::Key_Owner())
 		  {
 		  $other_market_link = Blog::selectedmarketData($item['item']->item_token);

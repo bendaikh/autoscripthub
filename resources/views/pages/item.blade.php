@@ -1079,7 +1079,7 @@ $extend_item_price = 0;
     <section class="container mb-5 pb-lg-3">
       @if(count($related['items']) != 0)
       <div class="d-flex flex-wrap justify-content-between align-items-center border-bottom pb-4 mb-4">
-        <h2 class="h3 mb-0 pt-2">{{ __('More Related Items') }} {{ __('by') }} {{ $item['item']->username }}</h2>
+        <h2 class="h3 mb-0 pt-2">{{ __('More Related Items') }}</h2>
       </div>
       @endif
       <div class="row pt-2 mx-n2 flash-sale">
