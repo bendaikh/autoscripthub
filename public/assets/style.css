@@ -94,9 +94,13 @@ img.product-photo {
   }
   header.navbar-sticky .navbar-collapse {
     min-width: 0;
+    padding-right: 1.25rem;
   }
   header.navbar-sticky .navbar-nav {
     flex-wrap: nowrap;
+  }
+  header.navbar-sticky .navbar-nav > .nav-item {
+    flex: 0 0 auto;
   }
   header.navbar-sticky .navbar-nav > .nav-item > .nav-link {
     white-space: nowrap;
@@ -104,6 +108,24 @@ img.product-photo {
   header.navbar-sticky .navbar-brand,
   header.navbar-sticky .navbar-toolbar {
     flex-shrink: 0;
+  }
+  header.navbar-sticky .navbar-toolbar {
+    margin-left: 0.75rem;
+  }
+}
+
+/* Below ~1200px the bar is shorter, so Themes and Graphics leave the
+   bar and show inside More instead. */
+@media (max-width: 1199.98px) {
+  header.navbar-sticky .navbar-nav > .hv-nav-wide-only,
+  .mainmenu__menu .navbar-nav > .hv-nav-wide-only {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1200px) {
+  .hv-more-wide {
+    display: none !important;
   }
 }
 

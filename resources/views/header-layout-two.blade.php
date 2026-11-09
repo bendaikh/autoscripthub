@@ -630,8 +630,8 @@
                                             </ul>
                                         </div>
                                     </li>
-                                    @foreach($headerMenus['visible'] as $menu)
-                                    <li class="has_dropdown">
+                                    @foreach($headerMenus['visible'] as $index => $menu)
+                                    <li class="has_dropdown{{ $index >= ($headerMenus['narrow'] ?? 2) ? ' hv-nav-wide-only' : '' }}">
                                         <a href="{{ URL::to('/shop/category/') }}/{{$menu->category_slug}}">{{ $menu->category_name }}</a>
                                         <div class="dropdowns dropdown--menu">
                                             <ul>
@@ -663,9 +663,6 @@
                                     @if($addition_settings->subscription_mode == 1)
                                     <li><a href="{{ url('/subscription') }}">{{ __('Subscription') }}</a></li>
                                     @endif
-                                    <li>
-                                        <a href="{{ URL::to('/flash-sale') }}" class="red-color">{{ __('Flash Sale') }}</a>
-                                    </li>
                                 </ul>
                             </div>
                             <!-- /.navbar-collapse -->

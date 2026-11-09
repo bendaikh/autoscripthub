@@ -17,6 +17,14 @@
       }
       return $class;
   };
+  $hvNarrow = (int) ($headerMenus['narrow'] ?? 2);
+  $hvMoreGroups = [];
+  foreach (array_slice($headerMenus['visible'] ?? [], $hvNarrow) as $hvMenu) {
+      $hvMoreGroups[] = ['menu' => $hvMenu, 'wide' => true];
+  }
+  foreach ($headerMenus['more'] ?? [] as $hvMenu) {
+      $hvMoreGroups[] = ['menu' => $hvMenu, 'wide' => false];
+  }
 @endphp
 @if($menuVariant === 'one-desktop')
   @if(count($headerMenus['license']) != 0)
@@ -34,14 +42,14 @@
     </ul>
   </li>
   @endif
-  @if(count($headerMenus['more']) != 0)
+  @if(count($hvMoreGroups) != 0)
   <li class="nav-item dropdown d-none d-md-block hv-menu-drop">
     <a class="nav-link dropdown-toggle" href="javascript:void(0)">{{ __('More') }}</a>
-    <ul class="dropdown-menu {{ $hvPanelClass($headerMenus['more']) }}">
-      @foreach($headerMenus['more'] as $menu)
-      <li class="hv-menu-group">
-        <a class="dropdown-item hv-menu-parent" href="{{ URL::to('/shop/category/') }}/{{ $menu->category_slug }}">{{ $menu->category_name }}</a>
-        @foreach($menu->subcategory as $sub_category)
+    <ul class="dropdown-menu {{ $hvPanelClass($hvMoreGroups) }}">
+      @foreach($hvMoreGroups as $group)
+      <li class="hv-menu-group{{ $group['wide'] ? ' hv-more-wide' : '' }}">
+        <a class="dropdown-item hv-menu-parent" href="{{ URL::to('/shop/category/') }}/{{ $group['menu']->category_slug }}">{{ $group['menu']->category_name }}</a>
+        @foreach($group['menu']->subcategory as $sub_category)
         <a class="dropdown-item hv-menu-sub" href="{{ URL::to('/shop/subcategory/') }}/{{ $sub_category->subcategory_slug }}">{{ $sub_category->subcategory_name }}</a>
         @endforeach
       </li>
@@ -65,14 +73,14 @@
     </ul>
   </li>
   @endif
-  @if(count($headerMenus['more']) != 0)
+  @if(count($hvMoreGroups) != 0)
   <li class="nav-item dropdown d-md-none">
     <a class="nav-link dropdown-toggle" href="javascript:void(0)" data-toggle="dropdown">{{ __('More') }}</a>
     <ul class="dropdown-menu hv-menu-panel">
-      @foreach($headerMenus['more'] as $menu)
-      <li class="hv-menu-group">
-        <a class="dropdown-item hv-menu-parent" href="{{ URL::to('/shop/category/') }}/{{ $menu->category_slug }}">{{ $menu->category_name }}</a>
-        @foreach($menu->subcategory as $sub_category)
+      @foreach($hvMoreGroups as $group)
+      <li class="hv-menu-group{{ $group['wide'] ? ' hv-more-wide' : '' }}">
+        <a class="dropdown-item hv-menu-parent" href="{{ URL::to('/shop/category/') }}/{{ $group['menu']->category_slug }}">{{ $group['menu']->category_name }}</a>
+        @foreach($group['menu']->subcategory as $sub_category)
         <a class="dropdown-item hv-menu-sub" href="{{ URL::to('/shop/subcategory/') }}/{{ $sub_category->subcategory_slug }}">{{ $sub_category->subcategory_name }}</a>
         @endforeach
       </li>
@@ -98,15 +106,15 @@
     </div>
   </li>
   @endif
-  @if(count($headerMenus['more']) != 0)
+  @if(count($hvMoreGroups) != 0)
   <li class="has_dropdown hv-menu-drop">
     <a href="javascript:void(0);">{{ __('More') }}</a>
-    <div class="dropdowns dropdown--menu {{ $hvPanelClass($headerMenus['more']) }}">
+    <div class="dropdowns dropdown--menu {{ $hvPanelClass($hvMoreGroups) }}">
       <ul>
-        @foreach($headerMenus['more'] as $menu)
-        <li class="hv-menu-group">
-          <a href="{{ URL::to('/shop/category/') }}/{{ $menu->category_slug }}">{{ $menu->category_name }}</a>
-          @foreach($menu->subcategory as $sub_category)
+        @foreach($hvMoreGroups as $group)
+        <li class="hv-menu-group{{ $group['wide'] ? ' hv-more-wide' : '' }}">
+          <a href="{{ URL::to('/shop/category/') }}/{{ $group['menu']->category_slug }}">{{ $group['menu']->category_name }}</a>
+          @foreach($group['menu']->subcategory as $sub_category)
           <a class="hv-menu-sub" href="{{ URL::to('/shop/subcategory/') }}/{{ $sub_category->subcategory_slug }}">{{ $sub_category->subcategory_name }}</a>
           @endforeach
         </li>

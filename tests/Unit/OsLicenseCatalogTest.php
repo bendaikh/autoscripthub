@@ -362,6 +362,7 @@ class OsLicenseCatalogTest extends TestCase
             ['desktop app', 'Scripts', 'Themes', 'Graphics', 'Print'],
             array_column($menus['visible'], 'category_name')
         );
+        $this->assertSame(2, $menus['narrow']);
         $this->assertSame(['Mobile Apps'], array_column($menus['more'], 'category_name'));
 
         $smaller = OsLicenseCatalog::headerMenus([
