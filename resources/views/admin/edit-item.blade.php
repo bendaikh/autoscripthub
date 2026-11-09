@@ -259,7 +259,7 @@
                                        <div id="display_message"></div>
                                        <div id="hide_message">
                                         <div class="form-group">
-                                                <label for="site_desc" class="control-label mb-1">{{ __('Upload Thumbnail') }} ({{ __('Size') }} : 80x80px)<span class="require">*</span> - (jpeg,jpg,png,webp) </label><br/>
+                                                <label for="site_desc" class="control-label mb-1">{{ __('Upload Thumbnail') }} ({{ __('Size') }} : at least 400px wide)<span class="require">*</span> - (jpeg,jpg,png,webp) </label><br/>
                                                 <select name="item_thumbnail1" id="item_thumbnail1" class="form-control" @if($edit['item']->item_thumbnail == '') data-bvalidator="required" @endif>
                                                 <option value=""></option>
                                                 @foreach($getdata1['first'] as $get)
@@ -276,7 +276,7 @@
                                             
                                             
                                             <div class="form-group">
-                                                <label for="site_desc" class="control-label mb-1">{{ __('Upload Preview') }} ({{ __('Size') }} : 361x230px)<span class="require">*</span> - (jpeg,jpg,png,webp) </label><br/>
+                                                <label for="site_desc" class="control-label mb-1">{{ __('Upload Preview') }} ({{ __('Size') }} : up to 1200px wide)<span class="require">*</span> - (jpeg,jpg,png,webp) </label><br/>
                                                 <select name="item_preview1" id="item_preview1" class="form-control" @if($edit['item']->item_preview == '') data-bvalidator="required" @endif>
                                                 <option value=""></option>
                                                 @foreach($getdata2['second'] as $get)
@@ -295,7 +295,7 @@
                                             
                                             @if($addition_settings->show_screenshots == 1)
                                             <div class="form-group">
-                                                <label for="site_desc" class="control-label mb-1">{{ __('Upload Screenshots (multiple)') }} ({{ __('Size') }} : 750x430px) - (jpeg,jpg,png,webp)</label><br/>
+                                                <label for="site_desc" class="control-label mb-1">{{ __('Upload Screenshots (multiple)') }} ({{ __('Size') }} : up to 1200px wide) - (jpeg,jpg,png,webp)</label><br/>
                                                 <select id="item_screenshot1" name="item_screenshot[]" class="form-control" multiple>
                                                 @foreach($getdata4['four'] as $get)
                                                 <option value="{{ $get->item_file_name }}">{{ $get->original_file_name }}</option>

@@ -52,3 +52,36 @@ font-size:25px;
     flex-direction: column;
   }
 }
+
+/* Product photos: keep the real aspect ratio and do not enlarge a small file. */
+.product-card-alt .product-thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+}
+.product-card-alt .product-thumb > img,
+img.product-photo {
+  width: auto !important;
+  max-width: 100%;
+  height: auto !important;
+  max-height: 220px;
+  object-fit: contain;
+  object-position: center;
+}
+.cz-gallery {
+  text-align: center;
+}
+.cz-gallery .single-thumbnail,
+.cz-gallery .gallery-item > img {
+  display: block;
+  width: auto !important;
+  max-width: 100%;
+  height: auto !important;
+  object-fit: contain;
+  margin-left: auto;
+  margin-right: auto;
+}
+.cz-gallery .thumber > img {
+  max-height: 110px;
+}

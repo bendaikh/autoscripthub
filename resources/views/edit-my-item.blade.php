@@ -64,7 +64,7 @@
               <div class="row" id="hide_message">
               <div class="col-sm-6">
                 <div class="form-group">
-                  <label for="account-fn">{{ __('Upload Thumbnail') }} <span class="require">*</span> ({{ __('Size') }} : 80x80px)</label>
+                  <label for="account-fn">{{ __('Upload Thumbnail') }} <span class="require">*</span> ({{ __('Size') }} : at least 400px wide)</label>
                  <select name="item_thumbnail1" id="item_thumbnail1" class="form-control" @if($edit['item']->item_thumbnail == '') data-bvalidator="required" @endif>
                       <option value=""></option>
                       @foreach($getdata1['first'] as $get)
@@ -80,7 +80,7 @@
               </div> 
               <div class="col-sm-6">
                 <div class="form-group">
-                  <label for="account-fn">{{ __('Upload Preview') }} <span class="require">*</span> ({{ __('Size') }} : 361x230px)</label>
+                  <label for="account-fn">{{ __('Upload Preview') }} <span class="require">*</span> ({{ __('Size') }} : up to 1200px wide)</label>
                   <select name="item_preview1" id="item_preview1" class="form-control" @if($edit['item']->item_preview == '') data-bvalidator="required" @endif>
                   <option value=""></option>
                   @foreach($getdata2['second'] as $get)
@@ -97,7 +97,7 @@
               @if($addition_settings->show_screenshots == 1)
               <div class="col-sm-6">
                 <div class="form-group">
-                  <label for="account-fn">{{ __('Upload Screenshots (multiple)') }} ({{ __('Size') }} : 750x430px)</label>
+                  <label for="account-fn">{{ __('Upload Screenshots (multiple)') }} ({{ __('Size') }} : up to 1200px wide)</label>
                   <select id="item_screenshot1" name="item_screenshot[]" class="form-control" multiple>
                       @foreach($getdata4['four'] as $get)
                       <option value="{{ $get->item_file_name }}">{{ $get->original_file_name }}</option>

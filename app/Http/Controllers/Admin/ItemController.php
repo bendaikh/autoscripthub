@@ -610,7 +610,7 @@ class ItemController extends Controller
     			  	  		$imagePath = $destinationPath. "/".  $img_name;
         					$image->move($destinationPath, $img_name);
         					$watermarkImg=Image::make(public_path('/storage/settings/'.$watermark));
-        					$img=Image::make(public_path('/storage/items/'.$img_name));
+        					$img=\Fickrr\Support\ProductImage::load(public_path('/storage/items/'.$img_name));
 								if($additional->watermark_repeat == 1)
 								{
 									$img->insert(public_path('/storage/settings/'.$watermark),'center');
@@ -662,7 +662,7 @@ class ItemController extends Controller
     			  	  		$imagePath = $destinationPath. "/".  $img_name;
         					$image->move($destinationPath, $img_name);
         					$watermarkImg=Image::make(public_path('/storage/settings/'.$watermark));
-        					$img=Image::make(public_path('/storage/items/'.$img_name));
+        					$img=\Fickrr\Support\ProductImage::load(public_path('/storage/items/'.$img_name));
         					if($additional->watermark_repeat == 1)
 								{
 									$img->insert(public_path('/storage/settings/'.$watermark),'center');
@@ -719,7 +719,7 @@ class ItemController extends Controller
     			  	  		$imagePath = $destinationPath. "/".  $img_name;
         					$image->move($destinationPath, $img_name);
         					$watermarkImg=Image::make(public_path('/storage/settings/'.$watermark));
-        					$img=Image::make(public_path('/storage/items/'.$img_name));
+        					$img=\Fickrr\Support\ProductImage::load(public_path('/storage/items/'.$img_name));
         					if($additional->watermark_repeat == 1)
 								{
 									$img->insert(public_path('/storage/settings/'.$watermark),'center');
@@ -770,7 +770,7 @@ class ItemController extends Controller
     			  	  		$imagePath = $destinationPath. "/".  $img_name;
         					$image->move($destinationPath, $img_name);
         					$watermarkImg=Image::make(public_path('/storage/settings/'.$watermark));
-        					$img=Image::make(public_path('/storage/items/'.$img_name));
+        					$img=\Fickrr\Support\ProductImage::load(public_path('/storage/items/'.$img_name));
         					if($additional->watermark_repeat == 1)
 								{
 									$img->insert(public_path('/storage/settings/'.$watermark),'center');
@@ -821,7 +821,7 @@ class ItemController extends Controller
 							$imagePath = $destinationPath. "/".  $img_name;
 							$image->move($destinationPath, $img_name);
 							$watermarkImg=Image::make(public_path('/storage/settings/'.$watermark));
-							$img=Image::make(public_path('/storage/items/'.$img_name));
+							$img=\Fickrr\Support\ProductImage::load(public_path('/storage/items/'.$img_name));
 							if($additional->watermark_repeat == 1)
 								{
 									
@@ -876,8 +876,7 @@ class ItemController extends Controller
 				    {
 				    $imagePath = $destinationPath. "/".  $img_name;
 					$image->move($destinationPath, $img_name);
-					$img=Image::make(public_path('/storage/items/'.$img_name));
-					$img->save(base_path('public/storage/items/'.$img_name),$additional->image_quality);
+					\Fickrr\Support\ProductImage::limitFile(public_path('/storage/items/'.$img_name), (int) $additional->image_quality);
 					Storage::disk('s3')->put($img_name, file_get_contents(public_path('/storage/items/'.$img_name)));
         			File::delete(public_path('/storage/items/'.$img_name));
 					}
@@ -893,8 +892,7 @@ class ItemController extends Controller
 				    {
 				    $imagePath = $destinationPath. "/".  $img_name;
 					$image->move($destinationPath, $img_name);
-					$img=Image::make(public_path('/storage/items/'.$img_name));
-					$img->save(base_path('public/storage/items/'.$img_name),$additional->image_quality);
+					\Fickrr\Support\ProductImage::limitFile(public_path('/storage/items/'.$img_name), (int) $additional->image_quality);
 					$s3->putObject([ 'Bucket' => $wasabi_bucket, 'Key' => $img_name, 'SourceFile' => public_path('/storage/items/').$img_name,'ACL' => 'public-read']);
 					File::delete(public_path('/storage/items/'.$img_name));
 					}
@@ -910,8 +908,7 @@ class ItemController extends Controller
 				    {
 				    $imagePath = $destinationPath. "/".  $img_name;
 					$image->move($destinationPath, $img_name);
-					$img=Image::make(public_path('/storage/items/'.$img_name));
-					$img->save(base_path('public/storage/items/'.$img_name),$additional->image_quality);
+					\Fickrr\Support\ProductImage::limitFile(public_path('/storage/items/'.$img_name), (int) $additional->image_quality);
 					Storage::disk('dropbox')->put($img_name, file_get_contents(public_path('/storage/items/'.$img_name)));
         			File::delete(public_path('/storage/items/'.$img_name));
 					}
@@ -927,8 +924,7 @@ class ItemController extends Controller
 				    {
 				    $imagePath = $destinationPath. "/".  $img_name;
 					$image->move($destinationPath, $img_name);
-					$img=Image::make(public_path('/storage/items/'.$img_name));
-					$img->save(base_path('public/storage/items/'.$img_name),$additional->image_quality);
+					\Fickrr\Support\ProductImage::limitFile(public_path('/storage/items/'.$img_name), (int) $additional->image_quality);
 					Storage::disk('google')->put($img_name, file_get_contents(public_path('/storage/items/'.$img_name)));
         			File::delete(public_path('/storage/items/'.$img_name));
 					}
@@ -945,8 +941,7 @@ class ItemController extends Controller
 				       {
 						$imagePath = $destinationPath. "/".  $img_name;
 						$image->move($destinationPath, $img_name);
-						$img=Image::make(public_path('/storage/items/'.$img_name));
-						$img->save(base_path('public/storage/items/'.$img_name),$additional->image_quality);
+						\Fickrr\Support\ProductImage::limitFile(public_path('/storage/items/'.$img_name), (int) $additional->image_quality);
 					   }
 					   else
 					   {	
@@ -967,7 +962,7 @@ class ItemController extends Controller
 		 $getdata['five'] = Items::getProdutMP4($session_id);   // video file
 		 $getdata['six'] = Items::getProdutMP3($session_id);   // audio file
 		 $record = '<div class="form-group">
-                    <label for="site_desc" class="control-label mb-1">Upload Thumbnail (Size : 80x80px) <span class="require">*</span> - (jpeg,jpg,png,webp)</label><br/>
+                    <label for="site_desc" class="control-label mb-1">Upload Thumbnail (Size : at least 400px wide) <span class="require">*</span> - (jpeg,jpg,png,webp)</label><br/>
                     <select name="item_thumbnail2" id="item_thumbnail2" class="form-control">
                     <option value=""></option>';
                     foreach($getdata['first'] as $get)
@@ -988,7 +983,7 @@ class ItemController extends Controller
                    } 
 				   $record .= '</div>';
 		 $record .= '<div class="form-group">
-                    <label for="site_desc" class="control-label mb-1">Upload Preview (Size : 361x230px) <span class="require">*</span> - (jpeg,jpg,png,webp)</label><br/>
+                    <label for="site_desc" class="control-label mb-1">Upload Preview (Size : up to 1200px wide) <span class="require">*</span> - (jpeg,jpg,png,webp)</label><br/>
                     <select name="item_preview2" id="item_preview2" class="form-control">
                     <option value=""></option>';
                     foreach($getdata['second'] as $get)
@@ -1012,7 +1007,7 @@ class ItemController extends Controller
 									if($additional->show_screenshots == 1)
 									 {		
                                      $record .= '<div class="form-group">
-                                                <label for="customer_earnings" class="control-label mb-1">Upload Screenshots (multiple) (Size : 750x430px) - (jpeg,jpg,png,webp)</label>
+                                                <label for="customer_earnings" class="control-label mb-1">Upload Screenshots (multiple) (Size : up to 1200px wide) - (jpeg,jpg,png,webp)</label>
                                                 <select id="item_screenshot2" name="item_screenshot[]" class="form-control" multiple>';
 												foreach($getdata['four'] as $get)
 												{
@@ -4198,7 +4193,7 @@ class ItemController extends Controller
 		 $getdata['five'] = Items::getProdutMP4($session_id); 
 		 $getdata['six'] = Items::getProdutMP3($session_id);   
 		 $record = '<div class="form-group">
-                    <label for="site_desc" class="control-label mb-1">Upload Thumbnail (Size : 80x80px) <span class="require">*</span> - (jpeg,jpg,png,webp)</label><br/>
+                    <label for="site_desc" class="control-label mb-1">Upload Thumbnail (Size : at least 400px wide) <span class="require">*</span> - (jpeg,jpg,png,webp)</label><br/>
                     <select name="item_thumbnail2" id="item_thumbnail2" class="form-control">
                     <option value=""></option>';
                     foreach($getdata['first'] as $get)
@@ -4219,7 +4214,7 @@ class ItemController extends Controller
                    } 
 				   $record .= '</div>';
 		 $record .= '<div class="form-group">
-                    <label for="site_desc" class="control-label mb-1">Upload Preview (Size : 361x230px) <span class="require">*</span> - (jpeg,jpg,png,webp)</label><br/>
+                    <label for="site_desc" class="control-label mb-1">Upload Preview (Size : up to 1200px wide) <span class="require">*</span> - (jpeg,jpg,png,webp)</label><br/>
                     <select name="item_preview2" id="item_preview2" class="form-control">
                     <option value=""></option>';
                     foreach($getdata['second'] as $get)
@@ -4245,7 +4240,7 @@ class ItemController extends Controller
 									 if($additional->show_screenshots == 1)
 									 {		
                                      $record .= '<div class="form-group">
-                                                <label for="customer_earnings" class="control-label mb-1">Upload Screenshots (multiple) (Size : 750x430px) - (jpeg,jpg,png,webp)</label>
+                                                <label for="customer_earnings" class="control-label mb-1">Upload Screenshots (multiple) (Size : up to 1200px wide) - (jpeg,jpg,png,webp)</label>
                                                 <select id="item_screenshot2" name="item_screenshot[]" class="form-control" multiple>';
 												foreach($getdata['four'] as $get)
 												{

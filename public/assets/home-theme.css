@@ -731,14 +731,20 @@ body.home-v2 .hv-section .product-card-alt:hover {
 }
 
 body.home-v2 .hv-section .product-card-alt .product-thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--hv-soft);
   border-bottom: 1px solid var(--hv-line);
+  min-height: 178px;
 }
 
 body.home-v2 .hv-section .product-card-alt .product-thumb img {
-  width: 100%;
-  height: 178px;
-  object-fit: cover;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 178px;
+  object-fit: contain;
 }
 
 body.home-v2 .hv-section .product-card-alt .card-body {

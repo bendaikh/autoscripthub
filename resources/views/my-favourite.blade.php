@@ -41,7 +41,7 @@
               <div class="media d-block d-sm-flex align-items-center py-4 border-bottom">
               <a class="d-block position-relative mb-3 mb-sm-0 mr-sm-4 mx-auto cart-img" href="{{ url('/favourites') }}/{{ base64_encode($featured->fav_id) }}/{{ base64_encode($featured->item_id) }}" onClick="return confirm('{{ __('Are you sure you want to remove from favourites?') }}');">
               @if($featured->item_preview!='')
-              <img class="lazy rounded-lg" width="200" height="155" src="{{ Helper::Image_Path($featured->item_preview,'no-image.png') }}"  alt="{{ $featured->item_name }}">
+              <img class="lazy rounded-lg product-photo" src="{{ Helper::Image_Path(Helper::card_image($featured),'no-image.png') }}"  alt="{{ $featured->item_name }}">
               @else
               <img class="lazy rounded-lg" width="200" height="155" src="{{ url('/') }}/public/img/no-image.png"  alt="{{ $featured->item_name }}">
               @endif
