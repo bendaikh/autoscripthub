@@ -70,7 +70,9 @@
                   <li class="widget-list-item"><a class="widget-list-link d-flex justify-content-between align-items-center" href="{{ url('/purchases') }}"><span>{{ __('Purchase Id') }}</span><span class="font-size-xs text-muted ml-3">{{ $order_details->purchase_token }}</span></a></li>
                   <li class="widget-list-item"><a class="widget-list-link d-flex justify-content-between align-items-center" href="{{ url('/purchases') }}"><span>{{ __('Purchase Date') }}</span><span class="font-size-xs text-muted ml-3">{{ date("d F Y", strtotime($order_details->start_date)) }}</span></a></li>
                    <li class="widget-list-item"><a class="widget-list-link d-flex justify-content-between align-items-center" href="{{ url('/purchases') }}"><span>{{ __('Expiry Date') }}</span><span class="font-size-xs text-muted ml-3">{{ date("d F Y", strtotime($order_details->end_date)) }}</span></a></li>
+                   @if(!Helper::is_single_price_item($order_details))
                    <li class="widget-list-item"><a class="widget-list-link d-flex justify-content-between align-items-center" href="{{ url('/purchases') }}"><span>{{ __('License') }}</span><span class="font-size-xs text-muted ml-3">{{ $order_details->license }}</span></a></li>
+                   @endif
                 </ul>
                 </div> 
           </div>

@@ -46,7 +46,8 @@
                 @php $no = 1; @endphp
                 @foreach($itemData['item'] as $featured)
                 @php
-                $price = Helper::price_info($featured->item_flash,$featured->extended_price);
+                $price = Helper::catalog_price($featured);
+                $price_exact = Helper::is_single_price_item($featured);
                 @endphp
               <div class="media d-block d-sm-flex align-items-center py-4 border-bottom">
               @if($featured->item_preview!='')
@@ -64,7 +65,7 @@
 				  {{ $featured->item_name }}	  
 				  @endif
 				  </a> @if($featured->item_status == 0) <span class="badge badge-pill badge-danger pull-right">{{ __('UnApproved') }}</span> @endif</h3>
-                  <div class="d-inline-block text-accent">@if($featured->free_download == 0){{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency) }}@else<span>{{ __('Free') }}</span>@endif</div><a class="d-inline-block text-accent font-size-ms border-left ml-2 pl-2" href="{{ URL::to('/shop') }}/item-type/{{ $featured->item_type }}">{{ Helper::ItemTypeIdGetData($featured->item_type_id) }}</a>
+                  <div class="d-inline-block text-accent">@if($featured->free_download == 0){{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency,$price_exact) }}@else<span>{{ __('Free') }}</span>@endif</div><a class="d-inline-block text-accent font-size-ms border-left ml-2 pl-2" href="{{ URL::to('/shop') }}/item-type/{{ $featured->item_type }}">{{ Helper::ItemTypeIdGetData($featured->item_type_id) }}</a>
                   <div class="form-inline pt-2">
                     {{ mb_substr($featured->item_shortdesc,0,60,'utf-8').'...' }}
                   </div>

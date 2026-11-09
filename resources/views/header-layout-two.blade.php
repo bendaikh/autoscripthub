@@ -41,10 +41,12 @@
                                         @if($cartcount != 0)
                                         <div class="dropdowns dropdown--cart carbars">
                                             <div class="cart_area">
-                                            @php $subtotall = 0; @endphp
+                                            @php $subtotall = 0; $osCart = false; @endphp
                                             @foreach($cartitem['item'] as $cart)
                                             @php 
                                               $itemprice = $cart->item_single_price * $cart->item_serial_stock;
+                                              $lineExact = Helper::is_single_price_item($cart);
+                                              if ($lineExact) { $osCart = true; }
                                               @endphp
                                                 <div class="cart_product">
                                                     <div class="product__info">
@@ -74,14 +76,14 @@
                                                      <div class="product__action">
                                                         <a href="{{ url('/cart') }}/{{ base64_encode($cart->ord_id) }}" onClick="return confirm('{{ __('Are you sure you want to delete?') }}');"><span class="dwg-trash"></span>
                                                         </a>
-                                                       <p>{{ Helper::price_format($allsettings->site_currency_position,$itemprice,$currency_symbol,$multicurrency) }}</p>
+                                                       <p>{{ Helper::price_format($allsettings->site_currency_position,$itemprice,$currency_symbol,$multicurrency,$lineExact) }}</p>
                                                     </div>
                                                 </div>
                                                 @php $subtotall += $itemprice; @endphp
                                                @endforeach 
                                                 <div class="total">
                                                     <p>
-                                                        <span>{{ __('Total') }} :</span>{{ Helper::price_format($allsettings->site_currency_position,$subtotall,$currency_symbol,$multicurrency) }}</p>
+                                                        <span>{{ __('Total') }} :</span>{{ Helper::price_format($allsettings->site_currency_position,$subtotall,$currency_symbol,$multicurrency,$osCart) }}</p>
                                                 </div>
                                                 <div class="cart_action">
                                                     <a class="go_cart" href="{{ url('/cart') }}">{{ __('View Cart') }}</a>
@@ -225,10 +227,12 @@
                                         @if($cartcount != 0)
                                         <div class="dropdowns dropdown--cart carbars">
                                             <div class="cart_area">
-                                            @php $subtotall = 0; @endphp
+                                            @php $subtotall = 0; $osCart = false; @endphp
                                             @foreach($cartitem['item'] as $cart)
                                             @php 
                                               $itemprice = $cart->item_single_price * $cart->item_serial_stock;
+                                              $lineExact = Helper::is_single_price_item($cart);
+                                              if ($lineExact) { $osCart = true; }
                                               @endphp
                                                 <div class="cart_product">
                                                     <div class="product__info">
@@ -258,14 +262,14 @@
                                                      <div class="product__action">
                                                         <a href="{{ url('/cart') }}/{{ base64_encode($cart->ord_id) }}" onClick="return confirm('{{ __('Are you sure you want to delete?') }}');"><span class="dwg-trash"></span>
                                                         </a>
-                                                       <p>{{ Helper::price_format($allsettings->site_currency_position,$itemprice,$currency_symbol,$multicurrency) }}</p>
+                                                       <p>{{ Helper::price_format($allsettings->site_currency_position,$itemprice,$currency_symbol,$multicurrency,$lineExact) }}</p>
                                                     </div>
                                                 </div>
                                                 @php $subtotall += $itemprice; @endphp
                                                @endforeach 
                                                 <div class="total">
                                                     <p>
-                                                        <span>{{ __('Total') }} :</span>{{ Helper::price_format($allsettings->site_currency_position,$subtotall,$currency_symbol,$multicurrency) }}</p>
+                                                        <span>{{ __('Total') }} :</span>{{ Helper::price_format($allsettings->site_currency_position,$subtotall,$currency_symbol,$multicurrency,$osCart) }}</p>
                                                 </div>
                                                 <div class="cart_action">
                                                     <a class="go_cart" href="{{ url('/cart') }}">{{ __('View Cart') }}</a>

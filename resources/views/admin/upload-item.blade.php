@@ -151,7 +151,7 @@
                                             </div>
                                             
                                             @foreach($attribute['fields'] as $attribute_field)
-                                             <div class="form-group">
+                                             <div class="form-group{{ \Fickrr\Support\OsLicense::isOptionalAttributeLabel($attribute_field->attr_label) ? ' js-os-optional-attribute' : '' }}">
                                                 <label for="name" class="control-label mb-1">{{ $attribute_field->attr_label }} <span class="require">*</span></label>
                                                 @php $field_value=explode(',',$attribute_field->attr_field_value); @endphp
                                                 @if($attribute_field->attr_field_type == 'multi-select')
@@ -598,6 +598,7 @@
 	 }
 });
 </script>
+@include('partials.os-license-form')
 </body>
 
 </html>

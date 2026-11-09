@@ -38,9 +38,15 @@ body {
       <tr>
         <td colspan="3">
         <h3>{{ __('License Certificate') }}</h3>
+        @if(empty($single_price_item))
         <p>{{ __('This document cerifies the purchase of the following license :') }}<strong>{{ $license }}</strong><br/>
         {{ __('Details of the license can be accessed from your purchase page') }}
         </p>
+        @else
+        <p>{{ __('This document certifies the purchase of the following item.') }}<br/>
+        {{ __('Details can be accessed from your purchase page') }}
+        </p>
+        @endif
         </td>
       </tr> 
       <tr>
@@ -59,7 +65,7 @@ body {
           <tr>
             <td><strong>{{ __('Price') }}</strong></td>
             <td>:</td>
-            <td>{{ Helper::plan_format($allsettings->site_currency_position,$product_price,$currency_type) }}</td>
+            <td>{{ Helper::plan_format($allsettings->site_currency_position,$product_price,$currency_type,!empty($single_price_item)) }}</td>
           </tr>
           <tr>
             <td><strong>{{ __('Licensee') }}</strong></td>

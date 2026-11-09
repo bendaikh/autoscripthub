@@ -15,6 +15,8 @@ use File;
 use Fickrr\Models\Chat;
 use Fickrr\Models\EmailTemplate;
 use Fickrr\Models\Currencies;
+use Fickrr\Support\OsLicense;
+use Fickrr\Support\OsLicenseCatalog;
 use Auth;
 use League\Flysystem\Filesystem;
 use Illuminate\Support\Facades\Storage;
@@ -565,7 +567,25 @@ class Helper {
 		return $price_info;
 	}*/
 	
-	public static function price_format($position,$price,$symbol,$multicurrency) 
+	public static function is_single_price_item($item)
+	{
+		return OsLicense::isItem($item);
+	}
+
+	/**
+	 * Card / list price. Operating System Licenses use the regular price.
+	 * Every other item keeps the extended price used today.
+	 */
+	public static function catalog_price($item)
+	{
+		$source = self::is_single_price_item($item)
+			? ($item->regular_price ?? 0)
+			: ($item->extended_price ?? 0);
+
+		return self::price_info($item->item_flash ?? 0, $source);
+	}
+
+	public static function price_format($position,$price,$symbol,$multicurrency,$exact = false) 
     {
 	    
 		if($multicurrency != "")
@@ -576,21 +596,11 @@ class Helper {
 		else
 		{
 		   $priceval = $price;
-		}	
-			if($position == "left")
-			{
-			//$price_info = $symbol.round($priceval,2);
-			$price_info = $symbol.round($priceval);
-			}
-			else
-			{
-			//$price_info = round($priceval,2).$symbol;
-			$price_info = round($priceval).$symbol;
-			}
-		
-		return $price_info;
+		}
+
+		return OsLicenseCatalog::formatTaggedPrice($position, $symbol, $priceval, (bool) $exact);
 	}
-	public static function price_value($price,$multicurrency)
+	public static function price_value($price,$multicurrency,$exact = false)
 	{
 	
 	    if($multicurrency != "")
@@ -601,31 +611,14 @@ class Helper {
 		else
 		{
 		   $priceval = $price;
-		}	
-			
-		//$price_info = round($priceval,2);
-		$price_info = round($priceval);	
-		
-		return $price_info;
+		}
+
+		return OsLicenseCatalog::roundAmount($priceval, (bool) $exact);
 	
 	}
-	public static function plan_format($position,$price,$symbol) 
+	public static function plan_format($position,$price,$symbol,$exact = false) 
     {
-	    
-		
-		    $priceval = $price;
-		    if($position == "left")
-			{
-			//$price_info = $symbol.round($priceval,2);
-			$price_info = $symbol.round($priceval);
-			}
-			else
-			{
-			//$price_info = round($priceval,2).$symbol;
-			$price_info = round($priceval).$symbol;
-			}
-		
-		return $price_info;
+		return OsLicenseCatalog::formatTaggedPrice($position, $symbol, $price, (bool) $exact);
 	}
 	public static function Item_Type_Count($slug)
 	{

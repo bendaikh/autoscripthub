@@ -287,8 +287,14 @@ class CommonController extends Controller
 					  $additional['setting'] = Settings::editAdditional();
 					  $getmember['views'] = Members::singlevendorData($item_user_id);
 					  $user_exclusive_type = $getmember['views']->exclusive_author;
-					  // Prefer extended price when regular is 0 (script products)
-					  if($item['view']->regular_price != 0)
+					  // Operating System Licenses have one regular price. Scripts keep extended when regular is 0.
+					  if(\Fickrr\Support\OsLicense::isItem($item['view']))
+					  {
+						  $item_price = $this->price_info($item['view']->item_flash,$item['view']->regular_price);
+						  $license = 'regular';
+						  $license_duration = $additional['setting']->regular_license;
+					  }
+					  else if($item['view']->regular_price != 0)
 					  {
 						  $item_price = $this->price_info($item['view']->item_flash,$item['view']->regular_price);
 						  $license = 'regular';
@@ -393,8 +399,14 @@ class CommonController extends Controller
 					  $additional['setting'] = Settings::editAdditional();
 					  $getmember['views'] = Members::singlevendorData($item_user_id);
 					  $user_exclusive_type = $getmember['views']->exclusive_author;
-					  // Prefer extended price when regular is 0 (script products)
-					  if($item['view']->regular_price != 0)
+					  // Operating System Licenses have one regular price. Scripts keep extended when regular is 0.
+					  if(\Fickrr\Support\OsLicense::isItem($item['view']))
+					  {
+						  $item_price = $this->price_info($item['view']->item_flash,$item['view']->regular_price);
+						  $license = 'regular';
+						  $license_duration = $additional['setting']->regular_license;
+					  }
+					  else if($item['view']->regular_price != 0)
 					  {
 						  $item_price = $this->price_info($item['view']->item_flash,$item['view']->regular_price);
 						  $license = 'regular';
@@ -564,6 +576,11 @@ class CommonController extends Controller
 	   $coupon_key = "";
 	   $coupon_id = "";
 	   $coupon_code = "";
+	  }
+	  if(\Fickrr\Support\OsLicense::isItem($item['view']))
+	  {
+		  $baseRegular = $this->price_info($item['view']->item_flash, $item['view']->regular_price);
+		  $item_price = base64_encode($baseRegular).'_regular';
 	  }
 	  $split = explode("_", $item_price);
        $itemprice = base64_decode($split[0]);  

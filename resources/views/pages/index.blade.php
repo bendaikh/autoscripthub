@@ -263,7 +263,8 @@
     <div class="row mx-n2 flash-sale">
       @foreach($featured['items'] as $index => $featured)
       @php
-        $price = Helper::price_info($featured->item_flash,$featured->extended_price);
+        $price = Helper::catalog_price($featured);
+        $price_exact = Helper::is_single_price_item($featured);
         $count_rating = Helper::count_rating($featured->ratings);
         $hvTag = $hvTagClass = null;
         if($index === 0)                    { $hvTag = __('Top Seller'); $hvTagClass = 'hv-tag--seller'; }
@@ -292,7 +293,8 @@
     <div class="row mx-n2">
       @foreach($popular['items'] as $featured)
       @php
-        $price = Helper::price_info($featured->item_flash,$featured->extended_price);
+        $price = Helper::catalog_price($featured);
+        $price_exact = Helper::is_single_price_item($featured);
         $count_rating = Helper::count_rating($featured->ratings);
         $hvTag = $hvTagClass = null;
       @endphp
@@ -317,7 +319,8 @@
     <div class="row mx-n2">
       @foreach($flash['items'] as $featured)
       @php
-        $price = Helper::price_info($featured->item_flash,$featured->extended_price);
+        $price = Helper::catalog_price($featured);
+        $price_exact = Helper::is_single_price_item($featured);
         $count_rating = Helper::count_rating($featured->ratings);
         $hvTag = __('Sale'); $hvTagClass = 'hv-tag--trending';
       @endphp
@@ -342,7 +345,8 @@
     <div class="row mx-n2">
       @foreach($free['items'] as $featured)
       @php
-        $price = Helper::price_info($featured->item_flash,$featured->extended_price);
+        $price = Helper::catalog_price($featured);
+        $price_exact = Helper::is_single_price_item($featured);
         $count_rating = Helper::count_rating($featured->ratings);
         $hvTag = __('Free'); $hvTagClass = 'hv-tag--free';
       @endphp
@@ -366,7 +370,8 @@
     </div>
     <div class="row">
       @foreach($newest['items'] as $featured)
-      @php $price = Helper::price_info($featured->item_flash,$featured->extended_price); @endphp
+      @php $price = Helper::catalog_price($featured);
+        $price_exact = Helper::is_single_price_item($featured); @endphp
       <div class="col-lg-4 col-md-6 mb-3">
         <div class="hv-mini">
           <a href="{{ URL::to('/item') }}/{{ $featured->item_slug }}">
@@ -380,8 +385,8 @@
             <h6><a href="{{ URL::to('/item') }}/{{ $featured->item_slug }}">{{ $featured->item_name }}</a></h6>
             <div class="hv-mini-price">
               @if($featured->free_download == 0)
-              {{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency) }}
-              @if($featured->item_flash == 1)<del class="price-old ml-1">{{ Helper::price_format($allsettings->site_currency_position,$featured->extended_price,$currency_symbol,$multicurrency) }}</del>@endif
+              {{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency,$price_exact) }}
+              @if($featured->item_flash == 1)<del class="price-old ml-1">{{ Helper::price_format($allsettings->site_currency_position,($price_exact ? $featured->regular_price : $featured->extended_price),$currency_symbol,$multicurrency,$price_exact) }}</del>@endif
               @else
               {{ __('Free') }}
               @endif

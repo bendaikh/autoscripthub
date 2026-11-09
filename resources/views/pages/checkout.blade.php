@@ -89,11 +89,15 @@
                 $processfee = 0;
                 $single_convert = 0;
                 $default_single_convert = 0;
+                $checkoutExact = false;
                 @endphp
                 @foreach($cart['item'] as $cart)
                 @php 
                 $itemprice = $cart->total_price;
                 $itemsingler = $cart->item_single_price * $cart->item_serial_stock;
+                $lineExact = Helper::is_single_price_item($cart);
+                if ($lineExact) { $checkoutExact = true; }
+                $lineAmount = Helper::price_value($itemsingler,$multicurrency,$lineExact);
                 @endphp
                 <div class="media align-items-center pb-2 border-bottom">
                 <a class="d-block mr-2" href="{{ url('/item') }}/{{ $cart->item_slug }}">
@@ -105,7 +109,7 @@
                 </a>
                   <div class="media-body pl-1">
                     <h6 class="widget-product-title"><a href="{{ url('/item') }}/{{ $cart->item_slug }}">{{ $cart->item_name }}</a></h6>
-                    <div class="widget-product-meta"><span class="text-accent border-right pr-2 mr-2">{{ Helper::price_format($allsettings->site_currency_position,$itemsingler,$currency_symbol,$multicurrency) }}</span><span class="font-size-xs text-muted">{{ $cart->license }}@if($cart->license == 'regular') ({{ $addition_settings->regular_license }}) @elseif($cart->license == 'extended') ({{ $addition_settings->extended_license }}) @endif</span></div>
+                    <div class="widget-product-meta"><span class="text-accent border-right pr-2 mr-2">{{ Helper::price_format($allsettings->site_currency_position,$itemsingler,$currency_symbol,$multicurrency,$lineExact) }}</span>@if(!$lineExact)<span class="font-size-xs text-muted">{{ $cart->license }}@if($cart->license == 'regular') ({{ $addition_settings->regular_license }}) @elseif($cart->license == 'extended') ({{ $addition_settings->extended_license }}) @endif</span>@endif</div>
                     @if($cart->file_type == 'serial')
                     <span class="font-size-xs">{{ __('Stock') }} : {{ $cart->item_serial_stock }}</span>
                     @endif
@@ -115,18 +119,18 @@
                 $processfee += $cart->total_price; 
                 $subtotal += $itemsingler;
                 $order_id .= $cart->ord_id.',';
-                $item_price .= Helper::price_value($itemsingler,$multicurrency).','; 
+                $item_price .= $lineAmount.','; 
                 $item_single_prices .= $itemsingler.',';
                 $item_userid .= $cart->item_user_id.','; 
                 $item_user_type .= $cart->exclusive_author; 
                 $amount_price = $subtotal;
-                $single_price += Helper::price_value($itemsingler,$multicurrency);
+                $single_price += $lineAmount;
                 $default_single_price += $itemsingler;
                 $discount_value = 0;
                 $default_discount_value = 0;
-                $single_convert += Helper::price_value($itemsingler,$multicurrency);
+                $single_convert += $lineAmount;
                 $default_single_convert += $itemsingler;
-                $nprice = Helper::price_value($itemsingler,$multicurrency);
+                $nprice = $lineAmount;
                 if($cart->discount_price != 0)
                 {
                     $price = $cart->discount_price;
@@ -214,7 +218,7 @@
                   
                   $finbb = $pin + $vat_price;
                   @endphp 
-                  <li class="d-flex justify-content-between align-items-center font-size-base"><span class="mr-2">{{ __('Total') }}</span><span class="text-right">{{ Helper::plan_format($allsettings->site_currency_position,$finbb,$currency_symbol) }}</span></li>
+                  <li class="d-flex justify-content-between align-items-center font-size-base"><span class="mr-2">{{ __('Total') }}</span><span class="text-right">{{ Helper::plan_format($allsettings->site_currency_position,$finbb,$currency_symbol,$checkoutExact) }}</span></li>
                 </ul>
                 @php
                 $vendor_amount = $single_price - $commission;
@@ -477,11 +481,15 @@
                 $new_price = 0;
                 $processfee = 0;
                 $single_convert = 0;
+                $checkoutExact = false;
                 @endphp
                 @foreach($mobile['item'] as $cart)
                 @php 
                 $itemprice = $cart->total_price;
                 $itemsingler = $cart->item_single_price * $cart->item_serial_stock;
+                $lineExact = Helper::is_single_price_item($cart);
+                if ($lineExact) { $checkoutExact = true; }
+                $lineAmount = Helper::price_value($itemsingler,$multicurrency,$lineExact);
                 @endphp
                 <div class="media align-items-center pb-3 mb-3 border-bottom">
                 <a class="d-block mr-2" href="{{ url('/item') }}/{{ $cart->item_slug }}">
@@ -493,7 +501,7 @@
                 </a>
                   <div class="media-body pl-1">
                     <h6 class="widget-product-title"><a href="{{ url('/item') }}/{{ $cart->item_slug }}">{{ $cart->item_name }}</a></h6>
-                    <div class="widget-product-meta"><span class="text-accent border-right pr-2 mr-2">{{ Helper::price_format($allsettings->site_currency_position,$itemsingler,$currency_symbol,$multicurrency) }}</span><span class="font-size-xs text-muted">{{ $cart->license }}@if($cart->license == 'regular') - {{ $addition_settings->regular_license }} @if($cart->item_support == 1) {{ __('Support') }} @else {{ __('not support') }} @endif @elseif($cart->license == 'extended') - {{ $addition_settings->extended_license }} @if($cart->item_support == 1) {{ __('Support') }} @else {{ __('not support') }} @endif @endif</span></div>
+                    <div class="widget-product-meta"><span class="text-accent border-right pr-2 mr-2">{{ Helper::price_format($allsettings->site_currency_position,$itemsingler,$currency_symbol,$multicurrency,$lineExact) }}</span>@if(!$lineExact)<span class="font-size-xs text-muted">{{ $cart->license }}@if($cart->license == 'regular') - {{ $addition_settings->regular_license }} @if($cart->item_support == 1) {{ __('Support') }} @else {{ __('not support') }} @endif @elseif($cart->license == 'extended') - {{ $addition_settings->extended_license }} @if($cart->item_support == 1) {{ __('Support') }} @else {{ __('not support') }} @endif @endif</span>@endif</div>
                     @if($cart->file_type == 'serial')
                     <span class="font-size-xs">{{ __('Stock') }} : {{ $cart->item_serial_stock }}</span>
                     @endif
@@ -507,9 +515,9 @@
                 $item_userid .= $cart->item_user_id.','; 
                 $item_user_type .= $cart->exclusive_author; 
                 $amount_price = $subtotal;
-                $single_price += Helper::price_value($itemsingler,$multicurrency);
+                $single_price += $lineAmount;
                 $discount_value = 0;
-                $single_convert += Helper::price_value($itemsingler,$multicurrency);
+                $single_convert += $lineAmount;
                 if($cart->discount_price != 0)
                 {
                     $price = $cart->discount_price;
@@ -590,7 +598,7 @@
                   
                   $finbb = $pin + $vat_price;
                   @endphp
-                  <h3 class="font-weight-normal text-center my-4">{{ Helper::plan_format($allsettings->site_currency_position,$finbb,$currency_symbol) }}</h3>
+                  <h3 class="font-weight-normal text-center my-4">{{ Helper::plan_format($allsettings->site_currency_position,$finbb,$currency_symbol,$checkoutExact) }}</h3>
                   </ul>
                </div>
             </div>

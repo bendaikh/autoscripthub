@@ -67,9 +67,11 @@
              <tr>
              <td>{{ __('Buyer Name') }}</td><td>{{ $sold->name }}</td>
              </tr>
+             @if(!Helper::is_single_price_item($sold))
              <tr>
              <td>{{ __('License Type') }}</td><td>{{ $sold->license }} {{ __('License') }}</td>
              </tr>
+             @endif
              <tr>
              <td>{{ __('Supported Until') }}</td><td>{{ date("d F Y", strtotime($sold->end_date)) }}</td>
              </tr>

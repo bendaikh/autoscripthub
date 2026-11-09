@@ -309,7 +309,7 @@
               </div>
               @if(count($attribute['fields']) != 0)
               @foreach($attri_field['display'] as $attribute_field)
-              <div class="col-sm-6">
+              <div class="col-sm-6{{ \Fickrr\Support\OsLicense::isOptionalAttributeLabel($attribute_field->attr_label) ? ' js-os-optional-attribute' : '' }}">
                 <div class="form-group">
                   <label for="account-fn">{{ $attribute_field->attr_label }} <span class="require">*</span></label>
                   @php 
@@ -344,7 +344,7 @@
               @endforeach
               @else
               @foreach($attri_field['display'] as $attribute_field)
-              <div class="col-sm-6">
+              <div class="col-sm-6{{ \Fickrr\Support\OsLicense::isOptionalAttributeLabel($attribute_field->attr_label) ? ' js-os-optional-attribute' : '' }}">
                 <div class="form-group">
                   <label for="account-fn">{{ $attribute_field->attr_label }} <span class="require">*</span></label>
                   @php $field_value=explode(',',$attribute_field->attr_field_value); @endphp
@@ -620,3 +620,4 @@
 	}
 	});
 </script>
+@include('partials.os-license-form')

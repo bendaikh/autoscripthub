@@ -1517,6 +1517,7 @@ class Items extends Model
     
 	$session_id = Session::getId();
     $value=DB::table('item_order')->join('users','users.id','item_order.item_user_id')->join('items','items.item_id','item_order.item_id')->where('item_order.session_id','=',$session_id)->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('item_order.order_status','=','pending')->orderBy('item_order.ord_id', 'desc')->get(); 
+    \Fickrr\Support\OsLicense::alignPendingCart($value);
     return $value;
 	
   }
