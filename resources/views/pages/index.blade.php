@@ -40,7 +40,7 @@
 <script type="application/ld+json">{!! json_encode($homeLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 @include('meta')
 @include('style')
-@if(!empty($category['license_slides']))
+@if(!empty($category['license_slides']) || count($popular['items'] ?? []) != 0)
 <link rel="stylesheet" href="{{ asset('assets/css/owl.carousel.css') }}">
 @endif
 </head>
@@ -407,7 +407,7 @@
 
 <!-- ============================ Popular ============================ -->
 @if(count($popular['items']) != 0)
-<section class="hv-section flash-sale" data-aos="fade-up" data-aos-delay="200">
+<section class="hv-section flash-sale hv-popular-slider" data-aos="fade-up" data-aos-delay="200">
   <div class="container">
     <div class="hv-head">
       <div>
@@ -416,16 +416,25 @@
       </div>
       <a class="hv-head-link" href="{{ URL::to('/') }}/popular-items">{{ __('View All Products') }}<i class="dwg-arrow-right"></i></a>
     </div>
-    <div class="row mx-n2">
-      @foreach($popular['items'] as $featured)
-      @php
-        $price = Helper::catalog_price($featured);
-        $price_exact = Helper::is_single_price_item($featured);
-        $count_rating = Helper::count_rating($featured->ratings);
-        $hvTag = $hvTagClass = null;
-      @endphp
-      @include('partials.product-card')
-      @endforeach
+    <div class="hv-license-row">
+    <div class="hv-license-wrap">
+      <button type="button" class="hv-license-arrow hv-license-prev" aria-label="{{ __('Previous') }}">&#8249;</button>
+      <div class="owl-carousel hv-license-slider hv-license-products">
+        @foreach($popular['items'] as $popularItem)
+        @php
+          $price = Helper::catalog_price($popularItem);
+          $price_exact = Helper::is_single_price_item($popularItem);
+          $count_rating = Helper::count_rating($popularItem->ratings);
+          $hvTag = $hvTagClass = null;
+        @endphp
+        <div class="hv-license-product-slide">
+          @include('partials.product-card', ['featured' => $popularItem])
+        </div>
+        @endforeach
+      </div>
+      <button type="button" class="hv-license-arrow hv-license-next" aria-label="{{ __('Next') }}">&#8250;</button>
+    </div>
+    <div class="hv-license-dots" role="tablist" aria-label="{{ __('Popular Items') }}"></div>
     </div>
   </div>
 </section>
@@ -762,7 +771,7 @@
 
 @include('footer')
 @include('script')
-@if(!empty($category['license_slides']))
+@if(!empty($category['license_slides']) || count($popular['items'] ?? []) != 0)
 <script src="{{ asset('assets/js/vendor/owl.carousel.min.js') }}"></script>
 <script>
 jQuery(function ($) {

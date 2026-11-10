@@ -4933,7 +4933,7 @@ class CommonController extends Controller
 	   if($additional['settings']->subscription_mode == 1)
 	   {
 	   $featured['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.item_featured','=','yes')->where('items.drop_status','=','no')->orderBy('items.item_id', 'desc')->take($setting['setting']->home_featured_items)->get();
-	   $popular['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->orderBy('items.item_liked', 'desc')->take($setting['setting']->home_popular_items)->get();
+	   $popular['items'] = $this->popularHomeItems(true, $today, max((int) $setting['setting']->home_popular_items, 16));
 	   $flash['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.item_flash','=',1)->orderBy('items.item_id', 'desc')->take($setting['setting']->home_flash_items)->get();
 	   /*$free['items'] = Items::with('ratings')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.free_download','=',1)->orderBy('items.item_id', 'desc')->take($setting['setting']->home_free_items)->get();*/
 	   $newest['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->orderBy('items.item_id', 'desc')->take($setting['setting']->site_newest_files)->get();
@@ -4941,7 +4941,7 @@ class CommonController extends Controller
 	   else
 	   {
 	   $featured['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.item_featured','=','yes')->where('items.drop_status','=','no')->orderBy('items.item_id', 'desc')->take($setting['setting']->home_featured_items)->get();
-	   $popular['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->orderBy('items.item_liked', 'desc')->take($setting['setting']->home_popular_items)->get();
+	   $popular['items'] = $this->popularHomeItems(false, $today, max((int) $setting['setting']->home_popular_items, 16));
 	   $flash['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.item_flash','=',1)->orderBy('items.item_id', 'desc')->take($setting['setting']->home_flash_items)->get();
 	   
 	   $newest['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->orderBy('items.item_id', 'desc')->take($setting['setting']->site_newest_files)->get();
@@ -4990,6 +4990,39 @@ class CommonController extends Controller
 	 * Newest approved license products for the home carousel.
 	 * Includes every single-price parent and that parent's sub-categories.
 	 */
+	/**
+	 * Games, AI and Office products for the home Popular carousel.
+	 * Groups are ordered by views, then interleaved so Office does not fill the row.
+	 */
+	private function popularHomeItems(bool $subscriptionMode, string $today, int $limit)
+	{
+	   $parents = \Fickrr\Support\PopularMix::parents();
+	   $query = Items::with('ratings')->select(
+		   'items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_thumbnail',
+		   'items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username',
+		   'users.user_document_verified','items.updated_item','items.item_sold','items.free_download',
+		   'items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id',
+		   'items.file_type','items.item_delimiter','items.item_serials_list',
+		   'items.item_category','items.item_category_parent','items.item_category_type','items.item_views'
+	   )->leftjoin('users', 'users.id', '=', 'items.user_id')
+		   ->where('items.item_status', '=', 1)
+		   ->where('items.drop_status', '=', 'no')
+		   ->where(function ($filter) use ($parents) {
+			   $filter->whereIn('items.item_category_parent', $parents)
+				   ->orWhere('items.item_name', 'LIKE', '%gemini%')
+				   ->orWhere('items.item_name', 'LIKE', '%google%')
+				   ->orWhere('items.item_name', 'LIKE', '%chatgpt%')
+				   ->orWhere('items.item_name', 'LIKE', '%office%');
+		   });
+	   if ($subscriptionMode) {
+		   $query->where('users.user_subscr_date', '>=', $today)
+			   ->where('users.user_subscr_payment_status', '=', 'completed');
+	   }
+	   $rows = $query->orderBy('items.item_views', 'desc')->orderBy('items.item_id', 'desc')->get();
+
+	   return collect(\Fickrr\Support\PopularMix::interleave($rows, $limit));
+	}
+
 	private function licenseHomeItems(array $slides)
 	{
 	   $buckets = \Fickrr\Support\OsLicenseCatalog::slideBuckets($slides);
