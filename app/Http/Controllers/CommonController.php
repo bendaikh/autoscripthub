@@ -3111,7 +3111,7 @@ class CommonController extends Controller
 			   }
 			   $csf_token = csrf_token();
 			   $logo_url = $website_url.'/public/storage/settings/'.$setting['setting']->site_logo;
-			   $script_url = $website_url.'/resources/views/theme/js/vendor.min.js';
+			   $script_url = asset('theme/js/vendor.min.js');
 			   $callback = $website_url.'/razorpay';
 			   $razorpay = '
 			   <script type="text/javascript" src="'.$script_url.'"></script>
@@ -3986,7 +3986,7 @@ class CommonController extends Controller
 			   }
 			   $csf_token = csrf_token();
 			   $logo_url = $website_url.'/public/storage/settings/'.$setting['setting']->site_logo;
-			   $script_url = $website_url.'/resources/views/theme/js/vendor.min.js';
+			   $script_url = asset('theme/js/vendor.min.js');
 			   $callback = $website_url.'/razorpay';
 			   $razorpay = '
 			   <script type="text/javascript" src="'.$script_url.'"></script>
@@ -4573,7 +4573,8 @@ class CommonController extends Controller
 	
 	public function view_tags($type,$slug,Request $request)
 	{
-	   $nslug = str_replace("-"," ",$slug);
+	   $slug = \Fickrr\Support\TagSlug::decode($slug);
+	   $nslug = $slug;
 	   $sid = 1;
 	   $setting['setting'] = Settings::editGeneral($sid);
 	   $today = date("Y-m-d");
@@ -4879,7 +4880,13 @@ class CommonController extends Controller
 	
 	public function view_preview($item_slug)
 	{
+	   if (Items::singleitemCount($item_slug) == 0) {
+		   abort(404);
+	   }
 	   $item['item'] = Items::singleitemData($item_slug);
+	   if (empty($item['item'])) {
+		   abort(404);
+	   }
 	   $data = array('item' => $item);
 	   return view('preview')->with($data);
 	}
@@ -6117,7 +6124,7 @@ class CommonController extends Controller
 				   }
 				   else
 				   {
-				     return view('/404');
+				     abort(404);
 				   }
 				}
 				else
@@ -6149,7 +6156,7 @@ class CommonController extends Controller
 				  }
 				   else
 				   {
-				     return view('/404');
+				     abort(404);
 				   }
 				}
 				
@@ -6201,7 +6208,7 @@ class CommonController extends Controller
 				   }
 				   else
 				   {
-				     return view('/404');
+				     abort(404);
 				   }
 				}
 				else
@@ -6232,7 +6239,7 @@ class CommonController extends Controller
 				  }
 				  else
 				  {
-				     return view('/404');
+				     abort(404);
 				  }
 				}
 				
@@ -6512,9 +6519,27 @@ class CommonController extends Controller
 		return collect(\Fickrr\Support\RelatedItems::choose($current, $candidates, $limit));
 	}
 
+	private function retiredItemDestination($item): string
+	{
+	   $parentId = \Fickrr\Support\HiddenItemRedirect::parentId($item);
+	   $category = null;
+	   if ($parentId > 0) {
+		   $category = DB::table('category')
+			   ->where('cat_id', '=', $parentId)
+			   ->where('drop_status', '=', 'no')
+			   ->first();
+	   }
+
+	   return \Fickrr\Support\HiddenItemRedirect::path($category);
+	}
+
 	public function view_single_item($item_slug)
 	{
-	  
+	  $legacySlug = \Fickrr\Support\LegacyItemSlugs::target($item_slug);
+	  if ($legacySlug !== null) {
+		  return redirect('/item/'.$legacySlug, 301);
+	  }
+
 	  $sid = 1;
 	  $badges['setting'] = Settings::editBadges($sid);
 	  $check_item_available = Items::singleitemCount($item_slug);
@@ -6576,9 +6601,13 @@ class CommonController extends Controller
 		  
 		  $item_tags = explode(',',$item['item']->item_tags);
 		  
-		  $getcount  = Items::getimagesCount($token);
 		  $item_image['item'] = Items::getsingleimagesData($token);
 		  $item_allimage = Items::getimagesData($token);
+		  $galleryStorage = (int) (Settings::editAdditional()->site_s3_storage ?? 0);
+		  if (!in_array($galleryStorage, [1, 2, 3, 4], true)) {
+			  $item_allimage = \Fickrr\Support\ProductImage::keepExisting($item_allimage, [\Fickrr\Support\ProductImage::class, 'storedFileExists']);
+		  }
+		  $getcount = count($item_allimage);
 		  $itemData['item'] = Items::with('ratings')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.user_id','=',$item_user_id)->where('items.item_id','!=',$item_id)->orderBy('items.item_id', 'asc')->take(3)->get();
 		  
 		  if (Auth::check()) 
@@ -6669,6 +6698,10 @@ class CommonController extends Controller
 		 }
 		 else
 		 {
+		 $hiddenItem = DB::table('items')->where('item_slug', '=', $item_slug)->first();
+		 if ($hiddenItem && \Fickrr\Support\HiddenItemRedirect::isHidden($hiddenItem)) {
+			 return redirect($this->retiredItemDestination($hiddenItem), 301);
+		 }
 		 abort(404);
 		 }
 	}

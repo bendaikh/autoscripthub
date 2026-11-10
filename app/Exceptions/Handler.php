@@ -66,8 +66,14 @@ class Handler extends ExceptionHandler
                     return redirect()->guest('404');
                 }
                 break;
-                case '500':
-                return redirect()->guest('404');
+                case 500:
+                try {
+                    \Illuminate\Support\Facades\View::share('errors', session()->get('errors', new \Illuminate\Support\ViewErrorBag));
+                    return response()->view('500', [], 500);
+                } catch (\Throwable $renderError) {
+                    \Log::warning("500 render fallback: " . $renderError->getMessage());
+                    return response('Server Error', 500);
+                }
                 break;
                 default:
                     return $this->renderHttpException($e);

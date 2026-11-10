@@ -52,7 +52,7 @@ src="https://www.facebook.com/tr?id=4153934531541650&ev=PageView&noscript=1"
 <link type="text/css" href="{{ asset('theme/countdown/jquery.countdown.css?v=1.0.0.0') }}" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="{{ asset('theme/video/video.css') }}">
 <link rel="stylesheet" href="{{ asset('admin/datepicker/picker.css') }}">
-<link href="{{ asset('resources/views/admin/template/dragdrop/css/jquery.filer.css') }}" rel="stylesheet">
+<link href="{{ asset('admin/dragdrop/css/jquery.filer.css') }}" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset('theme/mp3/css/stylised.css') }}" />
 @if($view_name == 'messages')
 <link rel="stylesheet" href="{{ asset('theme/chatbox/chat.css') }}">

@@ -747,7 +747,7 @@ class Helper {
 		   }
 		   else
 		   {
-		     $img_url = url('/').'/resources/views/theme/img/no-image.jpg';
+		     $img_url = asset('img/no-image.jpg');
 		   }
 		}
 		else if($type == 'update-item' or $type == 'create-item')
@@ -759,12 +759,12 @@ class Helper {
 		   }
 		   else
 		   {
-		     $img_url = url('/').'/resources/views/theme/img/no-image.jpg';
+		     $img_url = asset('img/no-image.jpg');
 		   }
 		}
 		else
 		{
-		   $img_url = url('/').'/resources/views/theme/img/no-image.jpg';
+		   $img_url = asset('img/no-image.jpg');
 		}
 		
 		 return $img_url;

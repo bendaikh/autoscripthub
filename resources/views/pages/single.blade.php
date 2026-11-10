@@ -196,7 +196,7 @@
               <div class="widget mb-grid-gutter">
                 <h3 class="widget-title">{{ __('Tags') }}</h3>
                 @foreach($post_tags as $tags)
-                <a class="btn-tag mr-2 mb-2" href="{{ url('/blog') }}/{{ strtolower(str_replace(' ','-',$tags)) }}">{{ $tags }}</a>
+                <a class="btn-tag mr-2 mb-2" href="{{ url('/blog/'.\Fickrr\Support\TagSlug::encode($tags)) }}">{{ $tags }}</a>
                 @endforeach
               </div>
               @if(in_array('post-details',$sidebar_ads))

@@ -313,26 +313,26 @@ class AppServiceProvider extends ServiceProvider
 		Config::set('laravelpwa.manifest.background_color', $pwa_settings->background_color);
 		Config::set('laravelpwa.manifest.theme_color', $pwa_settings->theme_color);
 		
-		Config::set('laravelpwa.manifest.icons.72x72.path', 'images/icons/'.$pwa_settings->pwa_icon1);
-		Config::set('laravelpwa.manifest.icons.96x96.path', 'images/icons/'.$pwa_settings->pwa_icon2);
-		Config::set('laravelpwa.manifest.icons.128x128.path', 'images/icons/'.$pwa_settings->pwa_icon3);
-		Config::set('laravelpwa.manifest.icons.144x144.path', 'images/icons/'.$pwa_settings->pwa_icon4);
-		Config::set('laravelpwa.manifest.icons.152x152.path', 'images/icons/'.$pwa_settings->pwa_icon5);
-		Config::set('laravelpwa.manifest.icons.192x192.path', 'images/icons/'.$pwa_settings->pwa_icon6);
-		Config::set('laravelpwa.manifest.icons.384x384.path', 'images/icons/'.$pwa_settings->pwa_icon7);
-		Config::set('laravelpwa.manifest.icons.512x512.path', 'images/icons/'.$pwa_settings->pwa_icon8);
+		Config::set('laravelpwa.manifest.icons.72x72.path', url('/images/icons/'.$pwa_settings->pwa_icon1));
+		Config::set('laravelpwa.manifest.icons.96x96.path', url('/images/icons/'.$pwa_settings->pwa_icon2));
+		Config::set('laravelpwa.manifest.icons.128x128.path', url('/images/icons/'.$pwa_settings->pwa_icon3));
+		Config::set('laravelpwa.manifest.icons.144x144.path', url('/images/icons/'.$pwa_settings->pwa_icon4));
+		Config::set('laravelpwa.manifest.icons.152x152.path', url('/images/icons/'.$pwa_settings->pwa_icon5));
+		Config::set('laravelpwa.manifest.icons.192x192.path', url('/images/icons/'.$pwa_settings->pwa_icon6));
+		Config::set('laravelpwa.manifest.icons.384x384.path', url('/images/icons/'.$pwa_settings->pwa_icon7));
+		Config::set('laravelpwa.manifest.icons.512x512.path', url('/images/icons/'.$pwa_settings->pwa_icon8));
 		
 		
-		Config::set('laravelpwa.manifest.splash.640x1136', 'images/icons/'.$pwa_settings->pwa_splash1);
-		Config::set('laravelpwa.manifest.splash.750x1334', 'images/icons/'.$pwa_settings->pwa_splash2);
-		Config::set('laravelpwa.manifest.splash.828x1792', 'images/icons/'.$pwa_settings->pwa_splash3);
-		Config::set('laravelpwa.manifest.splash.1125x2436', 'images/icons/'.$pwa_settings->pwa_splash4);
-		Config::set('laravelpwa.manifest.splash.1242x2208', 'images/icons/'.$pwa_settings->pwa_splash5);
-		Config::set('laravelpwa.manifest.splash.1242x2688', 'images/icons/'.$pwa_settings->pwa_splash6);
-		Config::set('laravelpwa.manifest.splash.1536x2048', 'images/icons/'.$pwa_settings->pwa_splash7);
-		Config::set('laravelpwa.manifest.splash.1668x2224', 'images/icons/'.$pwa_settings->pwa_splash8);
-		Config::set('laravelpwa.manifest.splash.1668x2388', 'images/icons/'.$pwa_settings->pwa_splash9);
-		Config::set('laravelpwa.manifest.splash.2048x2732', 'images/icons/'.$pwa_settings->pwa_splash10);
+		Config::set('laravelpwa.manifest.splash.640x1136', url('/images/icons/'.$pwa_settings->pwa_splash1));
+		Config::set('laravelpwa.manifest.splash.750x1334', url('/images/icons/'.$pwa_settings->pwa_splash2));
+		Config::set('laravelpwa.manifest.splash.828x1792', url('/images/icons/'.$pwa_settings->pwa_splash3));
+		Config::set('laravelpwa.manifest.splash.1125x2436', url('/images/icons/'.$pwa_settings->pwa_splash4));
+		Config::set('laravelpwa.manifest.splash.1242x2208', url('/images/icons/'.$pwa_settings->pwa_splash5));
+		Config::set('laravelpwa.manifest.splash.1242x2688', url('/images/icons/'.$pwa_settings->pwa_splash6));
+		Config::set('laravelpwa.manifest.splash.1536x2048', url('/images/icons/'.$pwa_settings->pwa_splash7));
+		Config::set('laravelpwa.manifest.splash.1668x2224', url('/images/icons/'.$pwa_settings->pwa_splash8));
+		Config::set('laravelpwa.manifest.splash.1668x2388', url('/images/icons/'.$pwa_settings->pwa_splash9));
+		Config::set('laravelpwa.manifest.splash.2048x2732', url('/images/icons/'.$pwa_settings->pwa_splash10));
 		
 		
 			

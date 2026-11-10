@@ -33,7 +33,7 @@ class Category extends Model
   public static function getcategoryCheck($slug)
   {
 
-    $get=DB::table('category')->where('category_slug','=',$slug)->get(); 
+    $get=DB::table('category')->where('category_slug','=',$slug)->where('drop_status','=','no')->get(); 
     $value = $get->count(); 
 	return $value;
 	

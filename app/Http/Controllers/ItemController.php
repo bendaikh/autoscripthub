@@ -14631,7 +14631,7 @@ class ItemController extends Controller
 			   }
 			   $csf_token = csrf_token();
 			   $logo_url = $website_url.'/public/storage/settings/'.$setting['setting']->site_logo;
-			   $script_url = $website_url.'/resources/views/theme/js/vendor.min.js';
+			   $script_url = asset('theme/js/vendor.min.js');
 			   $callback = $website_url.'/deposit-razorpay';
 			   $razorpay = '
 			   <script type="text/javascript" src="'.$script_url.'"></script>

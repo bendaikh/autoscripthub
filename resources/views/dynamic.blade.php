@@ -346,7 +346,7 @@ color:{{ $allsettings->site_theme_color }};
 #boxradio input[type=radio]:checked + label::after {
   color: #3d3f43;
   border: 2px solid {{ $allsettings->site_button_color }} !important;
-  content: url("{{ asset('resources/views/assets/icon.png') }}");
+  content: url("{{ asset('assets/icon.png') }}");
   position: absolute;
   top: -25px;
   left: 50%;
