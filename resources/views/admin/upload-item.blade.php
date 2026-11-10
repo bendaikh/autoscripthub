@@ -304,6 +304,12 @@
                                                 <input type="text" id="installation_video_url" name="installation_video_url" class="form-control" placeholder="https://www.youtube.com/watch?v=...">
                                                 <small>({{ __('Add a YouTube video link to help customers install/setup this script') }})</small>
                                             </div>
+
+                                            <div class="form-group">
+                                                <label for="source_url" class="control-label mb-1">{{ __('Source URL') }}</label>
+                                                <input type="url" id="source_url" name="source_url" class="form-control" value="{{ old('source_url') }}" placeholder="https://...">
+                                                <small>({{ __('Admin only. Not shown on the public site.') }})</small>
+                                            </div>
                                             
                                             <div class="form-group">
                                                 <label for="name" class="control-label mb-1">{{ __('Upload Main File Type') }} <span class="require">*</span></label>
