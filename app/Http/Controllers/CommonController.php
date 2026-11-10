@@ -4955,6 +4955,7 @@ class CommonController extends Controller
 	   
 	   $category['view'] = Category::with('SubCategory')->where('category_status','=','1')->where('drop_status','=','no')->orderBy('menu_order','asc')->get();
 	   $category['top_slides'] = $this->heroTopSlides($additional['settings']->subscription_mode == 1, $today, $category['view']);
+	   $category['showcase'] = $this->heroShowcase($additional['settings']->subscription_mode == 1, $today, $category['view']);
 	   $category['counts'] = DB::table('items')->select('item_category_parent', DB::raw('count(*) as total'))->where('item_status','=',1)->where('drop_status','=','no')->groupBy('item_category_parent')->pluck('total','item_category_parent');
 	   $category['license_slides'] = \Fickrr\Support\OsLicenseCatalog::homeSlides($category['view'], config('os_licenses', []));
 	   $subSlideIds = [];
@@ -4985,6 +4986,121 @@ class CommonController extends Controller
 	  //SitemapGenerator::create(URL::to('/'))->writeToFile('sitemap.xml');
 	  
 	  return view('index')->with($data);
+	}
+
+	/**
+	 * Popular product art for the hero spotlight, grouped by major category.
+	 */
+	private function heroShowcase(bool $subscriptionMode, string $today, $categories): array
+	{
+	   $cats = [];
+	   foreach ($categories as $cat) {
+		   $cats[] = [
+			   'id' => (int) $cat->cat_id,
+			   'name' => (string) $cat->category_name,
+			   'slug' => (string) $cat->category_slug,
+		   ];
+	   }
+	   $types = [];
+	   foreach (Items::gettypeItem() as $type) {
+		   $types[] = [
+			   'name' => (string) $type->item_type_name,
+			   'slug' => (string) $type->item_type_slug,
+		   ];
+	   }
+	   $sig = md5(json_encode($cats).json_encode($types));
+	   $key = 'home.hero.showcase.'.($subscriptionMode ? '1' : '0').'.'.$today.'.'.$sig;
+	   $items = Cache::remember($key, 180, function () use ($subscriptionMode, $today, $cats, $types) {
+		   return $this->heroShowcaseItems($subscriptionMode, $today, $cats, $types);
+	   });
+
+	   return \Fickrr\Support\HeroShowcase::present($cats, $types, $items);
+	}
+
+	/**
+	 * @param  array<int, array{id:int,name:string,slug:string}>  $cats
+	 * @param  array<int, array{name:string,slug:string}>  $types
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function heroShowcaseItems(bool $subscriptionMode, string $today, array $cats, array $types): array
+	{
+	   $parentIds = [];
+	   foreach ($cats as $cat) {
+		   if (\Fickrr\Support\HeroShowcase::groupKey($cat['name']) !== null) {
+			   $parentIds[] = $cat['id'];
+		   }
+	   }
+	   $typeSlugs = [];
+	   foreach ($types as $type) {
+		   if (\Fickrr\Support\HeroShowcase::groupKey($type['name']) !== null) {
+			   $typeSlugs[] = $type['slug'];
+		   }
+	   }
+	   if ($parentIds === [] && $typeSlugs === []) {
+		   return [];
+	   }
+
+	   $query = DB::table('items')
+		   ->select(
+			   'items.item_id','items.item_slug','items.item_name','items.item_preview','items.item_thumbnail',
+			   'items.item_category_parent','items.item_type','items.item_views','items.regular_price',
+			   'items.extended_price','items.item_flash','items.free_download','items.item_category',
+			   'items.item_category_type'
+		   )
+		   ->where('items.item_status', '=', 1)
+		   ->where('items.drop_status', '=', 'no');
+	   if ($subscriptionMode) {
+		   $query->leftJoin('users', 'users.id', '=', 'items.user_id')
+			   ->where('users.user_subscr_date', '>=', $today)
+			   ->where('users.user_subscr_payment_status', '=', 'completed');
+	   }
+
+	   $rows = collect();
+	   foreach ($parentIds as $parentId) {
+		   $rows = $rows->merge((clone $query)->where('items.item_category_parent', '=', $parentId)->orderBy('items.item_views', 'desc')->orderBy('items.item_id', 'desc')->limit(3)->get());
+	   }
+	   foreach ($typeSlugs as $typeSlug) {
+		   $rows = $rows->merge((clone $query)->where('items.item_type', '=', $typeSlug)->orderBy('items.item_views', 'desc')->orderBy('items.item_id', 'desc')->limit(3)->get());
+	   }
+	   $rows = $rows->merge((clone $query)->where(function ($filter) {
+		   $filter->where('items.item_name', 'LIKE', '%chatgpt%')
+			   ->orWhere('items.item_name', 'LIKE', '%gemini%')
+			   ->orWhere('items.item_name', 'LIKE', '%google%');
+	   })->orderBy('items.item_views', 'desc')->orderBy('items.item_id', 'desc')->limit(6)->get());
+
+	   $out = [];
+	   $seen = [];
+	   foreach ($rows as $row) {
+		   $id = (int) $row->item_id;
+		   if ($id <= 0 || isset($seen[$id])) {
+			   continue;
+		   }
+		   $preview = trim((string) ($row->item_preview ?? ''));
+		   $thumb = trim((string) ($row->item_thumbnail ?? ''));
+		   if ($preview === '' && $thumb === '') {
+			   continue;
+		   }
+		   $seen[$id] = true;
+		   $out[] = [
+			   'id' => $id,
+			   'name' => (string) $row->item_name,
+			   'slug' => (string) $row->item_slug,
+			   'preview' => $preview,
+			   'thumb' => $thumb,
+			   'parent' => (int) $row->item_category_parent,
+			   'type' => (string) ($row->item_type ?? ''),
+			   'views' => (int) ($row->item_views ?? 0),
+			   'regular_price' => $row->regular_price,
+			   'extended_price' => $row->extended_price,
+			   'item_flash' => $row->item_flash,
+			   'free_download' => $row->free_download,
+			   'item_category' => $row->item_category,
+			   'item_category_parent' => $row->item_category_parent,
+			   'item_category_type' => $row->item_category_type,
+		   ];
+	   }
+
+	   return $out;
 	}
 
 	/**

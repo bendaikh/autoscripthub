@@ -1903,3 +1903,254 @@ body.home-v2 .hv-dash-line {
   body.home-v2 .hv-dash-area { opacity: 1; }
   body.home-v2 .hv-dash-line { stroke-dashoffset: 0; }
 }
+
+/* Hero product showcase. Scoped to the dashboard visual. */
+body.home-v2 .hv-visual .hv-show--split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(148px, .86fr);
+  gap: .65rem;
+  align-items: stretch;
+}
+
+body.home-v2 .hv-visual .hv-stage {
+  position: relative;
+  min-height: 248px;
+  border-radius: 12px;
+  overflow: hidden;
+  background:
+    radial-gradient(90% 80% at 15% 0%, rgba(124, 58, 237, .35), transparent 60%),
+    rgba(255, 255, 255, .04);
+  border: 1px solid rgba(255, 255, 255, .08);
+}
+
+body.home-v2 .hv-visual .hv-blob {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  filter: blur(8px);
+  pointer-events: none;
+  animation: hvBlob 9s ease-in-out infinite;
+}
+
+body.home-v2 .hv-visual .hv-blob--a {
+  top: -30px;
+  right: 10%;
+  background: rgba(168, 85, 247, .55);
+}
+
+body.home-v2 .hv-visual .hv-blob--b {
+  bottom: -40px;
+  left: 8%;
+  background: rgba(56, 189, 248, .35);
+  animation-delay: -3s;
+}
+
+body.home-v2 .hv-visual .hv-spot {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .45s ease, visibility .45s ease;
+}
+
+body.home-v2 .hv-visual .hv-spot.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+body.home-v2 .hv-visual .hv-spot-float {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: hvBob 4.8s ease-in-out infinite;
+  z-index: 2;
+  pointer-events: none;
+}
+
+body.home-v2 .hv-visual .hv-spot-card {
+  width: min(188px, 58%);
+}
+
+body.home-v2 .hv-visual .hv-spot-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .96);
+  color: #0f172a;
+  text-decoration: none;
+  overflow: hidden;
+  box-shadow: 0 16px 36px rgba(3, 7, 18, .35);
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform .18s linear;
+  pointer-events: auto;
+}
+
+body.home-v2 .hv-visual .hv-spot-chip {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: .28rem;
+  max-width: calc(100% - 16px);
+  padding: .22rem .48rem;
+  white-space: nowrap;
+  overflow: hidden;
+  border-radius: 999px;
+  color: #fff;
+  font-size: .66rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+body.home-v2 .hv-visual .hv-spot-chip i {
+  font-size: .7rem;
+}
+
+body.home-v2 .hv-visual .hv-spot-photo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 16 / 10;
+  padding: 12px;
+  background: #f4f5f7;
+}
+
+body.home-v2 .hv-visual .hv-spot-photo img,
+body.home-v2 .hv-visual .hv-orbit img,
+body.home-v2 .hv-visual .hv-marquee img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+}
+
+body.home-v2 .hv-visual .hv-spot-copy {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  padding: .55rem .7rem .7rem;
+}
+
+body.home-v2 .hv-visual .hv-spot-copy strong {
+  font-size: .78rem;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.6em;
+}
+
+body.home-v2 .hv-visual .hv-spot-copy em {
+  font-style: normal;
+  font-size: .92rem;
+  font-weight: 800;
+  color: #6d28d9;
+}
+
+body.home-v2 .hv-visual .hv-orbit {
+  position: absolute;
+  z-index: 1;
+  width: 72px;
+  height: 52px;
+  padding: 4px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 10px 24px rgba(3, 7, 18, .28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  translate: var(--mx, 0) var(--my, 0);
+  animation: hvBob 5.6s ease-in-out infinite;
+  z-index: 3;
+  pointer-events: auto;
+}
+
+body.home-v2 .hv-visual .hv-orbit--a { left: 4%; top: 10%; animation-delay: .4s; }
+body.home-v2 .hv-visual .hv-orbit--b { right: 3%; bottom: 12%; animation-delay: 1.1s; }
+
+body.home-v2 .hv-visual .hv-top-col .hv-top {
+  height: 100%;
+}
+
+body.home-v2 .hv-visual .hv-top li.is-spot a {
+  background: rgba(124, 58, 237, .28);
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(196, 181, 253, .5);
+}
+
+body.home-v2 .hv-visual .hv-marquee {
+  margin-top: .75rem;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+body.home-v2 .hv-visual .hv-marquee-track {
+  display: flex;
+  gap: .45rem;
+  width: max-content;
+  animation: hvMarquee 32s linear infinite;
+}
+
+body.home-v2 .hv-visual.is-paused .hv-marquee-track,
+body.home-v2 .hv-visual .hv-marquee:hover .hv-marquee-track {
+  animation-play-state: paused;
+}
+
+body.home-v2 .hv-visual .hv-marquee a {
+  width: 74px;
+  height: 50px;
+  flex: 0 0 74px;
+  padding: 4px;
+  border-radius: 8px;
+  background: #f4f5f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes hvBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes hvBlob {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(12px, -8px, 0) scale(1.08); }
+}
+
+@keyframes hvMarquee {
+  to { transform: translateX(-50%); }
+}
+
+@media (min-width: 768px) {
+  body.home-v2 .hv-visual .hv-marquee { margin-left: 11rem; }
+}
+
+@media (max-width: 767.98px) {
+  body.home-v2 .hv-visual .hv-show--split { display: block; }
+  body.home-v2 .hv-visual .hv-top-col { display: none; }
+  body.home-v2 .hv-visual .hv-orbit { display: none; }
+  body.home-v2 .hv-visual .hv-stage { min-height: 220px; }
+  body.home-v2 .hv-visual .hv-spot-card { width: min(220px, 76%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.home-v2 .hv-visual .hv-blob,
+  body.home-v2 .hv-visual .hv-spot-float,
+  body.home-v2 .hv-visual .hv-orbit,
+  body.home-v2 .hv-visual .hv-marquee-track,
+  body.home-v2 .hv-visual .hv-spot {
+    animation: none;
+    transition: none;
+  }
+}

@@ -144,41 +144,49 @@
               <span class="hv-dash-title">{{ __('Dashboard') }}</span>
             </div>
 
-            <div class="hv-dash-stats">
-              <div class="hv-dash-stat">
-                <span>{{ __('Revenue') }}</span>
-                <strong class="hv-count" data-hv-count="24850" data-hv-prefix="$"><span class="hv-count-sizer">$24,850</span><span class="hv-count-num">$24,850</span></strong>
-                <em>+12.5%</em>
-              </div>
-              <div class="hv-dash-stat">
-                <span>{{ __('Orders') }}</span>
-                <strong class="hv-count" data-hv-count="1250"><span class="hv-count-sizer">1,250</span><span class="hv-count-num">1,250</span></strong>
-                <em>+8.2%</em>
-              </div>
-              <div class="hv-dash-stat">
-                <span>{{ __('Users') }}</span>
-                <strong class="hv-count" data-hv-count="3246"><span class="hv-count-sizer">3,246</span><span class="hv-count-num">3,246</span></strong>
-                <em>+5.4%</em>
-              </div>
-            </div>
-
-            <div class="row no-gutters">
-              <div class="col-7 pr-1">
-                <div class="hv-dash-panel">
-                  <h6>{{ __('Revenue Overview') }}</h6>
-                  <svg class="hv-dash-chart" viewBox="0 0 260 88" preserveAspectRatio="none" aria-hidden="true">
-                    <defs>
-                      <linearGradient id="hvArea" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#a855f7" stop-opacity=".55"/>
-                        <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
-                      </linearGradient>
-                    </defs>
-                    <path class="hv-dash-area" d="M0,70 C25,66 40,44 62,46 C86,48 96,24 120,30 C146,36 156,58 180,52 C206,46 220,16 260,10 L260,88 L0,88 Z" fill="url(#hvArea)"/>
-                    <path class="hv-dash-line" d="M0,70 C25,66 40,44 62,46 C86,48 96,24 120,30 C146,36 156,58 180,52 C206,46 220,16 260,10" fill="none" stroke="#c084fc" stroke-width="2.5" stroke-linecap="round"/>
-                  </svg>
+            @php
+              $hvSpots = $category['showcase']['groups'] ?? [];
+              $hvMarquee = $category['showcase']['marquee'] ?? [];
+            @endphp
+            <div class="hv-show{{ !empty($hvSpots) ? ' hv-show--split' : '' }}">
+              @if(!empty($hvSpots))
+              <div class="hv-stage" data-hv-stage>
+                <span class="hv-blob hv-blob--a" aria-hidden="true"></span>
+                <span class="hv-blob hv-blob--b" aria-hidden="true"></span>
+                @foreach($hvSpots as $spotIndex => $spot)
+                @php
+                  $spotItems = $spot['items'];
+                  $spotLead = $spotItems[0];
+                  $spotPhoto = $spotLead['preview'] !== '' ? $spotLead['preview'] : $spotLead['thumb'];
+                  $spotObj = (object) $spotLead;
+                  $spotExact = Helper::is_single_price_item($spotObj);
+                  $spotPrice = ((int) ($spotLead['free_download'] ?? 0) === 1)
+                    ? __('Free')
+                    : Helper::price_format($allsettings->site_currency_position, Helper::catalog_price($spotObj), $currency_symbol, $multicurrency ?? '', $spotExact);
+                  $spotKey = ($spot['slug'] ?? '') !== '' ? $spot['kind'].':'.$spot['slug'] : '';
+                @endphp
+                <div class="hv-spot{{ $spotIndex === 0 ? ' is-active' : '' }}" @if($spotKey !== '') data-hv-group="{{ $spotKey }}" @endif>
+                  @foreach(array_slice($spotItems, 1) as $orbitIndex => $orbit)
+                  @php $orbitFile = $orbit['thumb'] !== '' ? $orbit['thumb'] : $orbit['preview']; @endphp
+                  <a class="hv-orbit hv-orbit--{{ $orbitIndex === 0 ? 'a' : 'b' }}" href="{{ URL::to('/item') }}/{{ $orbit['slug'] }}">
+                    <img loading="lazy" decoding="async" src="{{ Helper::Image_Path($orbitFile, 'no-image.png') }}" alt="{{ $orbit['name'] }}">
+                  </a>
+                  @endforeach
+                  <div class="hv-spot-float">
+                    <a class="hv-spot-card" href="{{ URL::to('/item') }}/{{ $spotLead['slug'] }}">
+                      <span class="hv-spot-chip" style="background:{{ $spot['color'] }};"><i class="fa {{ $spot['icon'] }}"></i>{{ $spot['name'] }}</span>
+                      <span class="hv-spot-photo"><img loading="lazy" decoding="async" src="{{ Helper::Image_Path($spotPhoto, 'no-image.png') }}" alt="{{ $spotLead['name'] }}"></span>
+                      <span class="hv-spot-copy">
+                        <strong>{{ $spotLead['name'] }}</strong>
+                        <em>{{ $spotPrice }}</em>
+                      </span>
+                    </a>
+                  </div>
                 </div>
+                @endforeach
               </div>
-              <div class="col-5 pl-1">
+              @endif
+              <div class="hv-top-col">
                 <div class="hv-dash-panel hv-top" data-hv-top>
                   <div class="hv-top-head">
                     <h6>{{ __('Top Products') }}</h6>
@@ -195,7 +203,7 @@
                     @foreach($category['top_slides'] as $slideIndex => $slide)
                     <ul class="hv-dash-list hv-top-slide{{ $slideIndex === 0 ? ' is-active' : '' }}">
                       @foreach($slide as $rowIndex => $row)
-                      <li style="--hv-i: {{ $rowIndex }}">
+                      <li style="--hv-i: {{ $rowIndex }}" data-hv-row="{{ $row['kind'] }}:{{ $row['slug'] }}">
                         <a href="{{ URL::to('/shop/'.$row['kind'].'/'.$row['slug']) }}">
                           <span class="hv-dash-chip" style="background:{{ $row['color'] }};"><i class="fa {{ $row['icon'] }}"></i></span>
                           <span class="hv-top-name">{{ $row['name'] }}</span>
@@ -217,6 +225,20 @@
                 </div>
               </div>
             </div>
+            @if(!empty($hvMarquee))
+            <div class="hv-marquee">
+              <div class="hv-marquee-track">
+                @for($hvCopy = 0; $hvCopy < 2; $hvCopy++)
+                @foreach($hvMarquee as $tile)
+                @php $tileFile = $tile['thumb'] !== '' ? $tile['thumb'] : $tile['preview']; @endphp
+                <a href="{{ URL::to('/item') }}/{{ $tile['slug'] }}">
+                  <img loading="lazy" decoding="async" src="{{ Helper::Image_Path($tileFile, 'no-image.png') }}" alt="{{ $tile['name'] }}">
+                </a>
+                @endforeach
+                @endfor
+              </div>
+            </div>
+            @endif
           </div>
 
           <div class="hv-float hv-float--products">
@@ -940,88 +962,130 @@ jQuery(function ($) {
 @endif
 <script>
 (function () {
+  var visual = document.querySelector('.hv-visual');
+  if (!visual) return;
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var root = document.querySelector('[data-hv-top]');
-  if (root && !reduce) {
-    var slides = root.querySelectorAll('.hv-top-slide');
-    var dots = root.querySelectorAll('.hv-top-dot');
-    var index = 0;
-    var timer = null;
-    function show(next) {
-      if (!slides.length) return;
-      index = (next + slides.length) % slides.length;
-      Array.prototype.forEach.call(slides, function (el, i) {
-        el.classList.toggle('is-active', i === index);
-      });
-      Array.prototype.forEach.call(dots, function (el, i) {
-        el.classList.toggle('is-active', i === index);
-      });
-      var dot = dots[index];
-      var slide = slides[index];
-      if (dot) {
-        dot.classList.remove('is-active');
-        void dot.offsetWidth;
-        dot.classList.add('is-active');
-      }
-      if (slide) {
-        slide.classList.remove('is-active');
-        void slide.offsetWidth;
-        slide.classList.add('is-active');
-      }
-    }
-    function stop() {
-      if (timer) {
-        window.clearInterval(timer);
-        timer = null;
-      }
-    }
-    function play() {
-      root.classList.remove('is-paused');
-      stop();
-      if (slides.length < 2) return;
-      show(index);
-      timer = window.setInterval(function () { show(index + 1); }, 3000);
-    }
-    root.addEventListener('mouseenter', function () {
-      root.classList.add('is-paused');
-      stop();
+  var fine = window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  var root = visual.querySelector('[data-hv-top]');
+  var stage = visual.querySelector('[data-hv-stage]');
+  var spots = stage ? stage.querySelectorAll('.hv-spot') : [];
+  var slides = root ? root.querySelectorAll('.hv-top-slide') : [];
+  var dots = root ? root.querySelectorAll('.hv-top-dot') : [];
+  var rows = visual.querySelectorAll('[data-hv-row]');
+  var spotIndex = 0;
+  var slideIndex = 0;
+  var timer = null;
+  var paused = false;
+  var onScreen = true;
+
+  function showSlide(next) {
+    if (!slides.length) return;
+    slideIndex = (next + slides.length) % slides.length;
+    Array.prototype.forEach.call(slides, function (el, i) {
+      el.classList.toggle('is-active', i === slideIndex);
     });
-    root.addEventListener('mouseleave', play);
-    root.addEventListener('focusin', function () {
-      root.classList.add('is-paused');
-      stop();
+    Array.prototype.forEach.call(dots, function (el, i) {
+      el.classList.toggle('is-active', i === slideIndex);
     });
-    root.addEventListener('focusout', function (event) {
-      if (!root.contains(event.relatedTarget)) play();
-    });
-    Array.prototype.forEach.call(dots, function (dot) {
-      dot.addEventListener('click', function () {
-        show(parseInt(dot.getAttribute('data-index'), 10) || 0);
-        if (!root.classList.contains('is-paused')) play();
-      });
-    });
-    play();
   }
 
-  if (reduce) return;
-
-  document.querySelectorAll('.hv-visual .hv-count').forEach(function (el) {
-    var num = el.querySelector('.hv-count-num');
-    var target = parseFloat(el.getAttribute('data-hv-count'));
-    var prefix = el.getAttribute('data-hv-prefix') || '';
-    if (!num || !isFinite(target)) return;
-    var start = null;
-    function frame(now) {
-      if (start === null) start = now;
-      var t = Math.min(1, (now - start) / 1100);
-      var eased = 1 - Math.pow(1 - t, 3);
-      var shown = Math.round(target * eased);
-      num.textContent = prefix + shown.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-      if (t < 1) window.requestAnimationFrame(frame);
+  function showSpot(next) {
+    if (!spots.length) return;
+    spotIndex = (next + spots.length) % spots.length;
+    Array.prototype.forEach.call(spots, function (el, i) {
+      el.classList.toggle('is-active', i === spotIndex);
+    });
+    var key = spots[spotIndex].getAttribute('data-hv-group') || '';
+    var match = null;
+    Array.prototype.forEach.call(rows, function (row) {
+      var on = key !== '' && row.getAttribute('data-hv-row') === key;
+      row.classList.toggle('is-spot', on);
+      if (on && !match) match = row;
+    });
+    if (match) {
+      var slide = match.closest('.hv-top-slide');
+      var at = Array.prototype.indexOf.call(slides, slide);
+      if (at >= 0) showSlide(at);
     }
-    num.textContent = prefix + '0';
-    window.requestAnimationFrame(frame);
-  });
+  }
+
+  function stop() {
+    if (timer) {
+      window.clearInterval(timer);
+      timer = null;
+    }
+  }
+
+  function canRun() {
+    return !reduce && !paused && onScreen && !document.hidden && (spots.length > 1 || slides.length > 1);
+  }
+
+  function play() {
+    stop();
+    if (!canRun()) return;
+    timer = window.setInterval(function () {
+      if (spots.length > 1) showSpot(spotIndex + 1);
+      else showSlide(slideIndex + 1);
+    }, 3000);
+  }
+
+  if (root) {
+    root.addEventListener('mouseenter', function () { paused = true; visual.classList.add('is-paused'); stop(); });
+    root.addEventListener('mouseleave', function () { paused = false; visual.classList.remove('is-paused'); play(); });
+    Array.prototype.forEach.call(dots, function (dot) {
+      dot.addEventListener('click', function () {
+        showSlide(parseInt(dot.getAttribute('data-index'), 10) || 0);
+        var slide = slides[slideIndex];
+        var row = slide ? slide.querySelector('[data-hv-row]') : null;
+        if (row && spots.length) {
+          var key = row.getAttribute('data-hv-row');
+          Array.prototype.forEach.call(spots, function (spot, i) {
+            if (spot.getAttribute('data-hv-group') === key) spotIndex = i;
+          });
+          showSpot(spotIndex);
+        }
+      });
+    });
+  }
+
+  if (stage) {
+    stage.addEventListener('mouseenter', function () { paused = true; visual.classList.add('is-paused'); stop(); });
+    stage.addEventListener('mouseleave', function () { paused = false; visual.classList.remove('is-paused'); play(); });
+    visual.querySelector('.hv-marquee') && visual.querySelector('.hv-marquee').addEventListener('mouseenter', function () {
+      visual.classList.add('is-paused');
+    });
+    visual.querySelector('.hv-marquee') && visual.querySelector('.hv-marquee').addEventListener('mouseleave', function () {
+      if (!paused) visual.classList.remove('is-paused');
+    });
+    if (fine && !reduce) {
+      stage.addEventListener('mousemove', function (event) {
+        var box = stage.getBoundingClientRect();
+        var px = (event.clientX - box.left) / box.width - 0.5;
+        var py = (event.clientY - box.top) / box.height - 0.5;
+        stage.style.setProperty('--rx', (-py * 8).toFixed(2) + 'deg');
+        stage.style.setProperty('--ry', (px * 10).toFixed(2) + 'deg');
+        stage.style.setProperty('--mx', (px * 14).toFixed(1) + 'px');
+        stage.style.setProperty('--my', (py * 10).toFixed(1) + 'px');
+      });
+      stage.addEventListener('mouseleave', function () {
+        stage.style.setProperty('--rx', '0deg');
+        stage.style.setProperty('--ry', '0deg');
+        stage.style.setProperty('--mx', '0px');
+        stage.style.setProperty('--my', '0px');
+      });
+    }
+  }
+
+  document.addEventListener('visibilitychange', play);
+  if ('IntersectionObserver' in window) {
+    var watcher = new IntersectionObserver(function (entries) {
+      onScreen = entries[0] ? entries[0].isIntersecting : true;
+      play();
+    }, { threshold: 0.15 });
+    watcher.observe(visual);
+  }
+  showSpot(0);
+  play();
 })();
 </script>
 </body>
