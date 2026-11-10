@@ -2,10 +2,10 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     @foreach ($users as $user)
         <url>
-            <loc>{{ URL::to('/') }}/user/{{ $user->username }}</loc>
-            <lastmod>{{ date('c',time()) }}</lastmod>
-            <changefreq>daily</changefreq>
-            <priority>0.9</priority>
+            <loc>{{ \Fickrr\Support\SiteUrl::to('/user/'.$user->username) }}</loc>
+            <lastmod>{{ date('Y-m-d') }}</lastmod>
+            <changefreq>weekly</changefreq>
+            <priority>0.4</priority>
         </url>
     @endforeach
 </urlset>

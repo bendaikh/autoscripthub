@@ -2,10 +2,10 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     @foreach ($subcategory as $categories)
         <url>
-            <loc>{{ URL::to('/') }}/shop/subcategory/{{ $categories->subcategory_slug }}</loc>
-            <lastmod>{{ date('c',time()) }}</lastmod>
-            <changefreq>daily</changefreq>
-            <priority>0.9</priority>
+            <loc>{{ \Fickrr\Support\SiteUrl::to('/shop/subcategory/'.$categories->subcategory_slug) }}</loc>
+            <lastmod>{{ date('Y-m-d') }}</lastmod>
+            <changefreq>weekly</changefreq>
+            <priority>0.6</priority>
         </url>
     @endforeach
 </urlset>

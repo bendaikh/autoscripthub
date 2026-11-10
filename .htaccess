@@ -5,6 +5,14 @@
 
     RewriteEngine On
 
+    # Canonical host is the https apex. www and plain http both land there.
+    RewriteCond %{HTTP_HOST} ^www\.auto-script-hub\.com$ [NC]
+    RewriteRule ^ https://auto-script-hub.com%{REQUEST_URI} [L,R=301]
+
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
+    RewriteRule ^ https://auto-script-hub.com%{REQUEST_URI} [L,R=301]
+
     # Apple Pay domain verification for Whop embedded checkout
     RewriteRule ^\.well-known/apple-developer-merchantid-domain-association$ - [L]
 

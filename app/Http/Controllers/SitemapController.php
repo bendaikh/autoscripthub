@@ -43,7 +43,9 @@ class SitemapController extends Controller
 
     public function category()
     {
-        $category = Category::getcategoryData();
+        $category = Category::getcategoryData()->filter(function ($row) {
+            return (string) ($row->category_status ?? '1') !== '0';
+        })->values();
         return response()->view('sitemap.category', [
             'category' => $category,
         ])->header('Content-Type', 'text/xml');
@@ -51,7 +53,9 @@ class SitemapController extends Controller
 
     public function subcategory()
     {
-        $subcategory = SubCategory::getsubcategoryData();
+        $subcategory = SubCategory::getsubcategoryData()->filter(function ($row) {
+            return (string) ($row->subcategory_status ?? '1') !== '0';
+        })->values();
         return response()->view('sitemap.subcategory', [
             'subcategory' => $subcategory,
         ])->header('Content-Type', 'text/xml');

@@ -1,1 +1,23 @@
-Disallow: /admin*
+User-agent: *
+Disallow: /admin
+Disallow: /admin/
+Disallow: /cart
+Disallow: /checkout
+Disallow: /login
+Disallow: /register
+Disallow: /password
+Disallow: /forgot
+Disallow: /profile-settings
+Disallow: /purchases
+Disallow: /search
+Disallow: /searchajax
+Disallow: /manage-item
+Disallow: /upload-item
+Disallow: /edit-item
+Disallow: /messages
+Disallow: /favourites
+Disallow: /withdrawal
+Disallow: /deposit
+Allow: /
+
+Sitemap: https://auto-script-hub.com/sitemap.xml

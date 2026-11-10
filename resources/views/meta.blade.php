@@ -1,4 +1,6 @@
+@if(empty($skip_default_description))
 <meta name="description" content="{{ $allsettings->site_desc }}" />
+@endif
 <meta name="keywords" content="{{ $allsettings->site_keywords }}" />
 <meta name="robots" content="index,follow" />
 <meta property="og:title" content="{{ $allsettings->site_title }}" />
