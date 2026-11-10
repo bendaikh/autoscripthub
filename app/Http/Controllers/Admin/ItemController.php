@@ -1740,6 +1740,9 @@ class ItemController extends Controller
 				}
                 $button = '<div class="action-buttons-cell text-center" style="white-space: nowrap;">';
 				$button .= '<a href="'.url('/').'/admin/edit-item/'.$data->item_token.'" class="btn btn-success btn-sm" title="'.$this->translation(2923,$translate,'Edit').'" data-toggle="tooltip"><i class="fa fa-edit"></i></a> ';
+				if (!empty($data->source_url)) {
+				    $button .= '<a href="'.e($data->source_url).'" target="_blank" rel="noopener noreferrer" class="btn btn-info btn-sm" title="Open source link"><i class="fa fa-external-link"></i></a> ';
+				}
 				
 				// Add Installation Video button
 				$installVideoUrl = isset($data->installation_video_url) ? $data->installation_video_url : '';
@@ -3430,6 +3433,7 @@ class ItemController extends Controller
 	   
 	   // Installation video URL
 	   $installation_video_url = $request->input('installation_video_url');
+	   $this->mergeNormalizedSourceUrl($request);
 	    
 	   if(!empty($request->input('video_file1')))
 	   {
@@ -3508,6 +3512,7 @@ class ItemController extends Controller
 	   $rules = array(
 				
 				'item_name' => ['required', 'max:100', Rule::unique('items') ->ignore($item_token, 'item_token') -> where(function($sql){ $sql->where('drop_status','=','no');})],
+				'source_url' => 'nullable|url|max:2048',
 				
 	     );
 		 
@@ -3530,6 +3535,9 @@ class ItemController extends Controller
 		
 		
 		    $data = array('item_name' => $item_name, 'item_desc' => $item_desc, 'item_thumbnail' => $item_thumbnail, 'item_preview' => $item_preview, 'item_file' => $item_file, 'file_type' => $file_type, 'item_file_link' => $item_file_link, 'item_category' =>$cat_id, 'item_category_parent' => $parent_category_id, 'item_category_type' => $cat_name, 'item_type' => $item_type, 'regular_price' => $regular_price, 'extended_price' => $extended_price, 'demo_url' => $demo_url, 'item_tags' => $item_tags, 'item_status' => $item_status, 'item_shortdesc' => $item_shortdesc, 'free_download' => $free_download, 'item_slug' => $item_slug, 'video_url' => $video_url, 'installation_video_url' => $installation_video_url, 'future_update' => $future_update, 'item_support' => $item_support, 'updated_item' => $updated_item, 'item_flash' => $item_flash, 'video_preview_type' => $video_preview_type, 'video_file' => $video_file, 'item_type_cat_id' => $item_category, 'seller_refund_term' => $seller_refund_term, 'seller_money_back' => $seller_money_back, 'seller_money_back_days' => $seller_money_back_days, 'item_allow_seo' => $item_allow_seo, 'item_seo_keyword' => $item_seo_keyword, 'item_seo_desc' => $item_seo_desc, 'audio_file' => $audio_file, 'item_type_id' => $type_id, 'subscription_item' => $subscription_item, 'item_delimiter' => $item_delimiter, 'item_serials_list' => $item_serials_list, 'item_reviewer' => $item_reviewer);
+			if ($request->has('source_url')) {
+			    $data['source_url'] = $request->input('source_url');
+			}
 			
 		    Items::updateitemData($item_token,$data);
 			
@@ -3900,6 +3908,7 @@ class ItemController extends Controller
 	   
 	   // Installation video URL
 	   $installation_video_url = $request->input('installation_video_url');
+	   $this->mergeNormalizedSourceUrl($request);
 	    
 	   if(!empty($request->input('video_file1')))
 	   {
@@ -3964,6 +3973,7 @@ class ItemController extends Controller
 		 $rules = array(
 				
 				'item_name' => ['required', 'max:100', Rule::unique('items') -> where(function($sql){ $sql->where('drop_status','=','no');})],
+				'source_url' => 'nullable|url|max:2048',
 				
 				
 	     );
@@ -3985,6 +3995,9 @@ class ItemController extends Controller
 		     
 		 
 		    $data = array('user_id' => $user_id, 'item_token' => $item_token, 'item_name' => $item_name, 'item_desc' => $item_desc, 'item_thumbnail' => $item_thumbnail, 'item_preview' => $item_preview, 'item_file' => $item_file, 'file_type' => $file_type, 'item_file_link' => $item_file_link, 'item_category' =>$cat_id, 'item_category_parent' => $parent_category_id, 'item_category_type' => $cat_name, 'item_type' => $item_type, 'regular_price' => $regular_price, 'extended_price' => $extended_price, 'demo_url' => $demo_url, 'item_tags' => $item_tags, 'item_status' => $item_status, 'item_shortdesc' => $item_shortdesc, 'free_download' => $free_download, 'item_slug' => $item_slug, 'video_url' => $video_url, 'installation_video_url' => $installation_video_url, 'future_update' => $future_update, 'item_support' => $item_support, 'created_item' => $created_item, 'updated_item' => $updated_item, 'video_preview_type' => $video_preview_type, 'video_file' => $video_file, 'item_type_cat_id' => $item_category, 'seller_refund_term' => $seller_refund_term, 'seller_money_back' => $seller_money_back, 'seller_money_back_days' => $seller_money_back_days, 'item_allow_seo' => $item_allow_seo, 'item_seo_keyword' => $item_seo_keyword, 'item_seo_desc' => $item_seo_desc, 'audio_file' => $audio_file, 'item_type_id' => $type_id, 'subscription_item' => $subscription_item, 'item_delimiter' => $item_delimiter, 'item_serials_list' => $item_serials_list, 'item_reviewer' => $item_reviewer);
+			if ($request->has('source_url')) {
+			    $data['source_url'] = $request->input('source_url');
+			}
 			
 		    Items::saveitemData($data);
 			
@@ -4811,6 +4824,26 @@ class ItemController extends Controller
 		Items::dropNotify($notid);
 		return redirect()->back()->with('success','Notification details has been removed');
 		
+	}
+
+	/**
+	 * Admin-only product source link. Empty becomes null. A missing scheme
+	 * is stored as https so the nullable|url rule can accept it.
+	 */
+	protected function mergeNormalizedSourceUrl(Request $request): void
+	{
+	    if (!$request->has('source_url')) {
+	        return;
+	    }
+	    $url = trim((string) $request->input('source_url'));
+	    if ($url === '') {
+	        $request->merge(['source_url' => null]);
+	        return;
+	    }
+	    if (!preg_match('#^[a-z][a-z0-9+.-]*://#i', $url)) {
+	        $url = 'https://'.$url;
+	    }
+	    $request->merge(['source_url' => $url]);
 	}
 	
 	

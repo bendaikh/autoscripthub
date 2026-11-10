@@ -163,6 +163,9 @@
                                             <td>@if($item->item_status == 1) <span class="badge badge-success">{{ __('Approved') }}</span> @elseif($item->item_status == 2) <span class="badge badge-danger">{{ __('Rejected') }}</span> @else <span class="badge badge-warning">{{ __('UnApproved') }}</span> @endif</td>
                                             <td class="action-buttons-cell text-center" style="white-space: nowrap;">
                                             <a href="{{ url('/admin') }}/edit-item/{{ $item->item_token }}" class="btn btn-success btn-sm" title="{{ __('Edit Item') }}" data-toggle="tooltip"><i class="fa fa-edit"></i></a>
+                                            @if(!empty($item->source_url))
+                                            <a href="{{ $item->source_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-info btn-sm" title="Open source link"><i class="fa fa-external-link"></i></a>
+                                            @endif
                                             @if(isset($item->file_type) && $item->file_type == 'link')
                                             <button type="button" class="btn btn-warning btn-sm manage-versions-btn" data-item-token="{{ $item->item_token }}" data-item-name="{{ $item->item_name }}" title="{{ __('Manage Versions') }}" data-toggle="tooltip">
                                                 <i class="fa fa-list"></i>
