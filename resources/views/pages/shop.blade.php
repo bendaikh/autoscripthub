@@ -1,21 +1,30 @@
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
-<title>{{ $allsettings->site_title }} - {{ __('Shop') }}</title>
+@php
+  $shopHeading = $shop_heading ?? __('Shop');
+  $shopIsCategory = !empty($shop_is_category);
+  $shopRobots = !empty($seo_noindex) ? 'noindex,follow' : 'index,follow';
+  $shopCanonical = $canonical_url ?? \Fickrr\Support\SiteUrl::to('/shop');
+  $shopTitle = $shopIsCategory
+    ? $shopHeading.' - '.__('Buy Genuine Keys').' | '.$allsettings->site_title
+    : $allsettings->site_title.' - '.__('Shop');
+@endphp
+<title>{{ $shopTitle }}</title>
 <meta name="description" content="{{ $seo_desc }}" />
 <meta name="keywords" content="{{ $seo_keyword }}" />
-<meta name="robots" content="index,follow" />
-<meta property="og:title" content="{{ __('Shop') }}" />
-<meta property="og:type" content="og:product" /> 
+<meta name="robots" content="{{ $shopRobots }}" />
+<meta property="og:title" content="{{ $shopHeading }}" />
+<meta property="og:type" content="website" /> 
 <meta property="og:description" content="{{ $seo_desc }}" /> 
-<meta property="og:url" content="{{ url()->current() }}" /> 
+<meta property="og:url" content="{{ $shopCanonical }}" /> 
 <meta property="og:image" content="{{ url('/') }}/public/storage/settings/{{ $allsettings->site_logo }}" />
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:site" content="{{ __('Shop') }}" />
-<meta name="twitter:title" content="{{ __('Shop') }}" />
+<meta name="twitter:site" content="{{ $allsettings->site_title }}" />
+<meta name="twitter:title" content="{{ $shopHeading }}" />
 <meta name="twitter:description" content="{{ $seo_desc }}" />
 <meta name="twitter:image" content="{{ url('/') }}/public/storage/settings/{{ $allsettings->site_logo }}" />
-<link rel="canonical" href="{{ url()->current() }}" />
+<link rel="canonical" href="{{ $shopCanonical }}" />
 <meta name="twitter:image:src" content="{{ url('/') }}/public/storage/settings/{{ $allsettings->site_logo }}">
 @include('style')
 </head>
@@ -28,12 +37,12 @@
           <nav aria-label="breadcrumb">
             <ol class="breadcrumb flex-lg-nowrap justify-content-center justify-content-lg-star">
               <li class="breadcrumb-item"><a class="text-nowrap" href="{{ URL::to('/') }}"><i class="dwg-home"></i>{{ __('Home') }}</a></li>
-              <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ __('Shop') }}</li>
+              <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ $shopHeading }}</li>
             </ol>
           </nav>
         </div>
         <div class="order-lg-1 pr-lg-4 text-center text-lg-left">
-          <h1 class="h3 mb-0 text-white">{{ __('Shop') }}</h1>
+          <h1 class="h3 mb-0 text-white">{{ $shopHeading }}</h1>
         </div>
       </div>
       </div>

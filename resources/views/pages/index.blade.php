@@ -1,7 +1,43 @@
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
-<title>{{ $addition_settings->site_home_title }} - {{ $allsettings->site_title }}</title>
+@php
+  $hvSiteTitle = trim((string) ($allsettings->site_title ?? ''));
+  $hvHomeTitle = trim((string) ($addition_settings->site_home_title ?? ''));
+  if ($hvHomeTitle === '') {
+      $hvHomeTitle = $hvSiteTitle !== '' ? $hvSiteTitle : 'Auto Script Hub';
+  }
+  $hvHomeDesc = trim(strip_tags((string) ($allsettings->site_desc ?? '')));
+  if ($hvHomeDesc === '') {
+      $hvHomeDesc = $hvHomeTitle.' — digital products, scripts and license keys.';
+  }
+  $hvOrgName = $hvSiteTitle !== '' ? $hvSiteTitle : $hvHomeTitle;
+  $skip_default_description = true;
+  $homeLd = [
+      '@context' => 'https://schema.org',
+      '@graph' => [
+          [
+              '@type' => 'Organization',
+              'name' => $hvOrgName,
+              'url' => \Fickrr\Support\SiteUrl::to('/'),
+          ],
+          [
+              '@type' => 'WebSite',
+              'name' => $hvOrgName,
+              'url' => \Fickrr\Support\SiteUrl::to('/'),
+              'description' => $hvHomeDesc,
+              'potentialAction' => [
+                  '@type' => 'SearchAction',
+                  'target' => \Fickrr\Support\SiteUrl::to('/shop?product_item={search_term_string}'),
+                  'query-input' => 'required name=search_term_string',
+              ],
+          ],
+      ],
+  ];
+@endphp
+<title>{{ $hvHomeTitle }}{{ $hvSiteTitle !== '' && $hvHomeTitle !== $hvSiteTitle ? ' - '.$hvSiteTitle : '' }}</title>
+<meta name="description" content="{{ $hvHomeDesc }}" />
+<script type="application/ld+json">{!! json_encode($homeLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 @include('meta')
 @include('style')
 @if(!empty($category['license_slides']))

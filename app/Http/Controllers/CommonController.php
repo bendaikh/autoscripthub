@@ -4744,27 +4744,28 @@ class CommonController extends Controller
 	  $additional['settings'] = Settings::editAdditional();
 	  $sid = 1;
 	  $setting['setting'] = Settings::editGeneral($sid);
+	  $productSearch = trim((string) request()->query('product_item', ''));
 	  
 	  if($additional['settings']->subscription_mode == 1)
 	  {
 	      if($additional['settings']->shop_search_type == 'normal')
 		  {
-			  $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->orderBy('items.item_id', 'asc')->paginate($setting['setting']->site_item_per_page);
+			  $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->when($productSearch !== '', function ($query) use ($productSearch) { $query->where('items.item_name', 'LIKE', '%'.$productSearch.'%'); })->orderBy('items.item_id', 'asc')->paginate($setting['setting']->site_item_per_page);
 		  }
 		  else
 		  {
-		      $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->orderBy('items.item_id', 'asc')->get();
+		      $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->when($productSearch !== '', function ($query) use ($productSearch) { $query->where('items.item_name', 'LIKE', '%'.$productSearch.'%'); })->orderBy('items.item_id', 'asc')->get();
 		  } 
 	  }
 	  else
 	  {
 	      if($additional['settings']->shop_search_type == 'normal')
 		  {
-			  $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->orderBy('items.item_id', 'asc')->paginate($setting['setting']->site_item_per_page);
+			  $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->when($productSearch !== '', function ($query) use ($productSearch) { $query->where('items.item_name', 'LIKE', '%'.$productSearch.'%'); })->orderBy('items.item_id', 'asc')->paginate($setting['setting']->site_item_per_page);
 		  }
 		  else
 		  {
-		     $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->orderBy('items.item_id', 'asc')->get();
+		     $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->when($productSearch !== '', function ($query) use ($productSearch) { $query->where('items.item_name', 'LIKE', '%'.$productSearch.'%'); })->orderBy('items.item_id', 'asc')->get();
 		  }	  
 	  }
 	  $catData['item'] = Items::getitemcatData();
@@ -4774,7 +4775,9 @@ class CommonController extends Controller
 	  $maxprice['price'] = Items::maxpriceData();
 	  $seo_keyword = $setting['setting']->site_keywords;
 	  $seo_desc = $setting['setting']->site_desc;
-	  return view('shop',[ 'minprice' => $minprice, 'maxprice' => $maxprice, 'getWell' => $getWell, 'itemData' => $itemData, 'catData' => $catData, 'category' => $category, 'method' => $method, 'seo_keyword' => $seo_keyword, 'seo_desc' => $seo_desc]);
+	  $shopMeta = $this->shopListingMeta(null, $setting['setting'], $seo_desc);
+	  $this->abortIfShopPageOutOfRange($itemData['item'] ?? null);
+	  return view('shop',[ 'minprice' => $minprice, 'maxprice' => $maxprice, 'getWell' => $getWell, 'itemData' => $itemData, 'catData' => $catData, 'category' => $category, 'method' => $method, 'seo_keyword' => $seo_keyword, 'seo_desc' => $shopMeta['seo_desc'], 'shop_heading' => $shopMeta['heading'], 'shop_is_category' => $shopMeta['is_category'], 'canonical_url' => $shopMeta['canonical'], 'seo_noindex' => $shopMeta['noindex'] || $productSearch !== '']);
 	  
 	}
 	
@@ -5863,6 +5866,7 @@ class CommonController extends Controller
 	public function view_category_types($type,$slug)
 	{
 	  $method = "get";
+	  $category_data = null;
 	  $sid = 1;
       $setting['setting'] = Settings::editGeneral($sid);
 	  $today = date("Y-m-d");
@@ -6041,7 +6045,9 @@ class CommonController extends Controller
 	  $getWell['type'] = Items::gettypeStatus();
 	  $minprice['price'] = Items::minpriceData();
 	  $maxprice['price'] = Items::maxpriceData();
-	  return view('shop',[ 'minprice' => $minprice, 'maxprice' => $maxprice, 'getWell' => $getWell, 'itemData' => $itemData, 'catData' => $catData, 'category' => $category, 'method' => $method, 'seo_keyword' => $seo_keyword, 'seo_desc' => $seo_desc]);
+	  $shopMeta = $this->shopListingMeta($category_data ?? null, $setting['setting'], $seo_desc);
+	  $this->abortIfShopPageOutOfRange($itemData['item'] ?? null);
+	  return view('shop',[ 'minprice' => $minprice, 'maxprice' => $maxprice, 'getWell' => $getWell, 'itemData' => $itemData, 'catData' => $catData, 'category' => $category, 'method' => $method, 'seo_keyword' => $seo_keyword, 'seo_desc' => $shopMeta['seo_desc'], 'shop_heading' => $shopMeta['heading'], 'shop_is_category' => $shopMeta['is_category'], 'canonical_url' => $shopMeta['canonical'], 'seo_noindex' => $shopMeta['noindex']]);
 	  
 	}
 	
@@ -6215,7 +6221,9 @@ class CommonController extends Controller
 	$maxprice['price'] = Items::maxpriceData();
 	$seo_keyword = $setting['setting']->site_keywords;
 	$seo_desc = $setting['setting']->site_desc;
-	return view('shop',[ 'minprice' => $minprice, 'maxprice' => $maxprice, 'getWell' => $getWell, 'itemData' => $itemData, 'category' => $category, 'type' => $type, 'meta_keyword' => $meta_keyword, 'meta_desc' => $meta_desc, 'method' => $method, 'seo_keyword' => $seo_keyword, 'seo_desc' => $seo_desc]);
+	$shopMeta = $this->shopListingMeta(null, $setting['setting'], $seo_desc);
+	$this->abortIfShopPageOutOfRange($itemData['item'] ?? null);
+	return view('shop',[ 'minprice' => $minprice, 'maxprice' => $maxprice, 'getWell' => $getWell, 'itemData' => $itemData, 'category' => $category, 'type' => $type, 'meta_keyword' => $meta_keyword, 'meta_desc' => $meta_desc, 'method' => $method, 'seo_keyword' => $seo_keyword, 'seo_desc' => $shopMeta['seo_desc'], 'shop_heading' => __('Shop'), 'shop_is_category' => false, 'canonical_url' => \Fickrr\Support\SiteUrl::to('/shop'), 'seo_noindex' => true]);
 	}
 	
 	
@@ -6344,15 +6352,21 @@ class CommonController extends Controller
 		  
 		  
 		  
+		  $category_slug = '';
+		  $category_kind = '';
 		  if($item_cat_type == 'category')
 		  {
 			 $category['name'] = Category::getsinglecatData($item_cat_id);
 			 $category_name = $category['name']->category_name;
+			 $category_slug = $category['name']->category_slug ?? '';
+			 $category_kind = 'category';
 		  }
 		  else if($item_cat_type == 'subcategory')
 		  {
 			$category['name'] = SubCategory::getsinglesubcatData($item_cat_id);
 			$category_name = $category['name']->subcategory_name;
+			$category_slug = $category['name']->subcategory_slug ?? '';
+			$category_kind = 'subcategory';
 		  }
 		  else
 		  {
@@ -6444,7 +6458,7 @@ class CommonController extends Controller
 		      }
 		  }
 		  
-		  $data = array('item' => $item, 'getcount' => $getcount, 'item_image' => $item_image, 'item_allimage' => $item_allimage, 'category_name' => $category_name, 'item_tags' => $item_tags, 'itemData' => $itemData, 'checkif_purchased' => $checkif_purchased, 'getreview' => $getreview, 'count_rating' => $count_rating, 'getreviewdata' => $getreviewdata, 'comment' => $comment, 'comment_count' => $comment_count, 'badges' => $badges, 'country' => $country, 'trends' => $trends, 'year' => $year, 'sold_amount' => $sold_amount, 'collect_amount' => $collect_amount, 'referral_count' => $referral_count, 'viewattribute' => $viewattribute, 'item_slug' => $item_slug, 'page' => $page, 'related' => $related, 'check_if_item' => $check_if_item, 'other_market_link' => $other_market_link, 'versionLinks' => $versionLinks);
+		  $data = array('item' => $item, 'getcount' => $getcount, 'item_image' => $item_image, 'item_allimage' => $item_allimage, 'category_name' => $category_name, 'category_slug' => $category_slug, 'category_kind' => $category_kind, 'item_tags' => $item_tags, 'itemData' => $itemData, 'checkif_purchased' => $checkif_purchased, 'getreview' => $getreview, 'count_rating' => $count_rating, 'getreviewdata' => $getreviewdata, 'comment' => $comment, 'comment_count' => $comment_count, 'badges' => $badges, 'country' => $country, 'trends' => $trends, 'year' => $year, 'sold_amount' => $sold_amount, 'collect_amount' => $collect_amount, 'referral_count' => $referral_count, 'viewattribute' => $viewattribute, 'item_slug' => $item_slug, 'page' => $page, 'related' => $related, 'check_if_item' => $check_if_item, 'other_market_link' => $other_market_link, 'versionLinks' => $versionLinks);
 		 }
 		 else
 		 {
@@ -6774,6 +6788,55 @@ class CommonController extends Controller
 			'success' => true,
 			'notifications' => $notifications
 		]);
+	}
+
+	protected function abortIfShopPageOutOfRange($items): void
+	{
+		$page = (int) request()->query('page', 1);
+		if ($page < 2 || !is_object($items) || !method_exists($items, 'lastPage')) {
+			return;
+		}
+		$last = max(1, (int) $items->lastPage());
+		if ($page > $last) {
+			abort(404);
+		}
+	}
+
+	protected function shopListingMeta($category, $settings, $seoDesc): array
+	{
+		$heading = 'Shop';
+		$isCategory = false;
+		$path = '/shop';
+		$desc = trim(strip_tags((string) $seoDesc));
+		if (is_object($category) && !empty($category->category_name)) {
+			$heading = $category->category_name;
+			$isCategory = true;
+			$path = '/shop/category/'.$category->category_slug;
+			$own = trim(strip_tags((string) ($category->category_seo_desc ?? '')));
+			$desc = $own !== '' ? $own : ('Buy genuine '.$heading.' with instant delivery from '.$settings->site_title.'.');
+		} elseif (is_object($category) && !empty($category->subcategory_name)) {
+			$heading = $category->subcategory_name;
+			$isCategory = true;
+			$path = '/shop/subcategory/'.$category->subcategory_slug;
+			$own = trim(strip_tags((string) ($category->subcategory_seo_desc ?? '')));
+			$desc = $own !== '' ? $own : ('Buy genuine '.$heading.' with instant delivery from '.$settings->site_title.'.');
+		}
+		$page = max(1, (int) request()->query('page', 1));
+		$noindex = request()->isMethod('post');
+		foreach (['orderby', 'min_price', 'max_price', 'product_item', 'item_type', 'category_names'] as $key) {
+			if (request()->filled($key)) {
+				$noindex = true;
+			}
+		}
+		$canonical = \Fickrr\Support\SiteUrl::to($path.((!$noindex && $page > 1) ? '?page='.$page : ''));
+
+		return [
+			'heading' => $heading,
+			'is_category' => $isCategory,
+			'seo_desc' => $desc !== '' ? $desc : (string) ($settings->site_desc ?? $heading),
+			'canonical' => $canonical,
+			'noindex' => $noindex,
+		];
 	}
 	
 }

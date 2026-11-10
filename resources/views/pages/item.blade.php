@@ -17,17 +17,85 @@ else
 $item_price = 0;
 $extend_item_price = 0;
 @endif
-<script type="application/ld+json">
-{
-	  "@context": "http://schema.org",
-	  "@type": "WebSite",
-	  "name": "{{ $allsettings->site_title }}",
-	  "url": "{{ URL::to('/') }}"
-}
-</script>
-<script type="application/ld+json">
-	         {"@context":"http://schema.org","@type":"Product","category":"{{ $category_name }}","url":"{{ URL::to('/item') }}/{{ $item['item']->item_slug }}","description":"{{ $item['item']->item_seo_desc }}","name":"{{ $item['item']->item_seo_desc }}","image":"{{ Helper::Image_Path(($item['item']->item_preview ?? $item['item']->item_thumbnail),'no-image.png') }}","brand":{"@type":"Brand","name":"{{ $item['item']->item_name }}"},"sku":"{{ $item['item']->item_token }}","mpn":"I-{{ $item['item']->item_token }}","offers":{"@type":"Offer","Price":"{{ $item_price }}", "priceCurrency":"{{ $multicurrency }}", "priceValidUntil":"{{ date('Y-m-d H:i:s') }}", "availability":"http://schema.org/InStock", "itemCondition":"http://schema.org/NewCondition" ,"url":"{{ URL::to('/item') }}/{{ $item['item']->item_slug }}"}, "aggregateRating":{"@type":"AggregateRating","ratingValue":"{{ $getreview }}","reviewCount":"{{ $getreview }}"},  "review": [ { "@type": "Review", "reviewRating": { "@type": "Rating", "ratingValue": "{{ $getreview }}" , "bestRating":"{{ $getreview }}"}, "author": { "@type": "Person", "name": "{{ $item['item']->username }}" }}    ]}
-</script>
+@if(!empty($check_if_item))
+@php
+  $schemaItem = $item['item'];
+  $schemaDesc = trim(strip_tags((string) ($schemaItem->item_shortdesc ?: ($schemaItem->item_seo_desc ?: $schemaItem->item_desc ?? ''))));
+  $schemaImage = \Fickrr\Support\SiteUrl::absolute(Helper::Image_Path($schemaItem->item_preview ?: 'no-image.png', 'no-image.png'));
+  $schemaUrl = \Fickrr\Support\SiteUrl::to('/item/'.$schemaItem->item_slug);
+  $schemaPrice = round((float) $schemaItem->regular_price, 2);
+  $productLd = [
+      '@context' => 'https://schema.org',
+      '@type' => 'Product',
+      'name' => $schemaItem->item_name,
+      'description' => $schemaDesc,
+      'image' => $schemaImage,
+      'sku' => (string) $schemaItem->item_id,
+      'brand' => [
+          '@type' => 'Brand',
+          'name' => $allsettings->site_title,
+      ],
+      'offers' => [
+          '@type' => 'Offer',
+          'price' => $schemaPrice,
+          'priceCurrency' => $multicurrency ?: 'USD',
+          'availability' => 'https://schema.org/InStock',
+          'url' => $schemaUrl,
+          'priceValidUntil' => date('Y-m-d', strtotime('+1 year')),
+      ],
+  ];
+  $reviewCount = (int) ($getreview ?? 0);
+  $ratingValue = (int) ($count_rating ?? 0);
+  if ($reviewCount > 0 && $ratingValue > 0) {
+      $productLd['aggregateRating'] = [
+          '@type' => 'AggregateRating',
+          'ratingValue' => $ratingValue,
+          'reviewCount' => $reviewCount,
+          'bestRating' => 5,
+      ];
+      $productLd['review'] = [];
+      foreach (($getreviewdata['view'] ?? []) as $schemaReview) {
+          $productLd['review'][] = [
+              '@type' => 'Review',
+              'reviewRating' => [
+                  '@type' => 'Rating',
+                  'ratingValue' => (int) ($schemaReview->rating ?? 0),
+                  'bestRating' => 5,
+              ],
+              'author' => [
+                  '@type' => 'Person',
+                  'name' => $schemaReview->username ?? 'Customer',
+              ],
+              'reviewBody' => trim(strip_tags((string) ($schemaReview->rating_comment ?? ''))),
+          ];
+      }
+  }
+  $crumbs = [
+      ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => \Fickrr\Support\SiteUrl::to('/')],
+  ];
+  if (!empty($category_name) && !empty($category_slug) && !empty($category_kind)) {
+      $crumbs[] = [
+          '@type' => 'ListItem',
+          'position' => 2,
+          'name' => $category_name,
+          'item' => \Fickrr\Support\SiteUrl::to('/shop/'.$category_kind.'/'.$category_slug),
+      ];
+  }
+  $crumbs[] = [
+      '@type' => 'ListItem',
+      'position' => count($crumbs) + 1,
+      'name' => $schemaItem->item_name,
+      'item' => $schemaUrl,
+  ];
+  $breadcrumbLd = [
+      '@context' => 'https://schema.org',
+      '@type' => 'BreadcrumbList',
+      'itemListElement' => $crumbs,
+  ];
+@endphp
+<script type="application/ld+json">{!! json_encode($productLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+<script type="application/ld+json">{!! json_encode($breadcrumbLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+@endif
 @if($check_if_item != 0)
 <title>{{ $allsettings->site_title }} - {{ $item['item']->item_name }}</title>
 @if($item_slug != '')
@@ -37,7 +105,9 @@ $extend_item_price = 0;
 <meta name="keywords" content="{{ $item['item']->item_seo_keyword }}" />
 <meta name="robots" content="index,follow" />
 <meta property="og:title" content="{{ $item['item']->item_name }}" />
-<meta property="og:type" content="og:product" /> 
+<meta property="og:type" content="product" />
+<meta property="product:price:amount" content="{{ $schemaItem->regular_price ?? $item_price }}" />
+<meta property="product:price:currency" content="{{ $multicurrency ?: 'USD' }}" /> 
 <meta property="og:description" content="{{ $item['item']->item_seo_desc }}" /> 
 <meta property="og:url" content="{{ url()->current() }}" /> 
 <meta property="og:image" content="{{ Helper::Image_Path(($item['item']->item_preview ?? $item['item']->item_thumbnail),'no-image.png') }}" />
