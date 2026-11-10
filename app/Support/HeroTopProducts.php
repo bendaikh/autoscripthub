@@ -49,20 +49,22 @@ class HeroTopProducts
         foreach ($categories as $category) {
             $slug = trim((string) ($category['slug'] ?? ''));
             $name = trim((string) ($category['name'] ?? ''));
-            if ($slug === '' || $name === '') {
+            $count = (int) ($categoryCounts[(int) ($category['id'] ?? 0)] ?? 0);
+            if ($slug === '' || $name === '' || $count < 1) {
                 continue;
             }
             $names[] = self::norm($name);
-            $rows[] = self::row($name, $slug, 'category', (int) ($categoryCounts[(int) ($category['id'] ?? 0)] ?? 0));
+            $rows[] = self::row($name, $slug, 'category', $count);
         }
 
         foreach ($types as $type) {
             $slug = trim((string) ($type['slug'] ?? ''));
             $name = trim((string) ($type['name'] ?? ''));
-            if ($slug === '' || $name === '' || self::covered($name, $names)) {
+            $count = (int) ($typeCounts[$slug] ?? 0);
+            if ($slug === '' || $name === '' || $count < 1 || self::covered($name, $names)) {
                 continue;
             }
-            $rows[] = self::row($name, $slug, 'item-type', (int) ($typeCounts[$slug] ?? 0));
+            $rows[] = self::row($name, $slug, 'item-type', $count);
         }
 
         usort($rows, function (array $a, array $b) {
