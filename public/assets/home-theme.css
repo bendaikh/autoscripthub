@@ -1416,3 +1416,14 @@ body.home-v2 .hv-quote-user .hv-quote-avatar {
   line-height: 1;
   color: #fff;
 }
+
+/* Hero floating cards: keep icon centered (overrides .hv-float span display:block) */
+body.home-v2 .hv-float .hv-float-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .85rem;
+  line-height: 1;
+  color: #fff;
+}
+body.home-v2 .hv-float .hv-float-icon i { line-height: 1; margin: 0; }
