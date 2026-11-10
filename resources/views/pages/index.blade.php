@@ -407,34 +407,27 @@
 
 <!-- ============================ Popular ============================ -->
 @if(count($popular['items']) != 0)
-<section class="hv-section flash-sale hv-popular-slider" data-aos="fade-up" data-aos-delay="200">
+<section class="hv-section hv-popular-slider" data-aos="fade-up" data-aos-delay="200">
+  <span class="hv-trend-glow hv-trend-glow--a" aria-hidden="true"></span>
+  <span class="hv-trend-glow hv-trend-glow--b" aria-hidden="true"></span>
   <div class="container">
-    <div class="hv-head">
+    <div class="hv-head hv-trend-head">
       <div>
+        <span class="hv-trend-pill">&#128293; {{ __('Trending now') }}</span>
         <h2>{{ __('Popular Items') }}</h2>
         <p>{{ __('What other customers are buying right now') }}</p>
       </div>
-      <a class="hv-head-link" href="{{ URL::to('/') }}/popular-items">{{ __('View All Products') }}<i class="dwg-arrow-right"></i></a>
+      <a class="hv-trend-all" href="{{ URL::to('/') }}/popular-items">{{ __('View All Products') }}</a>
     </div>
-    <div class="hv-license-row">
-    <div class="hv-license-wrap">
-      <button type="button" class="hv-license-arrow hv-license-prev" aria-label="{{ __('Previous') }}">&#8249;</button>
-      <div class="owl-carousel hv-license-slider hv-license-products">
-        @foreach($popular['items'] as $popularItem)
-        @php
-          $price = Helper::catalog_price($popularItem);
-          $price_exact = Helper::is_single_price_item($popularItem);
-          $count_rating = Helper::count_rating($popularItem->ratings);
-          $hvTag = $hvTagClass = null;
-        @endphp
-        <div class="hv-license-product-slide">
-          @include('partials.product-card', ['featured' => $popularItem])
-        </div>
+    <div class="hv-trend-row">
+      <button type="button" class="hv-trend-arrow hv-trend-prev" aria-label="{{ __('Previous') }}">&#8249;</button>
+      <div class="owl-carousel hv-trend-slider">
+        @foreach($popular['items'] as $popularIndex => $popularItem)
+        @include('partials.popular-trend-card', ['featured' => $popularItem, 'trendRank' => $popularIndex + 1])
         @endforeach
       </div>
-      <button type="button" class="hv-license-arrow hv-license-next" aria-label="{{ __('Next') }}">&#8250;</button>
-    </div>
-    <div class="hv-license-dots" role="tablist" aria-label="{{ __('Popular Items') }}"></div>
+      <button type="button" class="hv-trend-arrow hv-trend-next" aria-label="{{ __('Next') }}">&#8250;</button>
+      <div class="hv-trend-dots" role="tablist" aria-label="{{ __('Popular Items') }}"></div>
     </div>
   </div>
 </section>
@@ -834,6 +827,59 @@ jQuery(function ($) {
     $row.find('.hv-license-next').on('click', function () { $slider.trigger('next.owl.carousel'); });
     $row.find('.hv-license-prev').on('click', function () { $slider.trigger('prev.owl.carousel'); });
   });
+
+  $('.hv-popular-slider').each(function () {
+    var $row = $(this);
+    var $slider = $row.find('.hv-trend-slider');
+    var $dots = $row.find('.hv-trend-dots');
+    if (!$slider.length || typeof $.fn.owlCarousel !== 'function') {
+      $slider.addClass('is-static');
+      return;
+    }
+    var count = $slider.children().length;
+    $slider.owlCarousel({
+      items: 1.2,
+      margin: 16,
+      loop: count > 1,
+      autoplay: count > 1,
+      autoplayTimeout: 4200,
+      autoplayHoverPause: true,
+      smartSpeed: 450,
+      mouseDrag: true,
+      touchDrag: true,
+      nav: false,
+      dots: false,
+      responsive: {
+        0: { items: 1.2 },
+        768: { items: 2 },
+        1100: { items: Math.min(4, count) }
+      }
+    });
+    $slider.trigger('refresh.owl.carousel');
+    if (count < 2) {
+      $row.find('.hv-trend-arrow, .hv-trend-dots').hide();
+      return;
+    }
+    for (var i = 0; i < count; i++) {
+      $dots.append('<button type="button" class="hv-trend-dot' + (i === 0 ? ' is-active' : '') + '" data-index="' + i + '" aria-label="' + (i + 1) + '"></button>');
+    }
+    function realIndex(event) {
+      var clones = event.relatedTarget && event.relatedTarget._clones ? event.relatedTarget._clones.length / 2 : 0;
+      var index = event.item.index - clones;
+      index = ((index % count) + count) % count;
+      return index;
+    }
+    $slider.on('changed.owl.carousel', function (event) {
+      if (!event.namespace) return;
+      var index = realIndex(event);
+      $dots.children().removeClass('is-active').eq(index).addClass('is-active');
+    });
+    $dots.on('click', '.hv-trend-dot', function () {
+      $slider.trigger('to.owl.carousel', [$(this).data('index'), 400, true]);
+    });
+    $row.find('.hv-trend-next').on('click', function () { $slider.trigger('next.owl.carousel'); });
+    $row.find('.hv-trend-prev').on('click', function () { $slider.trigger('prev.owl.carousel'); });
+  });
 });
 </script>
 <script>
@@ -847,7 +893,7 @@ jQuery(function ($) {
     }
   }
   if (window.jQuery) {
-    jQuery('.hv-license-slider').on('initialized.owl.carousel refreshed.owl.carousel', function () {
+    jQuery('.hv-license-slider, .hv-trend-slider').on('initialized.owl.carousel refreshed.owl.carousel', function () {
       window.setTimeout(refreshAos, 50);
     });
     jQuery(function () {
