@@ -665,7 +665,55 @@ body.home-v2 .hv-stars {
 
 /* ==========================================================================
    Browse categories
+   Compact tiles only. License Keys cards also use .hv-cat, so these
+   overrides stay under .hv-browse.
    ========================================================================== */
+
+body.home-v2 .hv-section.hv-browse {
+  padding: 2.75rem 0;
+}
+
+body.home-v2 .hv-browse .hv-head {
+  margin-bottom: 1rem;
+}
+
+body.home-v2 .hv-browse .row {
+  margin-left: -6px;
+  margin-right: -6px;
+}
+
+body.home-v2 .hv-browse .row > [class*="col-"] {
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+body.home-v2 .hv-browse .hv-cat {
+  padding: .5rem .4rem .45rem;
+  border-radius: 12px;
+}
+
+body.home-v2 .hv-browse .hv-cat:hover {
+  transform: translateY(-2px);
+}
+
+body.home-v2 .hv-browse .hv-cat-icon {
+  width: 36px;
+  height: 36px;
+  margin: 0 auto .3rem;
+  border-radius: 50%;
+  font-size: .85rem;
+}
+
+body.home-v2 .hv-browse .hv-cat h3 {
+  font-size: .75rem;
+  line-height: 1.25;
+  margin: 0 0 .05rem;
+}
+
+body.home-v2 .hv-browse .hv-cat p {
+  font-size: .66rem;
+  line-height: 1.2;
+}
 
 body.home-v2 .hv-cat {
   display: block;
@@ -744,13 +792,6 @@ body.home-v2 .hv-license-products .hv-license-product-slide > [class*="col-"] {
   margin-bottom: 0;
 }
 
-body.home-v2 .hv-license-products .product-thumb img {
-  width: auto;
-  max-width: 100%;
-  height: auto;
-  max-height: 178px;
-  object-fit: contain;
-}
 
 body.home-v2 .hv-license-slide {
   padding: 4px 2px 8px;
@@ -860,6 +901,32 @@ body.home-v2 .hv-section .product-card-alt .product-thumb img {
   height: auto;
   max-height: 178px;
   object-fit: contain;
+}
+
+/* License Products only. Featured and the other rows keep the rules
+   above. Owl sets `.owl-item img { width: 100% }` and the theme sets
+   `object-fit: cover; height: 200px`, which crops box art. */
+body.home-v2 .hv-license-products .product-card-alt .product-thumb {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  height: auto;
+  min-height: 0;
+  background: #f5f6f8;
+  overflow: hidden;
+}
+
+body.home-v2 .hv-license-products .product-thumb img,
+body.home-v2 .hv-license-products .owl-item img.product-photo,
+body.home-v2 .hv-license-products .owl-item img.lazy {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: contain !important;
+  object-position: center center !important;
 }
 
 body.home-v2 .hv-section .product-card-alt .card-body {
