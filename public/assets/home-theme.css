@@ -917,8 +917,7 @@ body.home-v2 .hv-license-products .product-card-alt .product-thumb {
 }
 
 body.home-v2 .hv-license-products .product-thumb img,
-body.home-v2 .hv-license-products .owl-item img.product-photo,
-body.home-v2 .hv-license-products .owl-item img.lazy {
+body.home-v2 .hv-license-products .owl-item .product-thumb img.product-photo {
   position: absolute;
   inset: 0;
   width: 100% !important;
