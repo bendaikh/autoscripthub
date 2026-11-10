@@ -1427,3 +1427,12 @@ body.home-v2 .hv-float .hv-float-icon {
   color: #fff;
 }
 body.home-v2 .hv-float .hv-float-icon i { line-height: 1; margin: 0; }
+
+/* Popular Items uses the same Owl row as License Products. */
+body.home-v2 .hv-popular-slider .owl-carousel,
+body.home-v2 .hv-popular-slider .owl-carousel.owl-loading,
+body.home-v2 .hv-popular-slider .owl-carousel.owl-loaded,
+body.home-v2 .hv-popular-slider .owl-carousel.is-static {
+  display: block;
+  opacity: 1;
+}
