@@ -1395,3 +1395,14 @@ body.home-v2 .hv-news-form button:hover {
 body.home-v2[dir="rtl"] .hv-search input.form-control { padding-left: 1rem; padding-right: 2.6rem; }
 body.home-v2[dir="rtl"] .hv-search-field > i { left: auto; right: 1rem; }
 body.home-v2[dir="rtl"] .hv-tag { left: auto; right: .7rem; }
+
+/* Stats icons: keep centered (overrides .hv-stat span display:block) */
+body.home-v2 .hv-stat .hv-stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto .7rem;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+body.home-v2 .hv-stat .hv-stat-icon i { line-height: 1; margin: 0; }
