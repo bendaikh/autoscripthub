@@ -3111,7 +3111,7 @@ class CommonController extends Controller
 			   }
 			   $csf_token = csrf_token();
 			   $logo_url = $website_url.'/public/storage/settings/'.$setting['setting']->site_logo;
-			   $script_url = $website_url.'/resources/views/theme/js/vendor.min.js';
+			   $script_url = asset('theme/js/vendor.min.js');
 			   $callback = $website_url.'/razorpay';
 			   $razorpay = '
 			   <script type="text/javascript" src="'.$script_url.'"></script>
@@ -3986,7 +3986,7 @@ class CommonController extends Controller
 			   }
 			   $csf_token = csrf_token();
 			   $logo_url = $website_url.'/public/storage/settings/'.$setting['setting']->site_logo;
-			   $script_url = $website_url.'/resources/views/theme/js/vendor.min.js';
+			   $script_url = asset('theme/js/vendor.min.js');
 			   $callback = $website_url.'/razorpay';
 			   $razorpay = '
 			   <script type="text/javascript" src="'.$script_url.'"></script>
@@ -4573,7 +4573,8 @@ class CommonController extends Controller
 	
 	public function view_tags($type,$slug,Request $request)
 	{
-	   $nslug = str_replace("-"," ",$slug);
+	   $slug = \Fickrr\Support\TagSlug::decode($slug);
+	   $nslug = $slug;
 	   $sid = 1;
 	   $setting['setting'] = Settings::editGeneral($sid);
 	   $today = date("Y-m-d");
@@ -4879,7 +4880,13 @@ class CommonController extends Controller
 	
 	public function view_preview($item_slug)
 	{
+	   if (Items::singleitemCount($item_slug) == 0) {
+		   abort(404);
+	   }
 	   $item['item'] = Items::singleitemData($item_slug);
+	   if (empty($item['item'])) {
+		   abort(404);
+	   }
 	   $data = array('item' => $item);
 	   return view('preview')->with($data);
 	}
@@ -6117,7 +6124,7 @@ class CommonController extends Controller
 				   }
 				   else
 				   {
-				     return view('/404');
+				     abort(404);
 				   }
 				}
 				else
@@ -6149,7 +6156,7 @@ class CommonController extends Controller
 				  }
 				   else
 				   {
-				     return view('/404');
+				     abort(404);
 				   }
 				}
 				
@@ -6201,7 +6208,7 @@ class CommonController extends Controller
 				   }
 				   else
 				   {
-				     return view('/404');
+				     abort(404);
 				   }
 				}
 				else
@@ -6232,7 +6239,7 @@ class CommonController extends Controller
 				  }
 				  else
 				  {
-				     return view('/404');
+				     abort(404);
 				  }
 				}
 				
@@ -6514,7 +6521,11 @@ class CommonController extends Controller
 
 	public function view_single_item($item_slug)
 	{
-	  
+	  $legacySlug = \Fickrr\Support\LegacyItemSlugs::target($item_slug);
+	  if ($legacySlug !== null) {
+		  return redirect('/item/'.$legacySlug, 301);
+	  }
+
 	  $sid = 1;
 	  $badges['setting'] = Settings::editBadges($sid);
 	  $check_item_available = Items::singleitemCount($item_slug);

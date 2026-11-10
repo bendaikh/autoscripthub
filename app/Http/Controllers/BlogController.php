@@ -49,6 +49,7 @@ class BlogController extends Controller
 	
 	public function view_tags($slug)
 	{
+	$slug = \Fickrr\Support\TagSlug::decode($slug);
 	$blogData['post'] = Blog::alltagData($slug);
 	$blogPost['latest'] = Blog::getlatestData();
 	$comments = Blog::getgroupcommentData(); 
@@ -90,7 +91,7 @@ class BlogController extends Controller
 	  }
 	  else
 	  {
-	  return redirect('/404');
+	  abort(404);
 	  }
 	 
 	}

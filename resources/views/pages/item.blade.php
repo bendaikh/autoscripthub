@@ -188,21 +188,21 @@ $extend_item_price = 0;
                       @endphp
                       <iframe width="100%" height="430" src="https://www.youtube.com/embed/{{ $video_id }}?rel=0&version=3&loop=1&playlist={{ $video_id }}" frameborder="3" class="frame-border" allow="autoplay" scrolling="no"></iframe> 
                       @else
-                      <img class="lazy single-thumbnail" width="762" height="430" src="{{ url('/') }}/resources/views/assets/no-video.png"  alt="{{ $item['item']->item_name }}">
+                      <img class="lazy single-thumbnail" width="762" height="430" src="{{ asset('assets/no-video.png') }}"  alt="{{ $item['item']->item_name }}">
                       @endif
                       @endif
                       @if($item['item']->video_preview_type == 'mp4')
                       @if($item['item']->video_file != '')
 					  <video width="100%" height="auto" src="{{ Helper::Image_Path($item['item']->video_file,'no-video.png') }}" controls>{{ __('Your browser does not support the video tag.') }}</video>	  
                       @else
-                      <img class="lazy single-thumbnail" width="762" height="430" src="{{ url('/') }}/resources/views/assets/no-video.png"  alt="{{ $item['item']->item_name }}">
+                      <img class="lazy single-thumbnail" width="762" height="430" src="{{ asset('assets/no-video.png') }}"  alt="{{ $item['item']->item_name }}">
                       @endif
                       @endif
                       @if($item['item']->video_preview_type == 'mp3')
                       @if($item['item']->audio_file != '')
 					  <audio controls="controls"><source src="{{ Helper::Image_Path($item['item']->audio_file,'no-audio.png') }}" type="audio/mpeg" /></audio>	  
                       @else
-                      <img class="lazy single-thumbnail" width="762" height="430" src="{{ url('/') }}/resources/views/assets/no-audio.png"  alt="{{ $item['item']->item_name }}">
+                      <img class="lazy single-thumbnail" width="762" height="430" src="{{ asset('assets/no-audio.png') }}"  alt="{{ $item['item']->item_name }}">
                       @endif
                       @endif
                       @else  
@@ -1129,7 +1129,7 @@ $extend_item_price = 0;
                  <li class="justify-content-between pb-3 border-bottom"><span class="text-dark font-weight-medium">{{ __('Tags') }}</span><br/>
                  @php $item_tags = explode(',',$item['item']->item_tags); @endphp
                  @foreach($item_tags as $tags)
-                 <span class="text-right"><a href="{{ url('/tag') }}/item/{{ strtolower(str_replace(' ','-',$tags)) }}" class="link-color">{{ $tags.',' }}</a></span>
+                 <span class="text-right"><a href="{{ url('/tag/item/'.\Fickrr\Support\TagSlug::encode($tags)) }}" class="link-color">{{ $tags.',' }}</a></span>
                  @endforeach
                  </li>
                  @endif

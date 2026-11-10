@@ -1871,7 +1871,7 @@
   <div class="modal-dialog">
     <div class="modal-content">
         <div class="modal-body">
-            <img class="lazy" width="1223" height="678" src="{{ url('/') }}/resources/views/assets/robokassa_info.png"  class="img-responsive">
+            <img class="lazy" width="1223" height="678" src="{{ asset('assets/robokassa_info.png') }}"  class="img-responsive">
         </div>
     </div>
   </div>
@@ -1880,7 +1880,7 @@
   <div class="modal-dialog">
     <div class="modal-content">
         <div class="modal-body">
-            <img class="lazy" width="1223" height="678" src="{{ url('/') }}/resources/views/assets/coinbase_info.png"  class="img-responsive">
+            <img class="lazy" width="1223" height="678" src="{{ asset('assets/coinbase_info.png') }}"  class="img-responsive">
         </div>
     </div>
   </div>
@@ -1889,8 +1889,8 @@
   <div class="modal-dialog">
     <div class="modal-content">
         <div class="modal-body">
-            <img class="lazy" width="1223" height="678" src="{{ url('/') }}/resources/views/theme/img/cashfree1.png"  class="img-responsive">
-            <img class="lazy" width="1223" height="678" src="{{ url('/') }}/resources/views/theme/img/cashfree2.png"  class="img-responsive">
+            <img class="lazy" width="1223" height="678" src="{{ asset('theme/img/cashfree1.png') }}"  class="img-responsive">
+            <img class="lazy" width="1223" height="678" src="{{ asset('theme/img/cashfree2.png') }}"  class="img-responsive">
         </div>
     </div>
   </div>

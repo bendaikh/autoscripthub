@@ -569,7 +569,7 @@ Route::get('/featured-items', 'CommonController@view_featured_items')->middlewar
 Route::get('/free-items', 'CommonController@view_free_items')->middleware('cacheable:5');
 Route::get('/new-releases', 'CommonController@view_new_items')->middleware('cacheable:5');
 Route::get('/popular-items', 'CommonController@view_popular_items')->middleware('cacheable:5');
-Route::get('/tag/{item}/{slug}', 'CommonController@view_tags')->middleware('cacheable:5');
+Route::get('/tag/{item}/{slug}', 'CommonController@view_tags')->where('slug', '.*')->middleware('cacheable:5');
 Route::get('/subscriber-downloads', 'CommonController@view_subscriber_downloads')->middleware('cacheable:5');
 /* item pages */
 
@@ -755,7 +755,7 @@ Route::get('/blog', 'BlogController@view_blog')->middleware('cacheable:5');
 Route::get('/single/{slug}', 'BlogController@view_single')->middleware('cacheable:5');
 Route::get('/blog/{category}/{id}/{slug}', 'BlogController@view_category_blog')->middleware('cacheable:5');
 Route::post('/single', ['as' => 'single','uses'=>'BlogController@insert_comment'])->middleware('cacheable:5');
-Route::get('/blog/{tag}', 'BlogController@view_tags');
+Route::get('/blog/{tag}', 'BlogController@view_tags')->where('tag', '.*');
 /* blog */
 
 

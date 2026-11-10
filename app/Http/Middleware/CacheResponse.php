@@ -25,13 +25,13 @@ class CacheResponse
             Cache::forget($key);
         if(Cache::has($key)){
             $cache = Cache::get($key);
-            $response = response($cache['content']);
+            $response = response($cache['content'], $cache['status'] ?? 200);
             $response->header('X-Proxy-Cache', 'HIT');
         }
         else {
             $response = $next($request);
-            if(!empty($response->content()))
-                Cache::put($key,['content' => $response->content()],$ttl);
+            if($response->getStatusCode() === 200 && !empty($response->content()))
+                Cache::put($key,['content' => $response->content(), 'status' => 200],$ttl);
             $response->header('X-Proxy-Cache', 'MISS');
         }
 

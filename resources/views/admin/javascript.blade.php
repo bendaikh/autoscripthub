@@ -286,7 +286,7 @@
 });
 </script>
 <script src="{{ asset('admin/dragdrop/js/jquery.filer.min.js') }}" type="text/javascript"></script>
-<?php /*?><script src="{{ asset('resources/views/admin/template/dragdrop/js/custom.js') }}" type="text/javascript"></script><?php */?>
+<?php /*?><script src="{{ asset('admin/dragdrop/js/custom.js') }}" type="text/javascript"></script><?php */?>
 <script src="{{ asset('theme/validate/jquery.bvalidator.min.js') }}"></script>
 <script src="{{ asset('theme/validate/themes/presenters/default.min.js') }}"></script>
 <script src="{{ asset('theme/validate/themes/red/red.js') }}"></script>

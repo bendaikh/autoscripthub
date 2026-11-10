@@ -34,7 +34,7 @@
                 @include('user-data')
                </div>
                <div class="ajax-load text-center" style="display:none">
-               <p><img class="lazy" width="24" height="24" src="{{ url('/') }}/resources/views/theme/img/loader.gif"> {{ __('Loading More Items') }}</p>
+               <p><img class="lazy" width="24" height="24" src="{{ asset('theme/img/loader.gif') }}"> {{ __('Loading More Items') }}</p>
               </div>
            @endif
         </div>
