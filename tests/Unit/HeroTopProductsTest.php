@@ -46,6 +46,34 @@ class HeroTopProductsTest extends TestCase
         $this->assertLessThanOrEqual(4, count($slides[0]));
     }
 
+    public function test_empty_groups_are_omitted_and_the_rest_follow_count(): void
+    {
+        $slides = HeroTopProducts::slides([
+            ['id' => 26, 'name' => 'AI Licenses', 'slug' => 'ai-licenses'],
+            ['id' => 22, 'name' => 'Games', 'slug' => 'games'],
+            ['id' => 19, 'name' => 'Office Licenses', 'slug' => 'office'],
+            ['id' => 4, 'name' => 'Graphics & Design', 'slug' => 'graphics'],
+            ['id' => 8, 'name' => 'Print', 'slug' => 'print'],
+        ], [
+            ['name' => 'Plugins', 'slug' => 'plugins'],
+            ['name' => 'Themes', 'slug' => 'themes'],
+        ], [
+            26 => 40, 22 => 10, 19 => 25, 4 => 0, 8 => 0,
+        ], [
+            'plugins' => 0, 'themes' => 0,
+        ]);
+
+        $names = [];
+        foreach ($slides as $slide) {
+            foreach ($slide as $row) {
+                $names[] = $row['name'];
+                $this->assertGreaterThan(0, $row['count']);
+            }
+        }
+
+        $this->assertSame(['AI Licenses', 'Office Licenses', 'Games'], $names);
+    }
+
     public function test_known_names_get_distinct_icons(): void
     {
         $this->assertSame('fa-gamepad', HeroTopProducts::icon('Games')['icon']);
