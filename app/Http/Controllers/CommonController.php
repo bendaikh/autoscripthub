@@ -4954,6 +4954,7 @@ class CommonController extends Controller
 	   } 
 	   
 	   $category['view'] = Category::with('SubCategory')->where('category_status','=','1')->where('drop_status','=','no')->orderBy('menu_order','asc')->get();
+	   $category['top_slides'] = $this->heroTopSlides($additional['settings']->subscription_mode == 1, $today, $category['view']);
 	   $category['counts'] = DB::table('items')->select('item_category_parent', DB::raw('count(*) as total'))->where('item_status','=',1)->where('drop_status','=','no')->groupBy('item_category_parent')->pluck('total','item_category_parent');
 	   $category['license_slides'] = \Fickrr\Support\OsLicenseCatalog::homeSlides($category['view'], config('os_licenses', []));
 	   $subSlideIds = [];
@@ -4987,9 +4988,60 @@ class CommonController extends Controller
 	}
 
 	/**
-	 * Newest approved license products for the home carousel.
-	 * Includes every single-price parent and that parent's sub-categories.
+	 * Category and item-type rows for the hero Top Products rotator.
+	 * Counts follow the shop's approved-item rules and are cached briefly.
 	 */
+	private function heroTopSlides(bool $subscriptionMode, string $today, $categories): array
+	{
+	   $cats = [];
+	   foreach ($categories as $cat) {
+		   $cats[] = [
+			   'id' => (int) $cat->cat_id,
+			   'name' => (string) $cat->category_name,
+			   'slug' => (string) $cat->category_slug,
+		   ];
+	   }
+	   $types = [];
+	   foreach (Items::gettypeItem() as $type) {
+		   $types[] = [
+			   'name' => (string) $type->item_type_name,
+			   'slug' => (string) $type->item_type_slug,
+		   ];
+	   }
+	   $key = 'home.hero.counts.'.($subscriptionMode ? '1' : '0').'.'.$today;
+	   $counts = Cache::remember($key, 180, function () use ($subscriptionMode, $today) {
+		   return $this->heroVisibleCounts($subscriptionMode, $today);
+	   });
+
+	   return \Fickrr\Support\HeroTopProducts::slides($cats, $types, $counts['parents'], $counts['types']);
+	}
+
+	/**
+	 * @return array{parents: array<int, int>, types: array<string, int>}
+	 */
+	private function heroVisibleCounts(bool $subscriptionMode, string $today): array
+	{
+	   $query = DB::table('items')
+		   ->where('items.item_status', '=', 1)
+		   ->where('items.drop_status', '=', 'no');
+	   if ($subscriptionMode) {
+		   $query->leftJoin('users', 'users.id', '=', 'items.user_id')
+			   ->where('users.user_subscr_date', '>=', $today)
+			   ->where('users.user_subscr_payment_status', '=', 'completed');
+	   }
+
+	   $parents = [];
+	   foreach ((clone $query)->select('items.item_category_parent as bucket', DB::raw('count(*) as total'))->groupBy('items.item_category_parent')->get() as $row) {
+		   $parents[(int) $row->bucket] = (int) $row->total;
+	   }
+	   $types = [];
+	   foreach ((clone $query)->select('items.item_type as bucket', DB::raw('count(*) as total'))->groupBy('items.item_type')->get() as $row) {
+		   $types[(string) $row->bucket] = (int) $row->total;
+	   }
+
+	   return ['parents' => $parents, 'types' => $types];
+	}
+
 	/**
 	 * Games, AI and Office products for the home Popular carousel.
 	 * Groups are ordered by views, then interleaved so Office does not fill the row.

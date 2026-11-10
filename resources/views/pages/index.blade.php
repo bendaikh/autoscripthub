@@ -146,13 +146,19 @@
 
             <div class="hv-dash-stats">
               <div class="hv-dash-stat">
-                <span>{{ __('Revenue') }}</span><strong>$24,850</strong><em>+12.5%</em>
+                <span>{{ __('Revenue') }}</span>
+                <strong class="hv-count" data-hv-count="24850" data-hv-prefix="$"><span class="hv-count-sizer">$24,850</span><span class="hv-count-num">$24,850</span></strong>
+                <em>+12.5%</em>
               </div>
               <div class="hv-dash-stat">
-                <span>{{ __('Orders') }}</span><strong>1,250</strong><em>+8.2%</em>
+                <span>{{ __('Orders') }}</span>
+                <strong class="hv-count" data-hv-count="1250"><span class="hv-count-sizer">1,250</span><span class="hv-count-num">1,250</span></strong>
+                <em>+8.2%</em>
               </div>
               <div class="hv-dash-stat">
-                <span>{{ __('Users') }}</span><strong>3,246</strong><em>+5.4%</em>
+                <span>{{ __('Users') }}</span>
+                <strong class="hv-count" data-hv-count="3246"><span class="hv-count-sizer">3,246</span><span class="hv-count-num">3,246</span></strong>
+                <em>+5.4%</em>
               </div>
             </div>
 
@@ -167,20 +173,47 @@
                         <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
                       </linearGradient>
                     </defs>
-                    <path d="M0,70 C25,66 40,44 62,46 C86,48 96,24 120,30 C146,36 156,58 180,52 C206,46 220,16 260,10 L260,88 L0,88 Z" fill="url(#hvArea)"/>
-                    <path d="M0,70 C25,66 40,44 62,46 C86,48 96,24 120,30 C146,36 156,58 180,52 C206,46 220,16 260,10" fill="none" stroke="#c084fc" stroke-width="2.5" stroke-linecap="round"/>
+                    <path class="hv-dash-area" d="M0,70 C25,66 40,44 62,46 C86,48 96,24 120,30 C146,36 156,58 180,52 C206,46 220,16 260,10 L260,88 L0,88 Z" fill="url(#hvArea)"/>
+                    <path class="hv-dash-line" d="M0,70 C25,66 40,44 62,46 C86,48 96,24 120,30 C146,36 156,58 180,52 C206,46 220,16 260,10" fill="none" stroke="#c084fc" stroke-width="2.5" stroke-linecap="round"/>
                   </svg>
                 </div>
               </div>
               <div class="col-5 pl-1">
-                <div class="hv-dash-panel">
-                  <h6>{{ __('Top Products') }}</h6>
+                <div class="hv-dash-panel hv-top" data-hv-top>
+                  <div class="hv-top-head">
+                    <h6>{{ __('Top Products') }}</h6>
+                    @if(count($category['top_slides'] ?? []) > 1)
+                    <div class="hv-top-dots" role="tablist" aria-label="{{ __('Top Products') }}">
+                      @foreach($category['top_slides'] as $slideIndex => $slide)
+                      <button type="button" class="hv-top-dot{{ $slideIndex === 0 ? ' is-active' : '' }}" data-index="{{ $slideIndex }}" aria-label="{{ __('Slide') }} {{ $slideIndex + 1 }}"><span class="hv-top-dot-bar"></span></button>
+                      @endforeach
+                    </div>
+                    @endif
+                  </div>
+                  @if(!empty($category['top_slides']))
+                  <div class="hv-top-stage">
+                    @foreach($category['top_slides'] as $slideIndex => $slide)
+                    <ul class="hv-dash-list hv-top-slide{{ $slideIndex === 0 ? ' is-active' : '' }}">
+                      @foreach($slide as $rowIndex => $row)
+                      <li style="--hv-i: {{ $rowIndex }}">
+                        <a href="{{ URL::to('/shop/'.$row['kind'].'/'.$row['slug']) }}">
+                          <span class="hv-dash-chip" style="background:{{ $row['color'] }};"><i class="fa {{ $row['icon'] }}"></i></span>
+                          <span class="hv-top-name">{{ $row['name'] }}</span>
+                          <b>{{ number_format($row['count']) }}</b>
+                        </a>
+                      </li>
+                      @endforeach
+                    </ul>
+                    @endforeach
+                  </div>
+                  @else
                   <ul class="hv-dash-list">
                     <li><span class="hv-dash-chip" style="background:#4f46e5;"><i class="fa fa-code"></i></span>{{ __('Scripts') }}<b>412</b></li>
                     <li><span class="hv-dash-chip" style="background:#0ea5e9;"><i class="fa fa-paint-brush"></i></span>{{ __('Themes') }}<b>318</b></li>
                     <li><span class="hv-dash-chip" style="background:#10b981;"><i class="fa fa-th-large"></i></span>{{ __('Apps') }}<b>264</b></li>
                     <li><span class="hv-dash-chip" style="background:#f59e0b;"><i class="fa fa-picture-o"></i></span>{{ __('Graphics') }}<b>197</b></li>
                   </ul>
+                  @endif
                 </div>
               </div>
             </div>
@@ -905,5 +938,91 @@ jQuery(function ($) {
 })();
 </script>
 @endif
+<script>
+(function () {
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var root = document.querySelector('[data-hv-top]');
+  if (root && !reduce) {
+    var slides = root.querySelectorAll('.hv-top-slide');
+    var dots = root.querySelectorAll('.hv-top-dot');
+    var index = 0;
+    var timer = null;
+    function show(next) {
+      if (!slides.length) return;
+      index = (next + slides.length) % slides.length;
+      Array.prototype.forEach.call(slides, function (el, i) {
+        el.classList.toggle('is-active', i === index);
+      });
+      Array.prototype.forEach.call(dots, function (el, i) {
+        el.classList.toggle('is-active', i === index);
+      });
+      var dot = dots[index];
+      var slide = slides[index];
+      if (dot) {
+        dot.classList.remove('is-active');
+        void dot.offsetWidth;
+        dot.classList.add('is-active');
+      }
+      if (slide) {
+        slide.classList.remove('is-active');
+        void slide.offsetWidth;
+        slide.classList.add('is-active');
+      }
+    }
+    function stop() {
+      if (timer) {
+        window.clearInterval(timer);
+        timer = null;
+      }
+    }
+    function play() {
+      root.classList.remove('is-paused');
+      stop();
+      if (slides.length < 2) return;
+      show(index);
+      timer = window.setInterval(function () { show(index + 1); }, 3000);
+    }
+    root.addEventListener('mouseenter', function () {
+      root.classList.add('is-paused');
+      stop();
+    });
+    root.addEventListener('mouseleave', play);
+    root.addEventListener('focusin', function () {
+      root.classList.add('is-paused');
+      stop();
+    });
+    root.addEventListener('focusout', function (event) {
+      if (!root.contains(event.relatedTarget)) play();
+    });
+    Array.prototype.forEach.call(dots, function (dot) {
+      dot.addEventListener('click', function () {
+        show(parseInt(dot.getAttribute('data-index'), 10) || 0);
+        if (!root.classList.contains('is-paused')) play();
+      });
+    });
+    play();
+  }
+
+  if (reduce) return;
+
+  document.querySelectorAll('.hv-visual .hv-count').forEach(function (el) {
+    var num = el.querySelector('.hv-count-num');
+    var target = parseFloat(el.getAttribute('data-hv-count'));
+    var prefix = el.getAttribute('data-hv-prefix') || '';
+    if (!num || !isFinite(target)) return;
+    var start = null;
+    function frame(now) {
+      if (start === null) start = now;
+      var t = Math.min(1, (now - start) / 1100);
+      var eased = 1 - Math.pow(1 - t, 3);
+      var shown = Math.round(target * eased);
+      num.textContent = prefix + shown.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      if (t < 1) window.requestAnimationFrame(frame);
+    }
+    num.textContent = prefix + '0';
+    window.requestAnimationFrame(frame);
+  });
+})();
+</script>
 </body>
 </html>
