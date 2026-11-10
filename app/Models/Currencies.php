@@ -60,6 +60,11 @@ class Currencies extends Model
   
   public static function getCurrency($code)
   {
+    return \Fickrr\Support\RequestMemo::remember('currency.'.$code, function() use ($code){ return static::getCurrencyUncached($code); });
+  }
+
+  public static function getCurrencyUncached($code)
+  {
 
     $value=DB::table('currencies')->where('currency_code', '=', $code)->first(); 
     return $value;

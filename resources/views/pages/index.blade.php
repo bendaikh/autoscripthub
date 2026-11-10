@@ -502,9 +502,9 @@
         <div class="hv-mini">
           <a href="{{ URL::to('/item') }}/{{ $featured->item_slug }}">
             @if($featured->item_preview!='')
-            <img class="lazy" src="{{ Helper::Image_Path($featured->item_preview,'no-image.png') }}" alt="{{ $featured->item_name }}" width="64" height="48">
+            <img class="lazy" loading="lazy" decoding="async" src="{{ Helper::Image_Path($featured->item_preview,'no-image.png') }}" alt="{{ $featured->item_name }}" width="64" height="48">
             @else
-            <img class="lazy" src="{{ url('/') }}/public/img/no-image.png" alt="{{ $featured->item_name }}" width="64" height="48">
+            <img class="lazy" loading="lazy" decoding="async" src="{{ url('/') }}/public/img/no-image.png" alt="{{ $featured->item_name }}" width="64" height="48">
             @endif
           </a>
           <div class="media-body">

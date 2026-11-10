@@ -44,7 +44,9 @@ class Settings extends Model
 		  ->update($data);
 	  }
 	
-	public static function editAdditional(){
+	public static function editAdditional(){ return \Fickrr\Support\RequestMemo::remember('settings.additional', function(){ return static::editAdditionalUncached(); }); }
+
+	public static function editAdditionalUncached(){
 		$value = DB::table('additional_settings')
 		  ->where('sno', 1)
 		  ->first();
@@ -320,7 +322,9 @@ class Settings extends Model
   
   /* all settings */
   
-  public static function allSettings(){
+  public static function allSettings(){ return \Fickrr\Support\RequestMemo::remember('settings.all', function(){ return static::allSettingsUncached(); }); }
+
+  public static function allSettingsUncached(){
     $value = DB::table('settings')
       ->where('sid', 1)
       ->first();

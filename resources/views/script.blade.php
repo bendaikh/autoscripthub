@@ -243,6 +243,7 @@ $(document).ready(function(){
 </script>
 <!-- validation code -->
 <!-- ckeditor -->
+@if(request()->is('upload-item','upload-item/*','edit-item','edit-item/*'))
 <script src="{{asset('vendor/tinymce/jquery.tinymce.min.js')}}"></script>
 <script src="{{asset('vendor/tinymce/tinymce.min.js')}}"></script>
 <script>
@@ -370,6 +371,7 @@ $(document).ready(function(){
 </script>
 <!-- ckeditor -->
 <script src="{{ asset('admin/dragdrop/js/jquery.filer.min.js') }}" type="text/javascript"></script>
+@endif
 <?php /*?><script src="{{ asset('admin/dragdrop/js/custom.js') }}" type="text/javascript"></script><?php */?>
 <!-- countdown -->
 <script type="text/javascript" src="{{ asset('theme/countdown/jquery.countdown.js?v=1.0.0.0') }}"></script>
@@ -646,7 +648,7 @@ $("input[name='withdrawal']").click(function () {
       });
 </script>
 <!-- animation code -->
-<script type="text/javascript" src="{{ asset('admin/datepicker/picker.js') }}"></script>
+{{-- admin/datepicker/picker.js is a byte-identical copy of theme/autosearch/jquery-ui.js (already loaded above), so it is not loaded a second time. --}}
 <script type="text/javascript">
 $(document).ready(function(){
 'use strict';
@@ -677,17 +679,30 @@ s1.async=true;
 s1.src='{{ $addition_settings->site_tawk_chat }}';
 s1.charset='UTF-8';
 s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
+var started=false;
+function startChat(){ if(started) return; started=true; s0.parentNode.insertBefore(s1,s0); }
+['scroll','mousemove','touchstart','keydown','click'].forEach(function(ev){ window.addEventListener(ev,startChat,{once:true,passive:true}); });
+window.addEventListener('load',function(){ setTimeout(startChat,6000); });
 })();
 </script>
 @endif
+@if(request()->is('upload-item','upload-item/*','edit-item','edit-item/*'))
 <script src="{{ asset('admin/dropzone/min/dropzone.min.js')}}" type="text/javascript"></script>
+@endif
 <!-- version links manager -->
 <script src="{{ asset('theme/js/version-links.js') }}" type="text/javascript"></script>
 <!-- google analytics -->
 @if($allsettings->google_analytics!= "")
 <!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id={{ $allsettings->google_analytics }}"></script>
+<script>
+window.addEventListener('load',function(){
+  (window.requestIdleCallback||function(cb){setTimeout(cb,1);})(function(){
+    var gs=document.createElement('script'); gs.async=true;
+    gs.src='https://www.googletagmanager.com/gtag/js?id={{ $allsettings->google_analytics }}';
+    document.head.appendChild(gs);
+  },{timeout:3000});
+});
+</script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
