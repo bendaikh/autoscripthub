@@ -1,6 +1,8 @@
 @if($addition_settings->theme_font_family != "")
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family={{ $addition_settings->theme_font_family }}&display=swap">
 <style type="text/css">
-@import url("https://fonts.googleapis.com/css?family={{ $addition_settings->theme_font_family }}");
 html, body, div,  applet, object,
 iframe, p, blockquote,
 pre, a, abbr, acronym, address, big, cite,

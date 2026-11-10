@@ -132,14 +132,14 @@ ExpiresByType application/vnd.ms-fontobject "access plus 1 month"
 </IfModule>
 
 <ifModule mod_headers.c>
- <filesMatch "\.(ico|jpe?g|png|gif|webp|swf)$">
- Header set Cache-Control "public"
+ # Performance: real browser-cache lifetimes (previously no max-age, so assets were re-validated constantly).
+ # Images, icons and fonts: 30 days (uploaded files have unique timestamped names).
+ <filesMatch "\.(ico|jpe?g|png|gif|webp|avif|svg|swf|woff2?|ttf|otf|eot)$">
+ Header set Cache-Control "public, max-age=2592000"
  </filesMatch>
- <filesMatch "\.(css)$">
- Header set Cache-Control "public"
- </filesMatch>
- <filesMatch "\.(js)$">
- Header set Cache-Control "private"
+ # CSS and JS: 7 days (home-theme.css / brand.css are cache-busted with ?v=).
+ <filesMatch "\.(css|js)$">
+ Header set Cache-Control "public, max-age=604800"
  </filesMatch>
  <filesMatch "\.(x?html?|php)$">
  Header set Cache-Control "private, must-revalidate"

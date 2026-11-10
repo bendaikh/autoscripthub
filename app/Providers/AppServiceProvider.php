@@ -124,6 +124,7 @@ class AppServiceProvider extends ServiceProvider
 		view()->composer('*', function($view){
             $view_name = str_replace('.', '-', $view->getName());
             view()->share('view_name', $view_name);
+            \Fickrr\Support\RequestMemo::enable();
         });
 		
 		view()->composer('*', function($view)
@@ -131,9 +132,9 @@ class AppServiceProvider extends ServiceProvider
 			if (Auth::check()) {
 			    $user['avilable'] = Members::logindataUser(Auth::user()->id);
 			   $avilable = explode(',',$user['avilable']->user_permission);
-			    $cartcount = Items::getcartCount();
+			    $cartcount = \Fickrr\Support\RequestMemo::remember('cart.count', function(){ return Items::getcartCount(); });
 				
-				$msgcount = Chat::miniChat(Auth::user()->id);
+				$msgcount = \Fickrr\Support\RequestMemo::remember('chat.mini', function(){ return Chat::miniChat(Auth::user()->id); });
 				$view->with('cartcount', $cartcount);
 				$view->with('msgcount', $msgcount);
 				$today_date = date('Y-m-d');
@@ -157,7 +158,7 @@ class AppServiceProvider extends ServiceProvider
 				
 			}else {
 			    $avilable = "";
-				$cartcount = Items::getcartCount();
+				$cartcount = \Fickrr\Support\RequestMemo::remember('cart.count', function(){ return Items::getcartCount(); });
 				$view->with('cartcount', $cartcount);
 				$view->with('msgcount', 0);
 				
@@ -167,20 +168,21 @@ class AppServiceProvider extends ServiceProvider
 		view()->composer('*', function($viewcart)
 		{
 			if (Auth::check()) {
-			    $cartitem['item'] = Items::getcartData();
-				$smsdata['display'] = Chat::miniData(Auth::user()->id);
+			    $cartitem['item'] = \Fickrr\Support\RequestMemo::remember('cart.data', function(){ return Items::getcartData(); });
+				$smsdata['display'] = \Fickrr\Support\RequestMemo::remember('chat.minidata', function(){ return Chat::miniData(Auth::user()->id); });
 				$viewcart->with('smsdata', $smsdata);
 				$viewcart->with('cartitem', $cartitem);
 				
 			}else {
 				$viewcart->with('smsdata', 0);
-				$cartitem['item'] = Items::getcartData();
+				$cartitem['item'] = \Fickrr\Support\RequestMemo::remember('cart.data', function(){ return Items::getcartData(); });
 				$viewcart->with('cartitem', $cartitem);
 			}
 			
-			$item_count_limit = Items::emptycheck();
+			$item_count_limit = \Fickrr\Support\RequestMemo::remember('items.emptycheck', function(){ return Items::emptycheck(); });
 			if($item_count_limit != 0)
 			{
+			   \Fickrr\Support\RequestMemo::remember('items.matchfix', function(){
 			   $item['records'] = Items::matchRecord();
 			   
 			   foreach($item['records'] as $full)
@@ -190,6 +192,8 @@ class AppServiceProvider extends ServiceProvider
 			   $data = array('item_type_id' => $item_type_id);
 			   Items::upModify($item_id,$data);
 			   }
+			   return true;
+			   });
 			}
 		});
 		

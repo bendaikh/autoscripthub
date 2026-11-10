@@ -74,9 +74,9 @@
       </div><a class="product-thumb-overlay" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"></a>
       @php $cardImage = Helper::card_image($featured); @endphp
       @if($cardImage)
-      <img class="lazy product-photo" src="{{ Helper::Image_Path($cardImage,'no-image.png') }}" alt="{{ $featured->item_name }}">
+      <img class="lazy product-photo" loading="lazy" decoding="async" src="{{ Helper::Image_Path($cardImage,'no-image.png') }}" alt="{{ $featured->item_name }}">
       @else
-      <img class="lazy" src="{{ url('/') }}/public/img/no-image.png" alt="{{ $featured->item_name }}" width="300" height="200">
+      <img class="lazy" loading="lazy" decoding="async" src="{{ url('/') }}/public/img/no-image.png" alt="{{ $featured->item_name }}" width="300" height="200">
       @endif
     </div>
     <div class="card-body">
@@ -93,9 +93,9 @@
         <a class="blog-entry-meta-link" href="{{ URL::to('/user') }}/{{ $featured->username }}">
           <div class="blog-entry-author-ava">
             @if($featured->user_photo!='')
-            <img class="lazy" src="{{ url('/') }}/public/storage/users/{{ $featured->user_photo }}" alt="{{ $featured->username }}" width="26" height="26">
+            <img class="lazy" loading="lazy" decoding="async" src="{{ url('/') }}/public/storage/users/{{ $featured->user_photo }}" alt="{{ $featured->username }}" width="26" height="26">
             @else
-            <img class="lazy" src="{{ url('/') }}/public/img/no-user.png" alt="{{ $featured->username }}" width="26" height="26">
+            <img class="lazy" loading="lazy" decoding="async" src="{{ url('/') }}/public/img/no-user.png" alt="{{ $featured->username }}" width="26" height="26">
             @endif
           </div>
           @if($addition_settings->author_name_limit != 0){{ mb_substr($featured->username,0,$addition_settings->author_name_limit,'utf-8') }}@else{{ $featured->username }}@endif

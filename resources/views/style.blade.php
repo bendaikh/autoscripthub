@@ -8,7 +8,7 @@ n.callMethod.apply(n,arguments):n.queue.push(arguments)};
 if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
 n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
-s.parentNode.insertBefore(t,s)}(window, document,'script',
+window.addEventListener('load',function(){(window.requestIdleCallback||function(cb){setTimeout(cb,1);})(function(){s.parentNode.insertBefore(t,s)},{timeout:3000});})}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
 fbq('init', '4153934531541650');
 fbq('track', 'PageView');

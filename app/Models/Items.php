@@ -459,6 +459,11 @@ class Items extends Model
   
   public static function typeIDdata($id)
   {
+    return \Fickrr\Support\RequestMemo::remember('itemtype.data.'.$id, function() use ($id){ return static::typeIDdataUncached($id); });
+  }
+
+  public static function typeIDdataUncached($id)
+  {
     $value = DB::table('item_type')
       ->where('item_type_id', $id)
       ->first();
@@ -466,6 +471,11 @@ class Items extends Model
   }
   
   public static function typeIDCount($id)
+  {
+    return \Fickrr\Support\RequestMemo::remember('itemtype.count.'.$id, function() use ($id){ return static::typeIDCountUncached($id); });
+  }
+
+  public static function typeIDCountUncached($id)
   {
     
     $get=DB::table('item_type')->where('item_type_id', $id)->get(); 
