@@ -6519,6 +6519,20 @@ class CommonController extends Controller
 		return collect(\Fickrr\Support\RelatedItems::choose($current, $candidates, $limit));
 	}
 
+	private function retiredItemDestination($item): string
+	{
+	   $parentId = \Fickrr\Support\HiddenItemRedirect::parentId($item);
+	   $category = null;
+	   if ($parentId > 0) {
+		   $category = DB::table('category')
+			   ->where('cat_id', '=', $parentId)
+			   ->where('drop_status', '=', 'no')
+			   ->first();
+	   }
+
+	   return \Fickrr\Support\HiddenItemRedirect::path($category);
+	}
+
 	public function view_single_item($item_slug)
 	{
 	  $legacySlug = \Fickrr\Support\LegacyItemSlugs::target($item_slug);
@@ -6587,9 +6601,13 @@ class CommonController extends Controller
 		  
 		  $item_tags = explode(',',$item['item']->item_tags);
 		  
-		  $getcount  = Items::getimagesCount($token);
 		  $item_image['item'] = Items::getsingleimagesData($token);
 		  $item_allimage = Items::getimagesData($token);
+		  $galleryStorage = (int) (Settings::editAdditional()->site_s3_storage ?? 0);
+		  if (!in_array($galleryStorage, [1, 2, 3, 4], true)) {
+			  $item_allimage = \Fickrr\Support\ProductImage::keepExisting($item_allimage, [\Fickrr\Support\ProductImage::class, 'storedFileExists']);
+		  }
+		  $getcount = count($item_allimage);
 		  $itemData['item'] = Items::with('ratings')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.user_id','=',$item_user_id)->where('items.item_id','!=',$item_id)->orderBy('items.item_id', 'asc')->take(3)->get();
 		  
 		  if (Auth::check()) 
@@ -6680,6 +6698,10 @@ class CommonController extends Controller
 		 }
 		 else
 		 {
+		 $hiddenItem = DB::table('items')->where('item_slug', '=', $item_slug)->first();
+		 if ($hiddenItem && \Fickrr\Support\HiddenItemRedirect::isHidden($hiddenItem)) {
+			 return redirect($this->retiredItemDestination($hiddenItem), 301);
+		 }
 		 abort(404);
 		 }
 	}

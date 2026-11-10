@@ -51,6 +51,37 @@ class ProductImage
         return $best;
     }
 
+    /**
+     * Extra gallery rows whose file is gone should not be rendered.
+     * The callback decides whether that filename is on disk.
+     *
+     * @param  iterable<int, object|array>  $images
+     * @param  callable(string): bool  $exists
+     * @return array<int, object|array>
+     */
+    public static function keepExisting(iterable $images, callable $exists): array
+    {
+        $kept = [];
+        foreach ($images as $image) {
+            $name = trim((string) (is_object($image) ? ($image->item_image ?? '') : ($image['item_image'] ?? '')));
+            if ($name !== '' && $exists($name)) {
+                $kept[] = $image;
+            }
+        }
+
+        return $kept;
+    }
+
+    public static function storedFileExists(string $filename): bool
+    {
+        $safe = basename(str_replace('\\', '/', $filename));
+        if ($safe === '' || $safe === '.' || $safe === '..') {
+            return false;
+        }
+
+        return is_file(base_path('public/storage/items/'.$safe));
+    }
+
     public static function localWidth(string $absolutePath): ?int
     {
         if (! is_file($absolutePath)) {
