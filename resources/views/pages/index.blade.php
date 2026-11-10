@@ -220,7 +220,7 @@
 
 <!-- ============================ Browse categories ============================ -->
 @if(count($category['view']) != 0)
-<section class="hv-section" data-aos="fade-up" data-aos-delay="200">
+<section class="hv-section hv-browse" data-aos="fade-up" data-aos-delay="200">
   <div class="container">
     <div class="hv-head">
       <div>
@@ -239,7 +239,7 @@
         }
         $itemCount = $hvCatCounts[$cat->cat_id] ?? 0;
       @endphp
-      <div class="col-lg-3 col-md-4 col-6 mb-4">
+      <div class="col-lg-2 col-md-3 col-4 mb-2">
         <a class="hv-cat" href="{{ URL::to('/shop/category/') }}/{{ $cat->category_slug }}">
           <span class="hv-cat-icon" style="background:{{ $style['bg'] }};color:{{ $style['fg'] }};"><i class="fa {{ $icon }}"></i></span>
           <h3>{{ $cat->category_name }}</h3>

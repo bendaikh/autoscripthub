@@ -665,7 +665,55 @@ body.home-v2 .hv-stars {
 
 /* ==========================================================================
    Browse categories
+   Compact tiles only. License Keys cards also use .hv-cat, so these
+   overrides stay under .hv-browse.
    ========================================================================== */
+
+body.home-v2 .hv-section.hv-browse {
+  padding: 2.75rem 0;
+}
+
+body.home-v2 .hv-browse .hv-head {
+  margin-bottom: 1rem;
+}
+
+body.home-v2 .hv-browse .row {
+  margin-left: -6px;
+  margin-right: -6px;
+}
+
+body.home-v2 .hv-browse .row > [class*="col-"] {
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+body.home-v2 .hv-browse .hv-cat {
+  padding: .5rem .4rem .45rem;
+  border-radius: 12px;
+}
+
+body.home-v2 .hv-browse .hv-cat:hover {
+  transform: translateY(-2px);
+}
+
+body.home-v2 .hv-browse .hv-cat-icon {
+  width: 36px;
+  height: 36px;
+  margin: 0 auto .3rem;
+  border-radius: 50%;
+  font-size: .85rem;
+}
+
+body.home-v2 .hv-browse .hv-cat h3 {
+  font-size: .75rem;
+  line-height: 1.25;
+  margin: 0 0 .05rem;
+}
+
+body.home-v2 .hv-browse .hv-cat p {
+  font-size: .66rem;
+  line-height: 1.2;
+}
 
 body.home-v2 .hv-cat {
   display: block;
