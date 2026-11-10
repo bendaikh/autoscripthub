@@ -792,13 +792,6 @@ body.home-v2 .hv-license-products .hv-license-product-slide > [class*="col-"] {
   margin-bottom: 0;
 }
 
-body.home-v2 .hv-license-products .product-thumb img {
-  width: auto;
-  max-width: 100%;
-  height: auto;
-  max-height: 178px;
-  object-fit: contain;
-}
 
 body.home-v2 .hv-license-slide {
   padding: 4px 2px 8px;
@@ -908,6 +901,32 @@ body.home-v2 .hv-section .product-card-alt .product-thumb img {
   height: auto;
   max-height: 178px;
   object-fit: contain;
+}
+
+/* License Products only. Featured and the other rows keep the rules
+   above. Owl sets `.owl-item img { width: 100% }` and the theme sets
+   `object-fit: cover; height: 200px`, which crops box art. */
+body.home-v2 .hv-license-products .product-card-alt .product-thumb {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  height: auto;
+  min-height: 0;
+  background: #f5f6f8;
+  overflow: hidden;
+}
+
+body.home-v2 .hv-license-products .product-thumb img,
+body.home-v2 .hv-license-products .owl-item img.product-photo,
+body.home-v2 .hv-license-products .owl-item img.lazy {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: contain !important;
+  object-position: center center !important;
 }
 
 body.home-v2 .hv-section .product-card-alt .card-body {
