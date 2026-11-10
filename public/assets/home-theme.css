@@ -1406,3 +1406,13 @@ body.home-v2 .hv-stat .hv-stat-icon {
   line-height: 1;
 }
 body.home-v2 .hv-stat .hv-stat-icon i { line-height: 1; margin: 0; }
+
+/* Testimonial avatars: keep initial centered inside the circle (overrides .hv-quote-user span display:block) */
+body.home-v2 .hv-quote-user .hv-quote-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .9rem;
+  line-height: 1;
+  color: #fff;
+}
