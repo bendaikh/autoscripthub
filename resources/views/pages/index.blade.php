@@ -398,8 +398,42 @@
     </div>
     <div class="hv-license-dots" role="tablist" aria-label="{{ __('License Keys') }}"></div>
     </div>
-    @if(count($category['license_items'] ?? []) != 0)
-    <div class="hv-head hv-license-products-head">
+  </div>
+</section>
+@endif
+
+<!-- ============================ Popular ============================ -->
+@if(count($popular['items']) != 0)
+<section class="hv-section hv-popular-slider" data-aos="fade-up" data-aos-delay="200">
+  <span class="hv-trend-glow hv-trend-glow--a" aria-hidden="true"></span>
+  <span class="hv-trend-glow hv-trend-glow--b" aria-hidden="true"></span>
+  <div class="container">
+    <div class="hv-head hv-trend-head">
+      <div>
+        <span class="hv-trend-pill">&#128293; {{ __('Trending now') }}</span>
+        <h2>{{ __('Popular Items') }}</h2>
+        <p>{{ __('What other customers are buying right now') }}</p>
+      </div>
+      <a class="hv-trend-all" href="{{ URL::to('/') }}/popular-items">{{ __('View All Products') }}</a>
+    </div>
+    <div class="hv-trend-row">
+      <button type="button" class="hv-trend-arrow hv-trend-prev" aria-label="{{ __('Previous') }}">&#8249;</button>
+      <div class="owl-carousel hv-trend-slider">
+        @foreach($popular['items'] as $popularIndex => $popularItem)
+        @include('partials.popular-trend-card', ['featured' => $popularItem, 'trendRank' => $popularIndex + 1])
+        @endforeach
+      </div>
+      <button type="button" class="hv-trend-arrow hv-trend-next" aria-label="{{ __('Next') }}">&#8250;</button>
+      <div class="hv-trend-dots" role="tablist" aria-label="{{ __('Popular Items') }}"></div>
+    </div>
+  </div>
+</section>
+@endif
+
+@if(!empty($category['license_slides']) && count($category['license_items'] ?? []) != 0)
+<section class="hv-section hv-section--soft hv-license" data-aos="fade-up" data-aos-delay="200">
+  <div class="container">
+    <div class="hv-head">
       <div>
         <h2>{{ __('License Products') }}</h2>
         <p>{{ __('Newest keys from these categories') }}</p>
@@ -425,7 +459,6 @@
     </div>
     <div class="hv-license-dots" role="tablist" aria-label="{{ __('License Products') }}"></div>
     </div>
-    @endif
   </div>
 </section>
 @endif
@@ -455,34 +488,6 @@
       @endphp
       @include('partials.product-card')
       @endforeach
-    </div>
-  </div>
-</section>
-@endif
-
-<!-- ============================ Popular ============================ -->
-@if(count($popular['items']) != 0)
-<section class="hv-section hv-popular-slider" data-aos="fade-up" data-aos-delay="200">
-  <span class="hv-trend-glow hv-trend-glow--a" aria-hidden="true"></span>
-  <span class="hv-trend-glow hv-trend-glow--b" aria-hidden="true"></span>
-  <div class="container">
-    <div class="hv-head hv-trend-head">
-      <div>
-        <span class="hv-trend-pill">&#128293; {{ __('Trending now') }}</span>
-        <h2>{{ __('Popular Items') }}</h2>
-        <p>{{ __('What other customers are buying right now') }}</p>
-      </div>
-      <a class="hv-trend-all" href="{{ URL::to('/') }}/popular-items">{{ __('View All Products') }}</a>
-    </div>
-    <div class="hv-trend-row">
-      <button type="button" class="hv-trend-arrow hv-trend-prev" aria-label="{{ __('Previous') }}">&#8249;</button>
-      <div class="owl-carousel hv-trend-slider">
-        @foreach($popular['items'] as $popularIndex => $popularItem)
-        @include('partials.popular-trend-card', ['featured' => $popularItem, 'trendRank' => $popularIndex + 1])
-        @endforeach
-      </div>
-      <button type="button" class="hv-trend-arrow hv-trend-next" aria-label="{{ __('Next') }}">&#8250;</button>
-      <div class="hv-trend-dots" role="tablist" aria-label="{{ __('Popular Items') }}"></div>
     </div>
   </div>
 </section>
