@@ -898,8 +898,8 @@ jQuery(function ($) {
     }
     var count = $slider.children().length;
     $slider.owlCarousel({
-      items: 1.2,
-      margin: 16,
+      items: 2,
+      margin: 12,
       loop: count > 1,
       autoplay: count > 1,
       autoplayTimeout: 4200,
@@ -910,9 +910,10 @@ jQuery(function ($) {
       nav: false,
       dots: false,
       responsive: {
-        0: { items: 1.2 },
-        768: { items: 2 },
-        1100: { items: Math.min(4, count) }
+        0: { items: 2 },
+        768: { items: 3 },
+        1100: { items: Math.min(4, count) },
+        1280: { items: Math.min(5, count) }
       }
     });
     $slider.trigger('refresh.owl.carousel');
