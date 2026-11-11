@@ -216,6 +216,97 @@
         
     </div>
       
+        @if(!empty($visits))
+        <div class="col-sm-12 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                        <h4 class="mb-2">{{ __('Website visits') }}</h4>
+                        <form method="get" action="{{ url('/admin') }}" class="form-inline">
+                            <select name="visit_range" class="form-control form-control-sm mr-2 mb-2" onchange="if(this.value!=='custom'){this.form.submit();}">
+                                @foreach(['today' => __('Today'), 'yesterday' => __('Yesterday'), '7' => __('Last 7 days'), '30' => __('Last 30 days'), 'month' => __('This month'), 'custom' => __('Custom')] as $key => $label)
+                                <option value="{{ $key }}" {{ ($visits['preset'] ?? '') === $key ? 'selected' : '' }}>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                            <input type="date" name="visit_from" value="{{ $visits['from'] }}" class="form-control form-control-sm mr-2 mb-2">
+                            <input type="date" name="visit_to" value="{{ $visits['to'] }}" class="form-control form-control-sm mr-2 mb-2">
+                            <button type="submit" class="btn btn-primary btn-sm mb-2">{{ __('Apply') }}</button>
+                        </form>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="text-muted text-uppercase small font-weight-bold">{{ __('Visits') }}</div>
+                            <div class="h3 mb-0">{{ number_format($visits['total_visits']) }}</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-muted text-uppercase small font-weight-bold">{{ __('Unique visitors') }}</div>
+                            <div class="h3 mb-0">{{ number_format($visits['total_uniques']) }}</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-muted text-uppercase small font-weight-bold">{{ __('On the site now') }}</div>
+                            <div class="h3 mb-0" id="hv-live-count">{{ number_format($visits['realtime']['count']) }}</div>
+                            <div class="small text-muted">{{ __('Active in the last :minutes minutes', ['minutes' => $visits['realtime']['minutes']]) }}</div>
+                        </div>
+                    </div>
+                    <canvas id="visits-chart" height="120"></canvas>
+                    <div class="row mt-4">
+                        <div class="col-lg-5 mb-3">
+                            <h5 class="mb-3">{{ __('Realtime') }}</h5>
+                            <div id="hv-live-list">
+                                @forelse($visits['realtime']['visitors'] as $visitor)
+                                <div class="d-flex justify-content-between border-bottom py-2">
+                                    <span>{{ $visitor['flag'] }} {{ $visitor['path'] }}</span>
+                                    <span class="text-muted">{{ $visitor['name'] }}</span>
+                                </div>
+                                @empty
+                                <p class="text-muted mb-0">{{ __('No active visitors.') }}</p>
+                                @endforelse
+                            </div>
+                        </div>
+                        <div class="col-lg-7 mb-3">
+                            <h5 class="mb-3">{{ __('Countries') }}</h5>
+                            <table class="table table-sm mb-2">
+                                <thead>
+                                    <tr>
+                                        <th>{{ __('Country') }}</th>
+                                        <th class="text-right">{{ __('Visits') }}</th>
+                                        <th class="text-right">{{ __('Unique') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="hv-country-body">
+                                    @forelse($visits['countries'] as $country)
+                                    <tr>
+                                        <td>
+                                            @if($country['code'] !== '')
+                                            <span class="flag-icon flag-icon-{{ strtolower($country['code']) }}"></span>
+                                            @endif
+                                            {{ $country['flag'] }} {{ $country['name'] }}
+                                            <div class="progress mt-1" style="height:6px;">
+                                                <div class="progress-bar" style="width: {{ $country['percent'] }}%; background:#7c3aed;"></div>
+                                            </div>
+                                        </td>
+                                        <td class="text-right">{{ number_format($country['visits']) }}</td>
+                                        <td class="text-right">{{ number_format($country['uniques']) }}</td>
+                                    </tr>
+                                    @empty
+                                    <tr><td colspan="3" class="text-muted">{{ __('No visits in this range.') }}</td></tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                            <p class="text-muted small mb-0">{{ __('IP geolocation by DB-IP') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @else
+        <div class="col-sm-12 mb-4">
+            <div class="card">
+                <div class="card-body text-muted">{{ __('Visit analytics will appear after the site visits migration runs.') }}</div>
+            </div>
+        </div>
+        @endif
+
          <div class="col-sm-8 mb-4">
                         <div class="card">
                             <div class="card-body">
@@ -322,6 +413,73 @@
         }
     } );
 
+
+    @if(!empty($visits))
+    var visitCtx = document.getElementById('visits-chart');
+    if (visitCtx) {
+        visitCtx.height = 120;
+        new Chart(visitCtx, {
+            type: 'line',
+            data: {
+                labels: @json($visits['labels']),
+                datasets: [{
+                    label: "{{ __('Visits') }}",
+                    data: @json($visits['visits']),
+                    borderColor: 'rgba(124,58,237,0.9)',
+                    backgroundColor: 'rgba(124,58,237,0.15)',
+                    borderWidth: 3,
+                    pointRadius: 3,
+                    fill: true
+                }, {
+                    label: "{{ __('Unique visitors') }}",
+                    data: @json($visits['uniques']),
+                    borderColor: 'rgba(14,165,233,0.9)',
+                    backgroundColor: 'rgba(14,165,233,0.08)',
+                    borderWidth: 3,
+                    pointRadius: 3,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                legend: { display: true },
+                scales: {
+                    xAxes: [{ gridLines: { display: false } }],
+                    yAxes: [{ ticks: { beginAtZero: true, precision: 0 } }]
+                }
+            }
+        });
+    }
+    (function () {
+        var list = document.getElementById('hv-live-list');
+        var count = document.getElementById('hv-live-count');
+        if (!list || !count) return;
+        function paint(data) {
+            count.textContent = data.count || 0;
+            if (!data.visitors || !data.visitors.length) {
+                list.innerHTML = '<p class="text-muted mb-0">{{ __('No active visitors.') }}</p>';
+                return;
+            }
+            list.innerHTML = data.visitors.map(function (visitor) {
+                var path = String(visitor.path || '').replace(/[&<>"]/g, function (ch) {
+                    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch];
+                });
+                var name = String(visitor.name || '').replace(/[&<>"]/g, function (ch) {
+                    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch];
+                });
+                return '<div class="d-flex justify-content-between border-bottom py-2"><span>' + (visitor.flag || '') + ' ' + path + '</span><span class="text-muted">' + name + '</span></div>';
+            }).join('');
+        }
+        function refresh() {
+            if (document.hidden) return;
+            fetch('{{ url('/admin/visits/live') }}', { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function (response) { return response.json(); })
+                .then(paint)
+                .catch(function () {});
+        }
+        window.setInterval(refresh, 20000);
+    })();
+    @endif
 
     //pie chart
     var ctx = document.getElementById( "pieChart" );
