@@ -1432,7 +1432,7 @@ body.home-v2 .hv-float .hv-float-icon i { line-height: 1; margin: 0; }
 body.home-v2 .hv-section.hv-popular-slider {
   position: relative;
   overflow: hidden;
-  padding: 3.5rem 0 3rem;
+  padding: 2.6rem 0 2.2rem;
   background: linear-gradient(128deg, #0b1026 0%, #1a1040 46%, #4c1d95 100%);
   color: #fff;
 }
@@ -1525,7 +1525,7 @@ body.home-v2 .hv-popular-slider .hv-trend-card {
   display: flex;
   flex-direction: column;
   width: 100%;
-  border-radius: 18px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, .96);
   color: var(--hv-text);
   box-shadow: 0 12px 32px rgba(3, 7, 18, .22);
@@ -1540,14 +1540,14 @@ body.home-v2 .hv-popular-slider .hv-trend-card:hover {
 
 body.home-v2 .hv-popular-slider .hv-trend-rank {
   position: absolute;
-  top: 12px;
-  left: 12px;
+  top: 8px;
+  left: 8px;
   z-index: 3;
-  padding: .28rem .5rem;
-  border-radius: 8px;
+  padding: .2rem .4rem;
+  border-radius: 7px;
   background: linear-gradient(135deg, #7c3aed, #4f46e5);
   color: #fff;
-  font-size: .68rem;
+  font-size: .6rem;
   font-weight: 800;
   letter-spacing: .04em;
   line-height: 1;
@@ -1559,11 +1559,11 @@ body.home-v2 .hv-popular-slider .hv-trend-rank.is-hot {
 
 body.home-v2 .hv-popular-slider .hv-trend-wish {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 7px;
+  right: 7px;
   z-index: 3;
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: #fff;
   color: #7c3aed;
@@ -1582,8 +1582,8 @@ body.home-v2 .hv-popular-slider .hv-trend-photo {
   display: flex;
   align-items: center;
   justify-content: center;
-  aspect-ratio: 16 / 10;
-  padding: 16px;
+  aspect-ratio: 16 / 9;
+  padding: 8px;
   background: #f4f5f7;
   overflow: hidden;
 }
@@ -1607,16 +1607,16 @@ body.home-v2 .hv-popular-slider .hv-trend-card:hover .hv-trend-photo img {
 body.home-v2 .hv-popular-slider .hv-trend-body {
   display: flex;
   flex-direction: column;
-  gap: .55rem;
+  gap: .35rem;
   flex: 1;
-  padding: .9rem .95rem 1rem;
+  padding: .55rem .6rem .65rem;
 }
 
 body.home-v2 .hv-popular-slider .hv-trend-chip {
   align-self: flex-start;
-  padding: .18rem .5rem;
+  padding: .12rem .4rem;
   border-radius: 999px;
-  font-size: .68rem;
+  font-size: .58rem;
   font-weight: 700;
   letter-spacing: .03em;
   text-transform: uppercase;
@@ -1639,10 +1639,10 @@ body.home-v2 .hv-popular-slider .hv-trend-chip--office {
 
 body.home-v2 .hv-popular-slider .hv-trend-title {
   margin: 0;
-  font-size: .92rem;
+  font-size: .78rem;
   font-weight: 700;
-  line-height: 1.35;
-  min-height: 2.7em;
+  line-height: 1.3;
+  min-height: 2.6em;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -1659,7 +1659,7 @@ body.home-v2 .hv-popular-slider .hv-trend-title a:hover {
 }
 
 body.home-v2 .hv-popular-slider .hv-trend-price {
-  font-size: 1.15rem;
+  font-size: .95rem;
   font-weight: 800;
   color: #4c1d95;
   line-height: 1.2;
@@ -1669,18 +1669,18 @@ body.home-v2 .hv-popular-slider .hv-trend-old {
   display: block;
   margin-bottom: .1rem;
   color: #94a3b8;
-  font-size: .78rem;
+  font-size: .68rem;
   font-weight: 600;
 }
 
 body.home-v2 .hv-popular-slider .hv-trend-buy {
   display: block;
   margin-top: auto;
-  padding: .62rem .8rem;
-  border-radius: 12px;
+  padding: .42rem .55rem;
+  border-radius: 10px;
   background: linear-gradient(135deg, #7c3aed, #4f46e5);
   color: #fff;
-  font-size: .88rem;
+  font-size: .76rem;
   font-weight: 700;
   text-align: center;
   text-decoration: none;
