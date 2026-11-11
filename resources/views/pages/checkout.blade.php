@@ -20,6 +20,39 @@
   #dodoInlineBox label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
 </style>
 @endif
+<style>
+.hv-checkout { background:#fff; border:1px solid #e6e9f0; border-radius:18px; padding:1.35rem 1.35rem 1.15rem; box-shadow:0 10px 30px rgba(15,23,42,.06); }
+.hv-co-title { font-size:1.35rem; font-weight:800; margin:0 0 1.1rem; color:#0f172a; }
+.hv-co-step { display:flex; gap:.85rem; margin-bottom:1.15rem; }
+.hv-co-num { flex:0 0 28px; width:28px; height:28px; border-radius:50%; background:#7c3aed; color:#fff; font-size:.82rem; font-weight:800; display:inline-flex; align-items:center; justify-content:center; }
+.hv-co-step-body { flex:1; min-width:0; }
+.hv-co-step-body h3 { font-size:.98rem; font-weight:700; margin:0 0 .7rem; color:#0f172a; }
+.hv-co-signed { color:#475569; }
+.hv-co-tiles { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:.75rem; }
+.hv-co-tile { position:relative; display:flex; flex-direction:column; justify-content:center; gap:.35rem; min-height:92px; margin:0; padding:.9rem 1rem; border:2px solid #e6e9f0; border-radius:14px; background:#fff; cursor:pointer; }
+.hv-co-tile strong { font-size:.95rem; color:#0f172a; }
+.hv-co-tile small { color:#64748b; font-size:.75rem; }
+.hv-co-tile.is-selected { border-color:#7c3aed; background:#f5f3ff; }
+.hv-co-check { position:absolute; top:10px; right:10px; width:22px; height:22px; border-radius:50%; background:#e9e4f8; color:transparent; font-size:.75rem; display:flex; align-items:center; justify-content:center; }
+.hv-co-tile.is-selected .hv-co-check { background:#7c3aed; color:#fff; }
+.hv-co-radio { position:absolute; opacity:0; width:1px; height:1px; }
+.hv-co-paypal { font-weight:800; font-size:1.2rem; letter-spacing:-.03em; color:#003087; }
+.hv-co-paypal span { color:#009cde; }
+.hv-co-brands { display:flex; gap:.3rem; }
+.hv-co-brands i { font-style:normal; font-size:.62rem; font-weight:800; letter-spacing:.03em; padding:.15rem .35rem; border-radius:4px; background:#fff; border:1px solid #e6e9f0; color:#334155; }
+.hv-co-panels { margin-top:.85rem; }
+.hv-co-panel[hidden] { display:none !important; }
+.hv-co-native-btn { position:absolute !important; width:1px !important; height:1px !important; padding:0 !important; margin:-1px !important; overflow:hidden !important; clip:rect(0,0,0,0) !important; border:0 !important; }
+.hv-co-pay { display:block; width:100%; border:0; border-radius:12px; padding:.9rem 1rem; font-size:1rem; font-weight:800; background:#7c3aed; color:#fff; }
+.hv-co-pay.is-paypal { background:#ffc439; color:#003087; }
+.hv-co-pay:hover { filter:brightness(1.05); color:#fff; }
+.hv-co-pay.is-paypal:hover { color:#003087; }
+.hv-co-trust { margin:.7rem 0 0; text-align:center; color:#64748b; font-size:.82rem; }
+@media (max-width: 640px) {
+  .hv-checkout { padding:1rem .85rem; }
+  .hv-co-tiles { grid-template-columns:1fr; }
+}
+</style>
 </head>
 <body>
 @include('header')
@@ -50,23 +83,7 @@
             {{ csrf_field() }}
             <div class="pt-2 px-4 pr-lg-0 pl-xl-5">
              @if(Auth::guest())
-              <div id="guest-checkout-holder" class="d-none" aria-hidden="true">
-              <div id="guest-checkout-fields" class="guest-checkout-fields mb-3 pb-3 border-bottom">
-              <h2 class="h6 border-bottom pb-3 mb-3">{{ __('Not a customer yet?') }}</h2>
-              <!-- Billing detail-->
-              <div class="row pb-3">
-                <div class="col-6 form-group mb-2">
-                  <label for="email">{{ __('Email Address') }}  <span class='text-danger'>*</span></label>
-                  <input type="text" id="email" class="form-control" name="email" data-bvalidator="required,email" autocomplete="email" required>
-                </div>
-                <div class="col-sm-6 form-group mb-2">
-                  <label for="password">{{ __('Password') }} <span class='text-danger'>*</span></label>
-                  <input type="password" id="password" class="form-control" name="password" data-bvalidator="required,minlen[6]" autocomplete="new-password" required>
-                </div>
-              </div>
-              <p class="font-size-sm text-muted mb-0">{{ __('Create an account to complete your purchase and download your files.') }}</p>
-              </div>
-              </div>
+              <div id="guest-checkout-holder" class="d-none" aria-hidden="true"></div>
              @endif
               @if (Auth::check())
               <input type="hidden" name="user_id" value="{{ Auth::user()->id }}">
@@ -245,7 +262,36 @@
                 <input type="hidden" name="reference" value="{{ Paystack::genTranxRef() }}">
                 
                </div>
-              <div class="accordion mb-2" id="payment-method" role="tablist">
+              <div class="hv-checkout" id="hv-checkout" data-amount="{{ Helper::plan_format($allsettings->site_currency_position,$finbb,$currency_symbol,$checkoutExact) }}">
+                <h2 class="hv-co-title">{{ __('Checkout') }}</h2>
+                <div class="hv-co-step">
+                  <span class="hv-co-num">1</span>
+                  <div class="hv-co-step-body">
+                    <h3>{{ __('Your account') }}</h3>
+                    @if(Auth::guest())
+                    <div id="guest-checkout-fields" class="guest-checkout-fields">
+                      <div class="row">
+                        <div class="col-sm-6 form-group mb-2">
+                          <label for="email">{{ __('Email Address') }} <span class="text-danger">*</span></label>
+                          <input type="text" id="email" class="form-control" name="email" data-bvalidator="required,email" autocomplete="email" required>
+                        </div>
+                        <div class="col-sm-6 form-group mb-2">
+                          <label for="password">{{ __('Password') }} <span class="text-danger">*</span></label>
+                          <input type="password" id="password" class="form-control" name="password" data-bvalidator="required,minlen[6]" autocomplete="new-password" required>
+                        </div>
+                      </div>
+                      <p class="font-size-sm text-muted mb-0">{{ __('Create an account to complete your purchase and download your files.') }}</p>
+                    </div>
+                    @else
+                    <p class="hv-co-signed mb-0">{{ __('Signed in as') }} <strong>{{ Auth::user()->email }}</strong></p>
+                    @endif
+                  </div>
+                </div>
+                <div class="hv-co-step">
+                  <span class="hv-co-num">2</span>
+                  <div class="hv-co-step-body">
+                    <h3>{{ __('Choose how you want to pay') }}</h3>
+                    <div class="hv-co-tiles" id="payment-method">
                 @php $no = 1; @endphp
                 @foreach($get_payment as $payment)
                 @php 
@@ -258,27 +304,51 @@
                 $payment = $payment;
                 }
                 @endphp
-                <div class="card">
-                  <div class="card-header" role="tab">
-                    @if (Auth::check())
-                    <h3 class="accordion-heading"><a href="#{{ $payment }}" id="{{ $payment }}" data-toggle="collapse">{{ __('Pay with') }} @if($payment == 'twocheckout') {{ __('2Checkout') }} @elseif($payment == 'dodopayments') {{ __('Card') }} @elseif($payment == 'whop') {{ __('card') }} @else {{ $payment }} @endif<span class="accordion-indicator"><i data-feather="chevron-up"></i></span></a></h3>
-                    @else
-                    @if($payment != 'wallet')
-                    <h3 class="accordion-heading"><a href="#{{ $payment }}" id="{{ $payment }}" data-toggle="collapse">{{ __('Pay with') }} @if($payment == 'twocheckout') {{ __('2Checkout') }} @elseif($payment == 'dodopayments') {{ __('Card') }} @elseif($payment == 'whop') {{ __('card') }} @else {{ $payment }} @endif<span class="accordion-indicator"><i data-feather="chevron-up"></i></span></a></h3>
-                    @endif
-                    @endif
-                  </div>
-                  <div class="collapse @if($no == 1) show @endif" id="{{ $payment }}" data-parent="#payment-method" role="tabpanel">
+                @if(Auth::guest() && $payment == 'wallet')
+                @else
+                @php
+                  $hvPayLabel = $payment;
+                  if ($payment == 'twocheckout') { $hvPayLabel = __('2Checkout'); }
+                  elseif ($payment == 'dodopayments' || $payment == 'whop' || $payment == 'stripe') { $hvPayLabel = __('Credit/Debit card'); }
+                  elseif ($payment == 'paypal') { $hvPayLabel = 'PayPal'; }
+                  else { $hvPayLabel = ucfirst($payment); }
+                  $hvPayKind = ($payment == 'paypal') ? 'paypal' : (in_array($payment, ['stripe','whop','dodopayments','twocheckout'], true) ? 'card' : 'other');
+                @endphp
+                <label class="hv-co-tile{{ $no == 1 ? ' is-selected' : '' }}" id="{{ $payment }}" data-method="{{ $payment }}" data-kind="{{ $hvPayKind }}" data-label="{{ $hvPayLabel }}">
+                  <input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio hv-co-radio" value="{{ $payment }}" @if($no == 1) checked @endif data-bvalidator="required">
+                  <span class="hv-co-check" aria-hidden="true">&#10003;</span>
+                  @if($hvPayKind == 'paypal')
+                  <span class="hv-co-paypal">Pay<span>Pal</span></span>
+                  <small>{{ __('the safer, easier way to pay') }}</small>
+                  @elseif($hvPayKind == 'card')
+                  <strong>{{ $hvPayLabel }}</strong>
+                  <span class="hv-co-brands"><i>Visa</i><i>MC</i><i>Amex</i></span>
+                  @else
+                  <strong>{{ $hvPayLabel }}</strong>
+                  <small>{{ __('Secure checkout') }}</small>
+                  @endif
+                </label>
+                @php $no++; @endphp
+                @endif
+                @endforeach
+                    </div>
+                    <div class="hv-co-panels">
+                @php $no = 1; @endphp
+                @foreach($get_payment as $payment)
+                @php
+                if($payment == '2checkout') { $payment = 'twocheckout'; }
+                @endphp
+                @if(Auth::guest() && $payment == 'wallet')
+                @else
+                <div class="hv-co-panel" data-method="{{ $payment }}" @if($no != 1) hidden @endif>
                   @if($payment == 'paypal')
                     <div class="card-body font-size-sm custom-control custom-radio">
                       <div class="guest-checkout-slot" data-guest-slot="paypal"></div>
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" @if($no == 1) checked @endif data-bvalidator="required"> {{ __('PayPal') }}</span> - {{ __('the safer, easier way to pay') }}</p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with PayPal') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with PayPal') }}</button>
                     </div>
                     @endif
                   @if($payment == 'stripe')
                     <div class="card-body font-size-sm custom-radio custom-control">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio"  value="{{ $payment }}" data-bvalidator="required"> {{ __('Stripe') }}</span> - {{ __('Credit or debit card') }}</p>
                       @if($stripe_type == 'charges')
                       <div class="stripebox mb-3" id="ifYes" style="display:none;">
                         <label for="card-element">{{ __('Credit or debit card') }}</label>
@@ -286,179 +356,165 @@
                         <div id="card-errors" role="alert"></div>
                       </div>
                       @endif
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with Stripe') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with Stripe') }}</button>
                     </div> 
                     @endif
                     @if (Auth::check())
                     @if($payment == 'wallet')
                     <div class="card-body font-size-sm custom-control custom-radio">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('Wallet') }}</span> - ({{ Helper::price_format($allsettings->site_currency_position,Auth::user()->earnings,$currency_symbol,$multicurrency) }})</p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with Wallet') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with Wallet') }}</button>
                     </div>
                     @endif
                     @endif
                     @if($payment == 'twocheckout')
                     <div class="card-body font-size-sm custom-control custom-radio">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('2Checkout') }}</span></p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with 2Checkout') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with 2Checkout') }}</button>
                     </div>
                     @endif
                     @if($payment == 'paystack')
                     <div class="card-body font-size-sm custom-control custom-radio">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('PayStack') }}</span></p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with PayStack') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with PayStack') }}</button>
                     </div>
                     @endif
                     @if($payment == 'localbank')
                     <div class="card-body font-size-sm custom-control custom-radio">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('Local Bank') }}</span></p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with Local Bank') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with Local Bank') }}</button>
                     </div>
                     @endif
                     @if($payment == 'razorpay')
                     <div class="card-body font-size-sm custom-control custom-radio">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('Razorpay') }}</span></p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with Razorpay') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with Razorpay') }}</button>
                     </div>
                     @endif
                     @if($payment == 'payhere')
                     <div class="card-body font-size-sm custom-control custom-radio">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('Payhere') }}</span></p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with Payhere') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with Payhere') }}</button>
                     </div>
                     @endif
                     @if($payment == 'payumoney')
                     <div class="card-body font-size-sm custom-control custom-radio">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('Payumoney') }}</span></p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with Payumoney') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with Payumoney') }}</button>
                     </div>
                     @endif
                     @if($payment == 'iyzico')
                     <div class="card-body font-size-sm custom-control custom-radio">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('Iyzico') }}</span></p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with Iyzico') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with Iyzico') }}</button>
                     </div>
                     @endif
                     @if($payment == 'flutterwave')
                     <div class="card-body font-size-sm custom-control custom-radio">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('Flutterwave') }}</span></p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with Flutterwave') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with Flutterwave') }}</button>
                     </div>
                     @endif
                     @if($payment == 'coingate')
                     <div class="card-body font-size-sm custom-control custom-radio">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('Coingate') }}</span></p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with Coingate') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with Coingate') }}</button>
                     </div>
                     @endif
                     @if($payment == 'ipay')
                     <div class="card-body font-size-sm custom-control custom-radio">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('iPay') }}</span></p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with iPay') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with iPay') }}</button>
                     </div>
                     @endif
                     @if($payment == 'payfast')
                     <div class="card-body font-size-sm custom-control custom-radio">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('PayFast') }}</span></p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with PayFast') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with PayFast') }}</button>
                     </div>
                     @endif
                     @if($payment == 'coinpayments')
                     <div class="card-body font-size-sm custom-control custom-radio">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('CoinPayments') }}</span></p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with CoinPayments') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with CoinPayments') }}</button>
                     </div>
                     @endif
                     @if($payment == 'mercadopago')
                     <div class="card-body font-size-sm custom-control custom-radio">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('Mercadopago') }}</span></p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with Mercadopago') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with Mercadopago') }}</button>
                     </div>
                     @endif
                     @if($payment == 'sslcommerz')
                     <div class="card-body font-size-sm custom-control custom-radio">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('SSLCommerz') }}</span></p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with SSLCommerz') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with SSLCommerz') }}</button>
                     </div>
                     @endif
                     @if($payment == 'instamojo')
                     <div class="card-body font-size-sm custom-control custom-radio">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('Instamojo') }}</span></p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with Instamojo') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with Instamojo') }}</button>
                     </div>
                     @endif
                     @if($payment == 'aamarpay')
                     <div class="card-body font-size-sm custom-control custom-radio">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('Aamarpay') }}</span></p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with Aamarpay') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with Aamarpay') }}</button>
                     </div>
                     @endif
                     @if($payment == 'mollie')
                     <div class="card-body font-size-sm custom-control custom-radio">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('Mollie') }}</span></p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with Mollie') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with Mollie') }}</button>
                     </div>
                     @endif
                     @if($payment == 'robokassa')
                     <div class="card-body font-size-sm custom-control custom-radio">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('Robokassa') }}</span></p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with Robokassa') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with Robokassa') }}</button>
                     </div>
                     @endif
                     @if($payment == 'midtrans')
                     <div class="card-body font-size-sm custom-control custom-radio">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('Midtrans') }}</span></p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with Midtrans') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with Midtrans') }}</button>
                     </div>
                     @endif
                     @if($payment == 'coinbase')
                     <div class="card-body font-size-sm custom-control custom-radio">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('Coinbase') }}</span></p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with Coinbase') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with Coinbase') }}</button>
                     </div>
                     @endif
                     @if($payment == 'dodopayments')
                     <div class="card-body font-size-sm custom-radio custom-control">
                       <div class="guest-checkout-slot" data-guest-slot="dodopayments"></div>
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('Credit/Debit Card') }}</span> - {{ __('Pay securely with your card') }}</p>
                       <div class="dodobox mb-3" id="dodoInlineBox" style="display:none;">
                         <label for="dodo-inline-checkout">{{ __('Credit or debit card') }}</label>
                         <div id="dodo-inline-loading" class="text-muted font-size-sm mb-2" style="display:none;">{{ __('Loading secure card form...') }}</div>
                         <div id="dodo-inline-checkout" class="dodo-checkout-wrapper"></div>
                         <div id="dodo-inline-error" class="text-danger mt-2" role="alert" style="display:none;"></div>
                       </div>
-                      <button class="btn btn-primary" type="button" id="dodoCheckoutBtn">{{ __('Pay with Card') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="button" id="dodoCheckoutBtn">{{ __('Pay with Card') }}</button>
                     </div>
                     @endif
                     @if($payment == 'whop')
                     <div class="card-body font-size-sm custom-radio custom-control">
                       <div class="guest-checkout-slot" data-guest-slot="whop"></div>
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('Card') }}</span> - {{ __('Credit or debit card') }}</p>
                       <div class="whopbox mb-3" id="whopInlineBox" style="display:none;">
                         <label for="whop-inline-checkout">{{ __('Credit or debit card') }}</label>
                         <div id="whop-inline-loading" class="text-muted font-size-sm mb-2" style="display:none;">{{ __('Loading secure card form...') }}</div>
                         <div id="whop-inline-checkout" class="whop-checkout-wrapper"></div>
                         <div id="whop-inline-error" class="text-danger mt-2" role="alert" style="display:none;"></div>
                       </div>
-                      <button class="btn btn-primary" type="button" id="whopCheckoutBtn">{{ __('Checkout with Card') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="button" id="whopCheckoutBtn">{{ __('Checkout with Card') }}</button>
                     </div>
                     @endif
                     @if($payment == 'cashfree')
                     <div class="card-body font-size-sm custom-control custom-radio">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('Cashfree') }}</span></p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with Cashfree') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with Cashfree') }}</button>
                     </div>
                     @endif
                     @if($payment == 'nowpayments')
                     <div class="card-body font-size-sm custom-control custom-radio">
-                      <p><span class='font-weight-medium'><input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio" value="{{ $payment }}" data-bvalidator="required"> {{ __('NowPayments') }}</span></p>
-                      <button class="btn btn-primary" type="submit">{{ __('Checkout with NowPayments') }}</button>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with NowPayments') }}</button>
                     </div>
                     @endif
                   </div>
-                </div>
                 @php $no++; @endphp
+                @endif
                 @endforeach
+                    </div>
+                  </div>
+                </div>
+                <div class="hv-co-step">
+                  <span class="hv-co-num">3</span>
+                  <div class="hv-co-step-body">
+                    <h3>{{ __('Pay securely') }}</h3>
+                    <button class="hv-co-pay" id="hv-co-pay" type="submit">{{ __('Pay securely') }}</button>
+                    <p class="hv-co-trust"><i class="dwg-lock"></i> {{ __('Secure payment') }} · {{ __('Instant delivery') }}</p>
+                  </div>
+                </div>
               </div>
             </div>
             </form>
@@ -740,16 +796,9 @@ $(document).ready(function(){
             var $fields = $('#guest-checkout-fields');
             var $holder = $('#guest-checkout-holder');
 
-            window.placeGuestCheckoutFields = function (slotName) {
-                if (!$fields.length) {
-                    return;
-                }
-                var $slot = $('.guest-checkout-slot[data-guest-slot="' + slotName + '"]');
-                if ($slot.length) {
-                    $slot.append($fields);
+            window.placeGuestCheckoutFields = function () {
+                if ($fields.length) {
                     $fields.removeClass('d-none').show();
-                } else if ($holder.length) {
-                    $holder.append($fields);
                 }
             };
 
@@ -1312,5 +1361,36 @@ $(document).ready(function(){
 });		
 </script>
 <!-- stripe code -->
+<script>
+$(function () {
+  var $root = $('#hv-checkout');
+  if (!$root.length) return;
+  var amount = $root.attr('data-amount') || '';
+  var cardMethods = { stripe: 1, whop: 1, dodopayments: 1, twocheckout: 1 };
+  function syncCheckout() {
+    var method = $('input[name=payment_method]:checked').val() || '';
+    $('.hv-co-tile').removeClass('is-selected');
+    $('.hv-co-tile[data-method="' + method + '"]').addClass('is-selected');
+    $('.hv-co-panel').attr('hidden', true);
+    $('.hv-co-panel[data-method="' + method + '"]').removeAttr('hidden');
+    var $btn = $('#hv-co-pay');
+    $btn.removeClass('is-paypal is-card');
+    if (method === 'paypal') {
+      $btn.addClass('is-paypal').text(@json(__('Continue to PayPal')) + ' — ' + amount);
+    } else if (cardMethods[method]) {
+      $btn.addClass('is-card').text(@json(__('Pay')) + ' ' + amount + ' ' + @json(__('securely')));
+    } else {
+      var name = $('.hv-co-tile[data-method="' + method + '"]').attr('data-label') || method;
+      $btn.addClass('is-card').text(@json(__('Continue with')) + ' ' + name + ' — ' + amount);
+    }
+  }
+  $(document).on('change', 'input[name=payment_method]', syncCheckout);
+  $('.hv-co-tile').on('click', function () {
+    $('#opt1-' + $(this).data('method')).prop('checked', true);
+    syncCheckout();
+  });
+  syncCheckout();
+});
+</script>
 </body>
 </html>
