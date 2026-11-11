@@ -20,6 +20,7 @@ Route::get('/.well-known/apple-developer-merchantid-domain-association', functio
 Route::group(['middleware' => ['is_admin', 'HtmlMinifier', 'cache', 'XSS']], function () {
     
 	Route::get('/admin', 'Admin\AdminController@admin')->middleware('cacheable:5');
+	Route::get('/admin/visits/live', 'Admin\VisitController@live');
 	
 	
 	/* administrator */
@@ -513,6 +514,7 @@ Route::group(['middleware' => ['is_admin', 'HtmlMinifier', 'cache', 'XSS']], fun
 
 // Landing page analytics (public tracking endpoint)
 Route::post('/landing/track', 'LandingPageAnalyticsController@track')->name('landing-page.track');
+Route::post('/visit', 'VisitController@store')->middleware('throttle:120,1');
 
 Route::group(['middleware' => ['HtmlMinifier', 'cache', 'XSS']], function () {
 

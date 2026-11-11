@@ -62,6 +62,7 @@ class VerifyCsrfToken extends Middleware
 		'/webhooks/whop',
 		'paytm/status',
         '/landing/track',
+        '/visit',
 		
 		
     ];

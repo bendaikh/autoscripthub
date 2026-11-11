@@ -16,6 +16,7 @@
         "coingate/coingate-php": "^4.1.0",
         "dgvai/laravel-sslcommerz": "^1.0",
         "doctrine/dbal": "^4.2.1",
+        "geoip2/geoip2": "^3.0",
         "guzzlehttp/guzzle": "^7.2",
         "illuminate/support": "*",
         "intervention/image": "^2.5",
