@@ -11,13 +11,14 @@
         #dodo-inline-checkout { min-height: 640px; width: 100%; }
         .whop-checkout-wrapper iframe { width: 100%; min-height: 640px; border: 0; }
         #checkout-error { display: none; color: #b42318; background: #fef3f2; border: 1px solid #fecdca; padding: 10px 12px; border-radius: 8px; }
+        @include('partials.hv-card-loader-styles')
     </style>
     @if(($embed['provider'] ?? '') === 'whop')
     <script async defer src="https://js.whop.com/static/checkout/loader.js"></script>
     @endif
 </head>
 <body>
-<div class="lp-embed-wrap">
+<div class="lp-embed-wrap" id="lp-embed-root">
     @if(!empty($embed['item_name']) || !empty($embed['amount_label']))
     <p class="lp-embed-summary">
         @if(!empty($embed['item_name']))<strong>{{ $embed['item_name'] }}</strong><br>@endif
@@ -27,7 +28,10 @@
     <div id="checkout-error"></div>
 
     @if(($embed['provider'] ?? '') === 'dodopayments')
+        <div id="dodo-card-stage">
         <div id="dodo-inline-checkout"></div>
+        </div>
+        @include('landing-pages.partials.card-form-loader')
         <script src="https://cdn.jsdelivr.net/npm/dodopayments-checkout@latest/dist/index.js"></script>
         <script>
         (function () {
@@ -95,6 +99,7 @@
                 @if(!empty($embed['whop_prefill_email'])) data-whop-checkout-prefill-email="{{ $embed['whop_prefill_email'] }}" @endif
             ></div>
         </div>
+        @include('landing-pages.partials.card-form-loader')
     @endif
 </div>
 </body>

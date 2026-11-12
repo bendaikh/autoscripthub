@@ -6,6 +6,7 @@
 @include('style')
 <style>
   .whop-checkout-wrapper iframe { width: 100%; min-height: 720px; border: 0; }
+  @include('partials.hv-card-loader-styles')
 </style>
 <script async defer src="https://js.whop.com/static/checkout/loader.js"></script>
 </head>
@@ -48,6 +49,7 @@
             };
           </script>
           @include('partials.whop-digital-checkout-setup')
+          <div class="whop-checkout-wrapper">
           <div
             id="whop-digital-checkout"
             data-whop-checkout-plan-id="{{ $whop_plan_id }}"
@@ -62,6 +64,7 @@
             data-whop-checkout-on-address-validation-error="onWhopAddressValidationError"
             @if(!empty($whop_prefill_email)) data-whop-checkout-prefill-email="{{ $whop_prefill_email }}" @endif
           ></div>
+          </div>
         </div>
       </div>
     </div>
@@ -87,5 +90,7 @@
 </div>
 @include('footer')
 @include('script')
+@php $card_loader_provider = 'whop'; @endphp
+@include('landing-pages.partials.card-form-loader')
 </body>
 </html>
