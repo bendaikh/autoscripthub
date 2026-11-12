@@ -48,6 +48,34 @@
 .hv-co-pay:hover { filter:brightness(1.05); color:#fff; }
 .hv-co-pay.is-paypal:hover { color:#003087; }
 .hv-co-trust { margin:.7rem 0 0; text-align:center; color:#64748b; font-size:.82rem; }
+.hv-co-pay:disabled, .hv-co-pay:disabled:hover { background:#eceaf1; color:#b0aab8; cursor:not-allowed; filter:none; }
+.hv-card-stage { position:relative; }
+.hv-card-loader { background:#fff; border:1px solid #e6e9f0; border-radius:16px; padding:1.15rem 1.15rem 1rem; box-shadow:0 8px 24px rgba(15,23,42,.04); }
+.hv-card-loader[hidden] { display:none !important; }
+.hv-card-loader-label { margin:0 0 .35rem; color:#334155; font-size:.95rem; }
+.hv-card-spin { width:48px; height:48px; margin:.85rem auto .9rem; border-radius:50%; border:3px solid #eadcff; border-top-color:#6b46c1; animation:hvCardSpin .8s linear infinite; }
+.hv-card-loader-title { margin:0; text-align:center; font-size:1.05rem; font-weight:800; color:#0f172a; }
+.hv-card-loader-sub { margin:.28rem 0 .95rem; text-align:center; color:#94a3b8; font-size:.82rem; }
+.hv-card-bar { height:4px; border-radius:99px; background:#eceff3; overflow:hidden; margin-bottom:1rem; }
+.hv-card-bar span { display:block; height:100%; width:8%; border-radius:99px; background:#6b46c1; animation:hvCardBar 12s ease forwards; }
+.hv-card-skel { height:44px; border-radius:10px; margin-bottom:.65rem; background:linear-gradient(90deg,#e7ebf0 25%,#f8f9fb 50%,#e7ebf0 75%); background-size:200% 100%; animation:hvCardShimmer 1.3s linear infinite; }
+.hv-card-skel-row { display:flex; gap:.65rem; }
+.hv-card-skel-row .hv-card-skel { flex:1; }
+.hv-card-wait { display:block; width:100%; margin-top:.35rem; border:0; border-radius:10px; padding:.9rem 1rem; background:#eceaf1; color:#b0aab8; font-weight:700; }
+.hv-card-pci { margin:.7rem 0 .15rem; text-align:center; color:#16a34a; font-size:.84rem; font-weight:600; }
+.hv-card-pci svg { vertical-align:-2px; margin-right:.2rem; }
+.hv-card-fail { display:none; text-align:center; color:#334155; padding:1.5rem .5rem; line-height:1.5; }
+.hv-card-fail p { margin:0 0 .85rem; }
+.hv-card-loader.is-failed .hv-card-loading { display:none; }
+.hv-card-loader.is-failed .hv-card-fail { display:block; }
+.hv-card-fail a { color:#6b46c1; font-weight:700; }
+.hv-card-stage.is-loading { overflow:hidden; }
+.hv-card-stage.is-loading > :not(.hv-card-loader) { position:absolute; left:0; right:0; opacity:0; pointer-events:none; }
+.hv-card-stage.is-ready > :not(.hv-card-loader) { opacity:1; transition:opacity .35s ease; }
+.hv-card-stage.is-ready .hv-card-loader { position:absolute; inset:0; opacity:0; pointer-events:none; transition:opacity .35s ease; }
+@keyframes hvCardSpin { to { transform:rotate(360deg); } }
+@keyframes hvCardBar { to { width:90%; } }
+@keyframes hvCardShimmer { to { background-position:-200% 0; } }
 @media (max-width: 640px) {
   .hv-checkout { padding:1rem .85rem; }
   .hv-co-tiles { grid-template-columns:1fr; }
@@ -735,6 +763,10 @@ $(function () {
 			 
 				
 				card.mount('#card-element');
+				var hvCardGen = window.hvCardFormGeneration ? window.hvCardFormGeneration('stripe') : 0;
+				card.on('ready', function () {
+					if (window.hvCardFormReady) window.hvCardFormReady('stripe', hvCardGen);
+				});
 			 
 			   
 				card.addEventListener('change', function(event) {
@@ -1374,7 +1406,7 @@ $(function () {
     $('.hv-co-panel').attr('hidden', true);
     $('.hv-co-panel[data-method="' + method + '"]').removeAttr('hidden');
     var $btn = $('#hv-co-pay');
-    $btn.removeClass('is-paypal is-card');
+    $btn.prop('disabled', false).removeClass('is-paypal is-card');
     if (method === 'paypal') {
       $btn.addClass('is-paypal').text(@json(__('Continue to PayPal')) + ' — ' + amount);
     } else if (cardMethods[method]) {
@@ -1383,6 +1415,9 @@ $(function () {
       var name = $('.hv-co-tile[data-method="' + method + '"]').attr('data-label') || method;
       $btn.addClass('is-card').text(@json(__('Continue with')) + ' ' + name + ' — ' + amount);
     }
+    if (window.hvCardAwaiting && window.hvCardAwaiting(method)) {
+      $btn.prop('disabled', true).text(@json(__('Please wait…')));
+    }
   }
   $(document).on('change', 'input[name=payment_method]', syncCheckout);
   $('.hv-co-tile').on('click', function () {
@@ -1390,6 +1425,201 @@ $(function () {
     syncCheckout();
   });
   syncCheckout();
+
+  var embedded = { stripe: '#ifYes', whop: '#whopInlineBox', dodopayments: '#dodoInlineBox' };
+  var awaiting = {};
+  var readyFor = {};
+  var generation = {};
+  var shownFor = {};
+  var timer = null;
+  var timerMethod = '';
+  var loader = document.getElementById('hv-card-loader');
+  var lockSvg = '<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="#e0a106" d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 8V7a3 3 0 0 1 6 0v3H9z"/></svg>';
+  if (!loader) {
+    loader = document.createElement('div');
+    loader.id = 'hv-card-loader';
+    loader.className = 'hv-card-loader';
+    loader.setAttribute('role', 'status');
+    loader.setAttribute('aria-live', 'polite');
+    loader.hidden = true;
+    loader.innerHTML = '<div class="hv-card-loading"><p class="hv-card-loader-label">' + @json(__('Credit or debit card')) + '</p><div class="hv-card-spin" aria-hidden="true"></div><p class="hv-card-loader-title">' + @json(__('Loading secure payment form…')) + '</p><p class="hv-card-loader-sub">' + @json(__('This only takes a few seconds')) + '</p><div class="hv-card-bar" aria-hidden="true"><span></span></div><div class="hv-card-skel"></div><div class="hv-card-skel"></div><div class="hv-card-skel"></div><div class="hv-card-skel"></div><div class="hv-card-skel-row"><div class="hv-card-skel"></div><div class="hv-card-skel"></div></div><button type="button" class="hv-card-wait" disabled>' + @json(__('Please wait…')) + '</button><p class="hv-card-pci">' + lockSvg + @json(__('Secure • PCI DSS Compliant')) + '</p></div><div class="hv-card-fail"><p>' + @json(__('Card form is taking longer than usual — please refresh or choose another payment method')) + '</p><p><a href="" id="hv-card-retry">' + @json(__('Refresh')) + '</a></p></div>';
+    $root.append(loader);
+    loader.querySelector('#hv-card-retry').addEventListener('click', function (event) {
+      event.preventDefault();
+      window.location.reload();
+    });
+  }
+  function currentMethod() {
+    return $('input[name=payment_method]:checked').val() || '';
+  }
+  function hostFor(method) {
+    var sel = embedded[method];
+    if (!sel) return $();
+    var $host = $(sel);
+    return $host.length ? $host : $();
+  }
+  function framesSettled($host) {
+    var frames = $host.find('iframe');
+    if (!frames.length) return false;
+    var ok = true;
+    frames.each(function () {
+      if (this.getAttribute('data-hv-loaded') !== '1') ok = false;
+    });
+    return ok;
+  }
+  function hostError($host) {
+    var failed = false;
+    $host.find('#whop-inline-error, #dodo-inline-error').each(function () {
+      if ($(this).is(':visible') && $.trim($(this).text()) !== '') failed = true;
+    });
+    return failed;
+  }
+  function release(method) {
+    awaiting[method] = false;
+    if (timerMethod === method) {
+      window.clearTimeout(timer);
+      timer = null;
+      timerMethod = '';
+    }
+    var $host = hostFor(method);
+    if ($host.length) $host.removeClass('is-loading');
+    if (loader && loader.parentNode === ($host[0] || null) && !loader.hasAttribute('hidden')) loader.hidden = true;
+    syncCheckout();
+  }
+  function showLoader(method) {
+    var $host = hostFor(method);
+    if (!$host.length || !$host.is(':visible') || currentMethod() !== method) {
+      if (awaiting[method]) release(method);
+      return;
+    }
+    if (hostError($host)) {
+      release(method);
+      return;
+    }
+    if (method !== 'stripe' && framesSettled($host)) {
+      window.hvCardFormReady(method, generation[method] || 0);
+      return;
+    }
+    if (readyFor[method]) return;
+    var gen = generation[method] || 0;
+    if (awaiting[method] && shownFor[method] === gen && !loader.hidden && loader.parentNode === $host[0] && !loader.classList.contains('is-failed')) return;
+    shownFor[method] = gen;
+    awaiting[method] = true;
+    $host.addClass('hv-card-stage is-loading').removeClass('is-ready');
+    $host.prepend(loader);
+    loader.hidden = false;
+    loader.classList.remove('is-failed');
+    var bar = loader.querySelector('.hv-card-bar span');
+    if (bar) { bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = ''; }
+    window.clearTimeout(timer);
+    timerMethod = method;
+    timer = window.setTimeout(function () {
+      if (!awaiting[method] || (generation[method] || 0) !== gen) return;
+      loader.classList.add('is-failed');
+    }, 15000);
+    syncCheckout();
+  }
+  window.hvCardAwaiting = function (method) {
+    return !!awaiting[method];
+  };
+  window.hvCardFormGeneration = function (method) {
+    return generation[method] || 0;
+  };
+  window.hvCardFormReady = function (method, gen) {
+    if (!method) method = currentMethod();
+    if (!embedded[method]) return;
+    if (gen != null && gen !== (generation[method] || 0)) return;
+    if (readyFor[method] && !awaiting[method]) return;
+    awaiting[method] = false;
+    readyFor[method] = true;
+    if (timerMethod === method) {
+      window.clearTimeout(timer);
+      timer = null;
+      timerMethod = '';
+    }
+    var $host = hostFor(method);
+    if ($host.length) $host.removeClass('is-loading').addClass('hv-card-stage is-ready');
+    if (loader) loader.classList.remove('is-failed');
+    syncCheckout();
+    window.setTimeout(function () {
+      if (awaiting[currentMethod()]) return;
+      if (loader && readyFor[method]) loader.hidden = true;
+    }, 380);
+  };
+  function armFrame(iframe, method) {
+    if (!iframe || iframe.getAttribute('data-hv-load')) return;
+    iframe.setAttribute('data-hv-load', '1');
+    generation[method] = (generation[method] || 0) + 1;
+    readyFor[method] = false;
+    var gen = generation[method];
+    iframe.addEventListener('load', function () {
+      iframe.setAttribute('data-hv-loaded', '1');
+      window.hvCardFormReady(method, gen);
+    });
+  }
+  function watchHost(method) {
+    var $host = hostFor(method);
+    if (!$host.length || $host.data('hvWatch')) return;
+    $host.data('hvWatch', 1);
+    var obs = new MutationObserver(function (records) {
+      var relevant = false;
+      for (var i = 0; i < records.length; i++) {
+        var node = records[i].target;
+        if (loader && (node === loader || loader.contains(node))) continue;
+        relevant = true;
+        break;
+      }
+      if (!relevant) return;
+      if (method !== 'stripe') {
+        $host.find('iframe').each(function () { armFrame(this, method); });
+      }
+      if (currentMethod() !== method) return;
+      if (!$host.is(':visible')) {
+        if (awaiting[method]) release(method);
+        return;
+      }
+      if (hostError($host)) {
+        release(method);
+        return;
+      }
+      showLoader(method);
+    });
+    obs.observe($host[0], { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class', 'hidden'] });
+  }
+  $.each(embedded, function (method) { watchHost(method); });
+  $('.hv-co-tile').each(function () {
+    this.addEventListener('click', function () {
+      var method = String($(this).data('method') || '');
+      if (method !== 'stripe' || !$('#ifYes').length) return;
+      generation.stripe = (generation.stripe || 0) + 1;
+      readyFor.stripe = false;
+      awaiting.stripe = true;
+    }, true);
+  });
+  $('.hv-co-tile').on('click', function () {
+    var method = String($(this).data('method') || '');
+    $.each(embedded, function (name) {
+      if (name !== method) awaiting[name] = false;
+    });
+    if (!embedded[method]) {
+      window.clearTimeout(timer);
+      timer = null;
+      timerMethod = '';
+      $('.hv-card-stage.is-loading').removeClass('is-loading');
+      if (loader) loader.hidden = true;
+      syncCheckout();
+      return;
+    }
+    window.setTimeout(function () { showLoader(method); }, 0);
+  });
+  var checkoutForm = document.getElementById('checkout_form');
+  if (checkoutForm) {
+    checkoutForm.addEventListener('submit', function (event) {
+      if (!awaiting[currentMethod()]) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }, true);
+  }
 });
 </script>
 </body>
