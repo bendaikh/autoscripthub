@@ -6,6 +6,7 @@
 @include('style')
 <style>
   #dodo-inline-checkout { min-height: 720px; width: 100%; }
+  @include('partials.hv-card-loader-styles')
 </style>
 </head>
 <body>
@@ -36,7 +37,9 @@
         </div>
         <div class="card-body">
           <p class="text-muted font-size-sm">{{ __('Enter your card details below. Your account email is used automatically.') }}</p>
+          <div id="dodo-card-stage">
           <div id="dodo-inline-checkout"></div>
+          </div>
           <div id="dodo-checkout-error" class="alert alert-danger mt-3" style="display:none;" role="alert"></div>
         </div>
       </div>
@@ -69,6 +72,8 @@
 </div>
 @include('footer')
 @include('script')
+@php $card_loader_provider = 'dodopayments'; @endphp
+@include('landing-pages.partials.card-form-loader')
 <script src="https://cdn.jsdelivr.net/npm/dodopayments-checkout@latest/dist/index.js"></script>
 <script>
 (function () {

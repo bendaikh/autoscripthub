@@ -30,6 +30,10 @@
     @endif
     @php $lpCssFile = base_path('public/css/landing-vue.css'); @endphp
     <link rel="stylesheet" href="{{ url('/public/css/landing-vue.css') }}?v={{ file_exists($lpCssFile) ? filemtime($lpCssFile) : 1 }}">
+    <style>
+    @include('partials.hv-card-loader-styles')
+    #lpCardStage { min-height: 0; }
+    </style>
 </head>
 @php
     $youtubeId = '';
@@ -781,7 +785,9 @@
                     </div>
                     <div id="lpCheckoutEmbedWrap" style="display:none;">
                         <div id="lpCheckoutEmbedError" class="alert alert-danger" style="display:none;"></div>
-                        <iframe id="lpCheckoutEmbed" title="{{ $lpT('Secure Checkout') }}"></iframe>
+                        <div id="lpCardStage">
+                            <iframe id="lpCheckoutEmbed" title="{{ $lpT('Secure Checkout') }}"></iframe>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -805,8 +811,38 @@ window.LP_ANALYTICS_CONFIG = {
 };
 </script>
 <script src="{{ url('/public/js/lp-analytics.js') }}"></script>
+@include('partials.hv-card-loader')
 <script>
+var landingCardWatch = '';
+var hvLandingCard = window.hvInitCardFormLoader ? window.hvInitCardFormLoader({
+    root: document.getElementById('lpCheckoutEmbedWrap'),
+    hosts: { card: '#lpCardStage' },
+    errorSelector: '#lpCheckoutEmbedError',
+    ignoreFrameLoad: { card: true },
+    getMethod: function () { return landingCardWatch; },
+    texts: {
+        label: @json($lpT('Credit or debit card')),
+        title: @json($lpT('Loading secure payment form…')),
+        sub: @json($lpT('This only takes a few seconds')),
+        wait: @json($lpT('Please wait…')),
+        pci: @json($lpT('Secure • PCI DSS Compliant')),
+        fail: @json($lpT('Card form is taking longer than usual — please refresh or choose another payment method')),
+        retry: @json($lpT('Refresh'))
+    }
+}) : null;
+window.addEventListener('message', function (event) {
+    if (event.origin !== window.location.origin) return;
+    var frame = document.getElementById('lpCheckoutEmbed');
+    if (!frame || event.source !== frame.contentWindow) return;
+    var data = event.data || {};
+    if (data.type !== 'hv-card-form' || !hvLandingCard) return;
+    if (data.status === 'ready') hvLandingCard.ready('card');
+    if (data.status === 'timeout') hvLandingCard.fail('card');
+    if (data.status === 'released') hvLandingCard.release('card');
+});
 function resetPaymentModal() {
+    landingCardWatch = '';
+    if (hvLandingCard) hvLandingCard.release('card');
     $('#lpPaymentSelect').show();
     $('#lpCheckoutEmbedWrap').hide();
     $('#lpCheckoutEmbed').attr('src', 'about:blank');
@@ -843,6 +879,24 @@ function showEmbeddedCheckout(embedUrl) {
     $('#lpCheckoutEmbedWrap').show();
     $('#lpCheckoutEmbed').attr('src', embedUrl);
 }
+function restorePaymentChoices() {
+    landingCardWatch = '';
+    if (hvLandingCard) hvLandingCard.release('card');
+    $('#lpCheckoutEmbedWrap').hide();
+    $('#lpCheckoutEmbed').attr('src', 'about:blank');
+    $('.lp-payment-dialog').removeClass('lp-payment-dialog-wide');
+    $('#paymentModal .modal-title').html('<i class="fas fa-lock mr-2"></i> {{ $lpT("Choose Payment Method") }}');
+    $('#lpPaymentSelect').show();
+}
+function showLandingCardLoader() {
+    landingCardWatch = 'card';
+    $('#lpPaymentSelect').hide();
+    $('.lp-payment-dialog').addClass('lp-payment-dialog-wide');
+    $('#paymentModal .modal-title').html('<i class="fas fa-lock mr-2"></i> {{ $lpT("Secure Checkout") }}');
+    $('#lpCheckoutEmbedError').hide().text('');
+    $('#lpCheckoutEmbedWrap').show();
+    if (hvLandingCard) hvLandingCard.show('card');
+}
 function trackBuyNowClick() {
     if (typeof window.lpTrack === 'function') window.lpTrack('buy_now_click');
 }
@@ -857,9 +911,12 @@ $('#paymentForm').on('submit', function (e) {
     e.preventDefault();
     var submitBtn = $('#paymentBtn');
     var originalText = submitBtn.html();
-    submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin mr-2"></i> {{ $lpT("Please wait...") }}');
+    submitBtn.prop('disabled', true).text(@json($lpT('Please wait…')));
     $('#lpPaymentError').hide().text('');
     $('#lpCheckoutEmbedError').hide().text('');
+    if (method === 'whop' || method === 'dodopayments') {
+        showLandingCardLoader();
+    }
     $.ajax({
         url: $(this).attr('action'),
         method: 'POST',
@@ -871,10 +928,12 @@ $('#paymentForm').on('submit', function (e) {
                 submitBtn.prop('disabled', false).html(originalText);
                 return;
             }
+            restorePaymentChoices();
             submitBtn.prop('disabled', false).html(originalText);
             $('#lpPaymentError').text(response.message || '{{ $lpT('An error occurred. Please try again.') }}').show();
         },
         error: function (xhr) {
+            restorePaymentChoices();
             submitBtn.prop('disabled', false).html(originalText);
             var errorMessage = '{{ $lpT('An error occurred. Please try again.') }}';
             if (xhr.responseJSON && xhr.responseJSON.message) errorMessage = xhr.responseJSON.message;
