@@ -122,7 +122,9 @@
         var delta = event.changedTouches[0].clientX - this.touchStartX;
         this.touchStartX = null;
         if (Math.abs(delta) < 45) return;
-        if (delta < 0) {
+        var forward = delta < 0;
+        if (this.page.rtl) forward = !forward;
+        if (forward) {
           this.nextShot();
         } else {
           this.prevShot();
@@ -134,8 +136,10 @@
       onKeydown: function (event) {
         if (this.lightbox === null) return;
         if (event.key === 'Escape') this.lightbox = null;
-        if (event.key === 'ArrowRight') this.lightbox = (this.lightbox + 1) % this.shotCount();
-        if (event.key === 'ArrowLeft') this.lightbox = (this.lightbox - 1 + this.shotCount()) % this.shotCount();
+        var nextKey = this.page.rtl ? 'ArrowLeft' : 'ArrowRight';
+        var prevKey = this.page.rtl ? 'ArrowRight' : 'ArrowLeft';
+        if (event.key === nextKey) this.lightbox = (this.lightbox + 1) % this.shotCount();
+        if (event.key === prevKey) this.lightbox = (this.lightbox - 1 + this.shotCount()) % this.shotCount();
       },
       observeReveals: function () {
         var nodes = appEl.querySelectorAll('[data-reveal]');

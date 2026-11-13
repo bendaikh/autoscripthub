@@ -23,7 +23,8 @@ class LandingPageI18n
             ($page->lp_tagline ?? '') . ' ' .
             ($page->lp_cta_text ?? '') . ' ' .
             strip_tags((string) ($page->lp_description ?? '')) . ' ' .
-            strip_tags((string) ($page->lp_about_description ?? ''))
+            strip_tags((string) ($page->lp_about_description ?? '')) . ' ' .
+            strip_tags((string) ($page->lp_what_you_get ?? ''))
         );
     }
 
@@ -57,10 +58,28 @@ class LandingPageI18n
     }
 
     /**
+     * Detect Arabic script when the saved language was left as English.
+     */
+    public static function pageLooksArabic($page): bool
+    {
+        $sample = self::pageCopySample($page);
+        if ($sample === '') {
+            return false;
+        }
+
+        preg_match_all('/\p{Arabic}/u', $sample, $matches);
+
+        return count($matches[0] ?? []) >= 12;
+    }
+
+    /**
      * Infer locale from page copy when the saved language is still English.
      */
     public static function inferLocaleFromCopy($page): ?string
     {
+        if (self::pageLooksArabic($page)) {
+            return 'ar';
+        }
         if (self::pageLooksThai($page)) {
             return 'th';
         }
@@ -69,6 +88,11 @@ class LandingPageI18n
         }
 
         return null;
+    }
+
+    public static function direction(?string $locale = null): string
+    {
+        return self::normalizeLocale($locale ?? self::$locale) === 'ar' ? 'rtl' : 'ltr';
     }
 
     public static function usePage($page): void

@@ -1,3 +1,12 @@
+@php
+    $hvCardSay = function (string $key) {
+        if (!empty($landing_ui_locale)) {
+            \Fickrr\Helpers\LandingPageI18n::setLocale($landing_ui_locale);
+            return \Fickrr\Helpers\LandingPageI18n::t($key);
+        }
+        return __($key);
+    };
+@endphp
 @include('partials.hv-card-loader')
 @php
     $hvCardProvider = '';
@@ -34,13 +43,13 @@
             } catch (e) {}
         },
         texts: {
-            label: @json(__('Credit or debit card')),
-            title: @json(__('Loading secure payment form…')),
-            sub: @json(__('This only takes a few seconds')),
-            wait: @json(__('Please wait…')),
-            pci: @json(__('Secure • PCI DSS Compliant')),
-            fail: @json(__('Card form is taking longer than usual — please refresh or choose another payment method')),
-            retry: @json(__('Refresh'))
+            label: @json($hvCardSay('Credit or debit card')),
+            title: @json($hvCardSay('Loading secure payment form…')),
+            sub: @json($hvCardSay('This only takes a few seconds')),
+            wait: @json($hvCardSay('Please wait…')),
+            pci: @json($hvCardSay('Secure • PCI DSS Compliant')),
+            fail: @json($hvCardSay('Card form is taking longer than usual — please refresh or choose another payment method')),
+            retry: @json($hvCardSay('Refresh'))
         }
     });
     if (provider === 'whop') {

@@ -1,7 +1,10 @@
 <!DOCTYPE HTML>
-<html lang="en">
+<html lang="{{ !empty($landing_ui_locale) ? $landing_ui_locale : 'en' }}" @if(($landing_ui_locale ?? '') === 'ar') dir="rtl" @endif>
 <head>
-<title>{{ $allsettings->site_title }} - {{ __('Secure Checkout') }}</title>
+<title>{{ $allsettings->site_title }} - {{ !empty($landing_ui_locale) ? \Fickrr\Helpers\LandingPageI18n::t('Secure Checkout') : __('Secure Checkout') }}</title>
+@if(($landing_ui_locale ?? '') === 'ar')
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+@endif
 @include('meta')
 @include('style')
 <style>
@@ -83,7 +86,7 @@
 
   function showError(message) {
     if (!errorBox) return;
-    errorBox.textContent = message || @json(__('Checkout could not be loaded. Please try again.'));
+    errorBox.textContent = message || @json(!empty($landing_ui_locale) ? \Fickrr\Helpers\LandingPageI18n::t('Checkout could not be loaded. Please try again.') : __('Checkout could not be loaded. Please try again.'));
     errorBox.style.display = 'block';
   }
 
@@ -127,7 +130,7 @@
           showError(event.data && event.data.message ? event.data.message : '');
           break;
         case 'checkout.link_expired':
-          showError(@json(__('This checkout session has expired. Please return and start checkout again.')));
+          showError(@json(!empty($landing_ui_locale) ? \Fickrr\Helpers\LandingPageI18n::t('This checkout session has expired. Please return and start checkout again.') : __('This checkout session has expired. Please return and start checkout again.')));
           break;
       }
     }

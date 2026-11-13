@@ -26,7 +26,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
     @if($lpLang === 'ar')
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     @endif
     @php $lpCssFile = base_path('public/css/landing-vue.css'); @endphp
     <link rel="stylesheet" href="{{ url('/public/css/landing-vue.css') }}?v={{ file_exists($lpCssFile) ? filemtime($lpCssFile) : 1 }}">
@@ -185,6 +185,7 @@
             'sellerResponse' => $lpT('Response from seller'),
             'playVideo' => $lpT('Play video'),
         ],
+        'rtl' => $lpLang === 'ar',
     ];
 @endphp
 <body class="lp-body @if($lpLang === 'ar') is-rtl @endif"
