@@ -1442,3 +1442,35 @@ h1, h2, h3 {
     .lp-trust-strip { grid-template-columns: 1fr; }
     .lp-video-frame { border-radius: 14px; }
 }
+
+/* Arabic pages. English pages do not use .is-rtl, so these rules do not apply to them. */
+body.lp-body.is-rtl,
+body.lp-body.is-rtl h1,
+body.lp-body.is-rtl h2,
+body.lp-body.is-rtl h3,
+body.lp-body.is-rtl button,
+body.lp-body.is-rtl input,
+body.lp-body.is-rtl textarea,
+body.lp-body.is-rtl select {
+    font-family: 'Cairo', 'Noto Sans Arabic', system-ui, sans-serif;
+}
+@media (min-width: 1025px) {
+    body.lp-body.is-rtl .lp-hero-grid {
+        grid-template-areas:
+            "media copy"
+            "media offer";
+    }
+}
+body.lp-body.is-rtl .lp-hero-glow { right: auto; left: -8%; }
+body.lp-body.is-rtl .lp-thumb-play i { padding-left: 0; padding-right: 2px; }
+body.lp-body.is-rtl .lp-contact-fineprint i { margin-right: 0; margin-left: .25rem; }
+body.lp-body.is-rtl .mr-1 { margin-right: 0 !important; margin-left: .25rem !important; }
+body.lp-body.is-rtl .mr-2 { margin-right: 0 !important; margin-left: .5rem !important; }
+body.lp-body.is-rtl .ml-2 { margin-left: 0 !important; margin-right: .5rem !important; }
+body.lp-body.is-rtl .modal-header .close { margin-right: auto; margin-left: -1rem; }
+body.lp-body.is-rtl .lp-modal,
+body.lp-body.is-rtl .hv-card-loader { text-align: right; }
+body.lp-body.is-rtl .hv-card-loader-title,
+body.lp-body.is-rtl .hv-card-loader-sub,
+body.lp-body.is-rtl .hv-card-pci,
+body.lp-body.is-rtl .hv-card-fail { text-align: center; }

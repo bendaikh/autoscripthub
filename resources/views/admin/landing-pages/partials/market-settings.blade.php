@@ -26,7 +26,7 @@
     <label for="lp_content_language">{{ __('Landing page language') }} <span class="text-danger">*</span></label>
     <select name="lp_content_language" id="lp_content_language" class="form-control" required>
         @foreach($aiLanguages as $code => $name)
-            <option value="{{ $code }}" @if($selectedLanguage === $code) selected @endif>{{ $name }}</option>
+            <option value="{{ $code }}" @if($selectedLanguage === $code) selected @endif>{{ $code === 'ar' ? 'العربية' : $name }}</option>
         @endforeach
     </select>
     <small class="form-text text-muted">{{ __('All visitor-facing page labels and auto-generated sections will appear in this language.') }}</small>

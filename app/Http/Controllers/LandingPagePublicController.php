@@ -412,12 +412,14 @@ class LandingPagePublicController extends Controller
                     ]);
                 }
 
+                \Fickrr\Helpers\LandingPageI18n::usePage($landing_page);
                 $data = [
                     'dodo_checkout_url' => $checkoutUrl,
                     'dodo_mode' => $embed['dodo_mode'],
                     'dodo_item_name' => $embed['item_name'],
                     'dodo_amount_label' => $embed['amount_label'],
                     'dodo_cancel_url' => $embed['cancel_url'],
+                    'landing_ui_locale' => \Fickrr\Helpers\LandingPageI18n::locale(),
                 ];
                 return view('dodo-embedded-checkout')->with($data);
             }
@@ -485,6 +487,7 @@ class LandingPagePublicController extends Controller
                 ]);
             }
 
+            \Fickrr\Helpers\LandingPageI18n::usePage($landing_page);
             return view('whop-embedded-checkout')->with([
                 'whop_session_id' => $sessionId,
                 'whop_plan_id' => $planId,
@@ -493,6 +496,7 @@ class LandingPagePublicController extends Controller
                 'whop_amount_label' => $embed['amount_label'],
                 'whop_cancel_url' => $embed['cancel_url'],
                 'whop_prefill_email' => $embed['whop_prefill_email'],
+                'landing_ui_locale' => \Fickrr\Helpers\LandingPageI18n::locale(),
             ]);
         }
 
@@ -514,7 +518,20 @@ class LandingPagePublicController extends Controller
             abort(404);
         }
 
-        return view('landing-pages.embed-checkout', ['embed' => $embed]);
+        $locale = 'en';
+        $order = \DB::table('landing_page_orders')->where('order_token', $order_token)->first();
+        if ($order && !empty($order->lp_id)) {
+            $page = LandingPage::getById($order->lp_id);
+            if ($page) {
+                \Fickrr\Helpers\LandingPageI18n::usePage($page);
+                $locale = \Fickrr\Helpers\LandingPageI18n::locale();
+            }
+        }
+
+        return view('landing-pages.embed-checkout', [
+            'embed' => $embed,
+            'landing_ui_locale' => $locale,
+        ]);
     }
 
     /**

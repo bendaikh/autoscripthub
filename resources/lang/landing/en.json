@@ -246,5 +246,18 @@
     "Let the system handle the routine steps.": "Let the system handle the routine steps.",
     "All": "All",
     "Send us a note and we will reply by email, usually within a few hours.": "Send us a note and we will reply by email, usually within a few hours.",
-    "Watch the product in a short video": "Watch the product in a short video"
+    "Watch the product in a short video": "Watch the product in a short video",
+    "Credit or debit card": "Credit or debit card",
+    "Loading secure payment form…": "Loading secure payment form…",
+    "This only takes a few seconds": "This only takes a few seconds",
+    "Please wait…": "Please wait…",
+    "Secure • PCI DSS Compliant": "Secure • PCI DSS Compliant",
+    "Card form is taking longer than usual — please refresh or choose another payment method": "Card form is taking longer than usual — please refresh or choose another payment method",
+    "Refresh": "Refresh",
+    "Checkout could not be loaded. Please try again.": "Checkout could not be loaded. Please try again.",
+    "This checkout session has expired. Please return and start checkout again.": "This checkout session has expired. Please return and start checkout again.",
+    "You will be charged": "You will be charged",
+    "Customer email is missing. Please go back and enter your email.": "Customer email is missing. Please go back and enter your email.",
+    "Unable to apply your account email to checkout. Please refresh and try again.": "Unable to apply your account email to checkout. Please refresh and try again.",
+    "Billing details could not be validated. Please refresh and try again.": "Billing details could not be validated. Please refresh and try again."
 }

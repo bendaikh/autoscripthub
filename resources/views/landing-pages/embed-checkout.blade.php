@@ -1,11 +1,14 @@
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}">
+<html lang="{{ $landing_ui_locale ?? 'en' }}" dir="{{ ($landing_ui_locale ?? 'en') === 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ __('Secure Checkout') }}</title>
+    <title>{{ \Fickrr\Helpers\LandingPageI18n::t('Secure Checkout') }}</title>
+    @if(($landing_ui_locale ?? 'en') === 'ar')
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    @endif
     <style>
-        html, body { margin: 0; padding: 0; background: #fff; font-family: system-ui, -apple-system, sans-serif; }
+        html, body { margin: 0; padding: 0; background: #fff; font-family: {{ ($landing_ui_locale ?? 'en') === 'ar' ? "'Cairo', 'Noto Sans Arabic', system-ui, sans-serif" : "system-ui, -apple-system, sans-serif" }}; }
         .lp-embed-wrap { padding: 8px 4px 16px; }
         .lp-embed-summary { font-size: 14px; color: #334; margin: 0 0 12px; }
         #dodo-inline-checkout { min-height: 640px; width: 100%; }
@@ -22,7 +25,7 @@
     @if(!empty($embed['item_name']) || !empty($embed['amount_label']))
     <p class="lp-embed-summary">
         @if(!empty($embed['item_name']))<strong>{{ $embed['item_name'] }}</strong><br>@endif
-        @if(!empty($embed['amount_label'])){{ __('You will be charged') }} {{ $embed['amount_label'] }}@endif
+        @if(!empty($embed['amount_label'])){{ \Fickrr\Helpers\LandingPageI18n::t('You will be charged') }} {{ $embed['amount_label'] }}@endif
     </p>
     @endif
     <div id="checkout-error"></div>
@@ -39,7 +42,7 @@
             var mode = @json($embed['dodo_mode'] ?? 'test');
             var errorBox = document.getElementById('checkout-error');
             function showError(message) {
-                errorBox.textContent = message || @json(__('Checkout could not be loaded. Please try again.'));
+                errorBox.textContent = message || @json(\Fickrr\Helpers\LandingPageI18n::t('Checkout could not be loaded. Please try again.'));
                 errorBox.style.display = 'block';
             }
             if (typeof DodoPaymentsCheckout === 'undefined' || !DodoPaymentsCheckout.DodoPayments) {
@@ -55,7 +58,7 @@
                         showError(event.data && event.data.message ? event.data.message : '');
                     }
                     if (event.event_type === 'checkout.link_expired') {
-                        showError(@json(__('This checkout session has expired. Please return and start checkout again.')));
+                        showError(@json(\Fickrr\Helpers\LandingPageI18n::t('This checkout session has expired. Please return and start checkout again.')));
                     }
                 }
             });

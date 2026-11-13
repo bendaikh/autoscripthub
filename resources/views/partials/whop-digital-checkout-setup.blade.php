@@ -1,4 +1,13 @@
 {{-- Use the real customer email (account / guest checkout). Never invent an email. --}}
+@php
+    $whopSay = function (string $key) {
+        if (!empty($landing_ui_locale)) {
+            \Fickrr\Helpers\LandingPageI18n::setLocale($landing_ui_locale);
+            return \Fickrr\Helpers\LandingPageI18n::t($key);
+        }
+        return __($key);
+    };
+@endphp
 <script>
 (function () {
     var CHECKOUT_ID = 'whop-digital-checkout';
@@ -65,7 +74,7 @@
             if (el) {
                 el.removeAttribute('data-whop-checkout-hide-email');
             }
-            showFrameError(@json(__('Customer email is missing. Please go back and enter your email.')));
+            showFrameError(@json($whopSay('Customer email is missing. Please go back and enter your email.')));
             return Promise.reject(new Error('missing customer email'));
         }
 
@@ -102,13 +111,13 @@
             return;
         }
         applyCustomerIdentity().catch(function () {
-            showFrameError(@json(__('Unable to apply your account email to checkout. Please refresh and try again.')));
+            showFrameError(@json($whopSay('Unable to apply your account email to checkout. Please refresh and try again.')));
         });
     };
 
     window.onWhopAddressValidationError = function (error) {
         var message = (error && (error.message || error.code)) ? (error.message || error.code) : '';
-        showFrameError(message || @json(__('Billing details could not be validated. Please refresh and try again.')));
+        showFrameError(message || @json($whopSay('Billing details could not be validated. Please refresh and try again.')));
     };
 
     var attempts = 0;
