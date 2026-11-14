@@ -5,11 +5,6 @@ on:
   push:
     branches: [feature/landing-video-qa]
   workflow_dispatch:
-    inputs:
-      run_migrations:
-        description: "Run database migrations (php artisan migrate --force)"
-        type: boolean
-        default: false
 
 # Never run two deploys at the same time.
 concurrency:
@@ -57,18 +52,22 @@ jobs:
             --exclude='*.md' \
             ./ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
 
-      - name: Install dependencies and refresh Laravel caches
-        env:
-          RUN_MIGRATIONS: ${{ github.event.inputs.run_migrations || 'false' }}
+      - name: Install dependencies, update database, refresh Laravel caches
         run: |
+          # Database updates added since auto-deploy was set up (named
+          # 2026_11_14 or later). Laravel skips any that already ran, and
+          # older migrations are never touched.
+          MIGRATIONS="$(ls database/migrations/*.php | awk -F/ '$NF >= "2026_11_14"' | tr '\n' ' ')"
+          echo "Migrations to check: $MIGRATIONS"
           sshpass -e ssh -p "$SSH_PORT" -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" \
-            "DEPLOY_PATH='$DEPLOY_PATH' RUN_MIGRATIONS='$RUN_MIGRATIONS' bash -s" <<'REMOTE'
+            "DEPLOY_PATH='$DEPLOY_PATH' MIGRATIONS='$MIGRATIONS' bash -s" <<'REMOTE'
           set -e
           cd "$DEPLOY_PATH"
           composer install --no-dev --optimize-autoloader --no-interaction --no-progress
-          if [ "$RUN_MIGRATIONS" = "true" ]; then
-            php artisan migrate --force
-          fi
+          for m in $MIGRATIONS; do
+            echo "Running migration $m"
+            php artisan migrate --force --path="$m"
+          done
           php artisan optimize:clear
           echo "Deploy finished."
           REMOTE
