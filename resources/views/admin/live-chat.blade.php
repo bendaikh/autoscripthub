@@ -39,6 +39,9 @@
     .lca-placeholder{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#9ca3af;gap:8px}
     .lca-placeholder i{font-size:42px}
     .lca-back{display:none}
+    .lc-flag{display:inline-block;width:20px;height:15px;margin-right:6px;vertical-align:-2px;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.08);background-size:cover}
+    .lc-flag-none{box-shadow:none;width:auto;height:auto;color:#9ca3af;vertical-align:0}
+    .lc-country{color:#374151;font-weight:600}
     @media (max-width:767.98px){
       .lca-wrap{height:calc(100vh - 180px)}
       .lca-list{width:100%;flex:1 1 auto;border-right:0}
@@ -176,9 +179,11 @@
     if (s < 86400) return Math.floor(s / 3600) + 'h';
     return d.toLocaleDateString();
   }
-  function flag(code) {
-    if (!code || code.length !== 2) return '';
-    return String.fromCodePoint.apply(null, code.toUpperCase().split('').map(function (c) { return 127397 + c.charCodeAt(0); })) + ' ';
+  function flagNode(code) {
+    var f = document.createElement('span');
+    if (code && /^[A-Za-z]{2}$/.test(code)) { f.className = 'flag-icon flag-icon-' + code.toLowerCase() + ' lc-flag'; }
+    else { f.className = 'fa fa-globe lc-flag lc-flag-none'; }
+    return f;
   }
   function beep() {
     if (!document.getElementById('lca-sound').checked) return;
@@ -203,13 +208,16 @@
       var b = el('button', 'lca-item' + (c.unread ? ' unread' : '') + (current && current.id === c.id ? ' active' : ''));
       b.type = 'button';
       var top = el('div', 'lca-item-top');
-      top.appendChild(el('span', 'lca-item-name', flag(c.country) + c.name));
+      var nm = el('span', 'lca-item-name'); nm.appendChild(flagNode(c.country)); nm.appendChild(document.createTextNode(c.name));
+      top.appendChild(nm);
       var right = el('span');
       if (c.unread) { right.appendChild(el('span', 'lca-dot', String(c.unread))); right.appendChild(document.createTextNode(' ')); }
       right.appendChild(el('span', 'lca-item-time', ago(c.at)));
       top.appendChild(right);
       b.appendChild(top);
-      b.appendChild(el('div', 'lca-item-page', c.page || ''));
+      var pg = el('div', 'lca-item-page'); pg.appendChild(el('span', 'lc-country', c.country_name || ''));
+      pg.appendChild(document.createTextNode(c.page ? ' · ' + c.page : ''));
+      b.appendChild(pg);
       b.appendChild(el('div', 'lca-item-last', c.last || ''));
       b.addEventListener('click', function () { openConversation(c); });
       items.appendChild(b);
@@ -237,8 +245,9 @@
   }
 
   function showHeader() {
-    document.getElementById('lca-name').textContent = flag(current.country) + current.name;
-    var meta = [];
+    var nameEl = document.getElementById('lca-name');
+    nameEl.innerHTML = ''; nameEl.appendChild(flagNode(current.country)); nameEl.appendChild(document.createTextNode(current.name));
+    var meta = [current.country_name || ''];
     if (current.email) meta.push(current.email);
     if (current.page) meta.push(current.page + (current.path ? ' (' + current.path + ')' : ''));
     document.getElementById('lca-meta').textContent = meta.join(' · ');

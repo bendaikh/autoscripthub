@@ -81,7 +81,15 @@ class LiveChatController extends Controller
             }
             $ip = ClientAddress::ip($headers, (string) $request->ip());
             $code = CountryResolver::resolve($headers, $ip, (string) config('visits.geoip_path'));
-            return $code ? strtoupper(substr($code, 0, 2)) : null;
+            if (!$code && filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                // Same free lookup the landing page analytics uses; once per new chat.
+                $res = \Illuminate\Support\Facades\Http::timeout(3)
+                    ->get('http://ip-api.com/json/'.$ip, ['fields' => 'status,countryCode']);
+                if ($res->ok() && $res->json('status') === 'success') {
+                    $code = (string) $res->json('countryCode');
+                }
+            }
+            return ($code && preg_match('/^[A-Za-z]{2}$/', $code)) ? strtoupper($code) : null;
         } catch (\Throwable $e) {
             return null;
         }
