@@ -54,7 +54,10 @@ jobs:
         # uploads, logs) are never removed. Only files tracked in Git are
         # added or overwritten.
         run: |
+          # Server copies of any files this deploy replaces are saved first
+          # in <site folder>/../deploy-backups/<date-time>/ (outside public_html).
           rsync -rlzc --itemize-changes \
+            --backup --backup-dir="../deploy-backups/$(date -u +%Y%m%d-%H%M%S)" \
             -e "sshpass -e ssh -p $SSH_PORT -o StrictHostKeyChecking=accept-new" \
             --exclude='.git/' \
             --exclude='.github/' \
