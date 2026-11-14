@@ -5120,10 +5120,27 @@ class CommonController extends Controller
 	 */
 	private function heroCategorySets(bool $subscriptionMode, string $today, $categories, $settings): array
 	{
-	   $cats = [];
-	   foreach ($categories as $cat) {
-		   $cats[] = ['id' => (int) $cat->cat_id, 'name' => (string) $cat->category_name, 'slug' => (string) $cat->category_slug];
+	   // License categories open the rotation (same rule as the License Keys
+	   // menu, plus any category named "...licen..."); the rest follow in menu order.
+	   $licenseIds = [];
+	   try {
+		   foreach (\Fickrr\Support\OsLicenseCatalog::partitionMenu($categories, config('os_licenses', []))['license'] as $licenseCat) {
+			   $licenseIds[(int) (is_array($licenseCat) ? ($licenseCat['cat_id'] ?? 0) : ($licenseCat->cat_id ?? 0))] = true;
+		   }
+	   } catch (\Throwable $e) {
+		   $licenseIds = [];
 	   }
+	   $licenseCats = [];
+	   $otherCats = [];
+	   foreach ($categories as $cat) {
+		   $row = ['id' => (int) $cat->cat_id, 'name' => (string) $cat->category_name, 'slug' => (string) $cat->category_slug];
+		   if (isset($licenseIds[$row['id']]) || stripos($row['name'], 'licen') !== false) {
+			   $licenseCats[] = $row;
+		   } else {
+			   $otherCats[] = $row;
+		   }
+	   }
+	   $cats = array_merge($licenseCats, $otherCats);
 	   if ($cats === []) {
 		   return [];
 	   }
