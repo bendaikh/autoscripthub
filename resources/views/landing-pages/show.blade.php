@@ -975,6 +975,7 @@ $('#lpContactForm').on('submit', function (e) {
 });
 setTimeout(function () { $('.lp-alerts .alert').fadeOut('slow'); }, 5000);
 </script>
+@include('landing-pages.partials.live-chat')
 @include('partials.visit-tracker')
 </body>
 </html>

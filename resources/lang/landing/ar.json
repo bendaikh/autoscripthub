@@ -259,5 +259,16 @@
     "You will be charged": "سيتم خصم",
     "Customer email is missing. Please go back and enter your email.": "البريد الإلكتروني للعميل غير موجود. يرجى العودة وإدخال بريدك.",
     "Unable to apply your account email to checkout. Please refresh and try again.": "تعذّر تطبيق بريد حسابك على الدفع. يرجى التحديث والمحاولة مرة أخرى.",
-    "Billing details could not be validated. Please refresh and try again.": "تعذّر التحقق من بيانات الفوترة. يرجى التحديث والمحاولة مرة أخرى."
+    "Billing details could not be validated. Please refresh and try again.": "تعذّر التحقق من بيانات الفوترة. يرجى التحديث والمحاولة مرة أخرى.",
+    "Chat with us": "تحدث معنا",
+    "Ask anything before you buy. We usually reply within minutes.": "اسأل أي شيء قبل الشراء. نرد عادةً خلال دقائق.",
+    "Type your message…": "اكتب رسالتك…",
+    "Send": "إرسال",
+    "Your name (optional)": "اسمك (اختياري)",
+    "Email (optional, in case you leave the page)": "البريد الإلكتروني (اختياري، في حال غادرت الصفحة)",
+    "Could not send. Please try again.": "تعذّر الإرسال. يرجى المحاولة مرة أخرى.",
+    "You": "أنت",
+    "Support": "الدعم",
+    "Message sent. Keep this page open — our reply will appear here.": "تم إرسال الرسالة. أبقِ هذه الصفحة مفتوحة — سيظهر ردنا هنا.",
+    "Hi! Have a question before buying? Send us a message and we will reply right here.": "مرحبًا! لديك سؤال قبل الشراء؟ أرسل لنا رسالة وسنرد عليك هنا مباشرةً."
 }
