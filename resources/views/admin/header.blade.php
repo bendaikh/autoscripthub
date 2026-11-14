@@ -59,12 +59,12 @@
                         'newFrom' => __('New message from'),
                       ];
                     @endphp
-                    <div class="lch dropdown float-right" id="lch">
-                        <button type="button" class="lch-btn @if($lcHeadUnread > 0) has-unread @endif" id="lch-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="{{ __('Live Chat') }}">
+                    <div class="lch float-right" id="lch">
+                        <button type="button" class="lch-btn @if($lcHeadUnread > 0) has-unread @endif" id="lch-btn" aria-haspopup="true" aria-expanded="false" aria-controls="lch-panel" title="{{ __('Live Chat') }}">
                             <i class="fa fa-comments"></i>
                             <span class="lch-count" id="lch-count" @if($lcHeadUnread < 1) style="display:none" @endif>{{ $lcHeadUnread }}</span>
                         </button>
-                        <div class="dropdown-menu dropdown-menu-right lch-menu" aria-labelledby="lch-btn">
+                        <div class="lch-menu" id="lch-panel" role="dialog" aria-label="{{ __('Live Chat') }}" hidden>
                             <div class="lch-menu-head">
                                 <strong>{{ __('Live Chat') }}</strong>
                                 <span id="lch-summary">@if($lcHeadUnread > 0){{ $lcHeadUnread }} {{ __('unread') }}@else{{ __('No new messages') }}@endif</span>
@@ -105,10 +105,11 @@
 .lch-btn.has-unread{color:#fff;background:#4f46e5;border-color:#4f46e5;animation:lch-pulse 1.8s ease-out infinite}
 @keyframes lch-pulse{0%{box-shadow:0 0 0 0 rgba(79,70,229,.55)}70%{box-shadow:0 0 0 10px rgba(79,70,229,0)}100%{box-shadow:0 0 0 0 rgba(79,70,229,0)}}
 .lch-count{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#ef4444;color:#fff;font-size:11px;font-weight:700;line-height:20px;text-align:center;border:2px solid #fff}
-.lch-menu{width:340px;max-width:calc(100vw - 20px);padding:0;border-radius:12px;overflow:hidden;box-shadow:0 14px 40px rgba(0,0,0,.18);border:1px solid #e5e7eb}
+.lch-menu{position:fixed;z-index:3000;width:340px;max-width:calc(100vw - 20px);max-height:calc(100vh - 90px);display:flex;flex-direction:column;background:#fff;padding:0;border-radius:12px;overflow:hidden;box-shadow:0 14px 40px rgba(0,0,0,.18);border:1px solid #e5e7eb;text-align:left}
+.lch-menu[hidden]{display:none}
 .lch-menu-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #f1f2f4}
 .lch-menu-head span{font-size:12px;color:#6b7280}
-.lch-list{max-height:340px;overflow-y:auto}
+.lch-list{flex:1 1 auto;min-height:0;max-height:340px;overflow-y:auto}
 .lch-item{display:block;padding:10px 14px;border-bottom:1px solid #f5f5f7;color:#111827!important;text-decoration:none!important}
 .lch-item:hover{background:#f9fafb}
 .lch-item-top{display:flex;justify-content:space-between;gap:8px}
@@ -213,6 +214,25 @@
       .then(function (d) { if (d && d.ok) render(d); })
       .catch(function () {});
   }
+  var panel = document.getElementById('lch-panel');
+  document.body.appendChild(panel);
+  function place() {
+    var r = btn.getBoundingClientRect(), w = Math.min(340, window.innerWidth - 20);
+    var left = Math.min(Math.max(10, r.right - w), window.innerWidth - w - 10);
+    panel.style.width = w + 'px';
+    panel.style.left = left + 'px';
+    panel.style.top = (r.bottom + 8) + 'px';
+  }
+  function setOpen(open) {
+    if (open) { place(); panel.hidden = false; check(); } else { panel.hidden = true; }
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  btn.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); setOpen(panel.hidden); });
+  document.addEventListener('click', function (e) { if (!panel.hidden && !panel.contains(e.target) && e.target !== btn) setOpen(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panel.hidden) { setOpen(false); btn.focus(); } });
+  window.addEventListener('resize', function () { if (!panel.hidden) place(); });
+  window.addEventListener('scroll', function () { if (!panel.hidden) place(); }, true);
+
   updateAlertsButton();
   check();
   setInterval(check, 15000);
