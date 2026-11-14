@@ -27,3 +27,5 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset('assets/brand.css') }}?v=20260817-1">
 <link rel="stylesheet" href="{{ asset('admin/assets/css/admin-modern.css') }}?v=20261030-2">
+@php $ashRefreshCss = public_path('admin/assets/css/admin-refresh.css'); @endphp
+<link rel="stylesheet" href="{{ asset('admin/assets/css/admin-refresh.css') }}?v={{ is_file($ashRefreshCss) ? filemtime($ashRefreshCss) : 1 }}">

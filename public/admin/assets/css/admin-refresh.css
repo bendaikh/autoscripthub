@@ -1,0 +1,423 @@
+/*
+ * Admin refresh: colour themes + layout fixes.
+ * Loaded after admin-modern.css. Every colour comes from the --ash-* tokens
+ * below, so a theme is just a different set of token values.
+ */
+
+/* ----------------------------------------------------------- themes ---- */
+
+:root,
+html[data-ash-theme="ocean"] {
+    --ash-bg: #f4f7fb;
+    --ash-surface: #ffffff;
+    --ash-text: #0f172a;
+    --ash-text-soft: #475569;
+    --ash-muted: #64748b;
+    --ash-border: #e3e9f2;
+    --ash-border-soft: #f1f5f9;
+    --ash-primary: #2563eb;
+    --ash-primary-strong: #1d4ed8;
+    --ash-primary-soft: rgba(37, 99, 235, 0.10);
+    --ash-primary-rgb: 37, 99, 235;
+    --ash-accent: #0ea5e9;
+
+    --ash-side-bg: #ffffff;
+    --ash-side-border: #e3e9f2;
+    --ash-side-text: #475569;
+    --ash-side-icon: #64748b;
+    --ash-side-hover-bg: #f1f5f9;
+    --ash-side-hover-text: #0f172a;
+    --ash-side-active-bg: #2563eb;
+    --ash-side-active-text: #ffffff;
+    --ash-side-sub-bg: #f8fafc;
+    --ash-side-sub-text: #475569;
+    --ash-side-sub-active-bg: rgba(37, 99, 235, 0.10);
+    --ash-side-sub-active-text: #1d4ed8;
+    --ash-side-brand: #0f172a;
+    --ash-side-shadow: 1px 0 0 #e3e9f2;
+}
+
+html[data-ash-theme="emerald"] {
+    --ash-bg: #f3f6f5;
+    --ash-surface: #ffffff;
+    --ash-text: #111827;
+    --ash-text-soft: #4b5563;
+    --ash-muted: #6b7280;
+    --ash-border: #e2e8e5;
+    --ash-border-soft: #f0f4f2;
+    --ash-primary: #059669;
+    --ash-primary-strong: #047857;
+    --ash-primary-soft: rgba(5, 150, 105, 0.10);
+    --ash-primary-rgb: 5, 150, 105;
+    --ash-accent: #14b8a6;
+
+    --ash-side-bg: #111827;
+    --ash-side-border: #1f2937;
+    --ash-side-text: #cbd5e1;
+    --ash-side-icon: #94a3b8;
+    --ash-side-hover-bg: #1f2937;
+    --ash-side-hover-text: #ffffff;
+    --ash-side-active-bg: #059669;
+    --ash-side-active-text: #ffffff;
+    --ash-side-sub-bg: #0b1220;
+    --ash-side-sub-text: #a7b3c4;
+    --ash-side-sub-active-bg: rgba(16, 185, 129, 0.16);
+    --ash-side-sub-active-text: #6ee7b7;
+    --ash-side-brand: #ffffff;
+    --ash-side-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
+}
+
+html[data-ash-theme="sunset"] {
+    --ash-bg: #f6f5f3;
+    --ash-surface: #ffffff;
+    --ash-text: #1c1917;
+    --ash-text-soft: #57534e;
+    --ash-muted: #78716c;
+    --ash-border: #e7e5e4;
+    --ash-border-soft: #f5f5f4;
+    --ash-primary: #ea580c;
+    --ash-primary-strong: #c2410c;
+    --ash-primary-soft: rgba(234, 88, 12, 0.10);
+    --ash-primary-rgb: 234, 88, 12;
+    --ash-accent: #f59e0b;
+
+    --ash-side-bg: #1c1917;
+    --ash-side-border: #292524;
+    --ash-side-text: #d6d3d1;
+    --ash-side-icon: #a8a29e;
+    --ash-side-hover-bg: #292524;
+    --ash-side-hover-text: #ffffff;
+    --ash-side-active-bg: #ea580c;
+    --ash-side-active-text: #ffffff;
+    --ash-side-sub-bg: #0f0d0c;
+    --ash-side-sub-text: #bcb6b2;
+    --ash-side-sub-active-bg: rgba(251, 146, 60, 0.16);
+    --ash-side-sub-active-text: #fdba74;
+    --ash-side-brand: #ffffff;
+    --ash-side-shadow: 4px 0 24px rgba(0, 0, 0, 0.14);
+}
+
+/* ------------------------------------------------- base colour usage ---- */
+
+body { background: var(--ash-bg) !important; color: var(--ash-text); }
+::selection { background: var(--ash-primary-soft); }
+a { color: var(--ash-primary); }
+a:hover { color: var(--ash-primary-strong); }
+
+.btn-primary,
+.btn-primary:focus {
+    background: var(--ash-primary) !important;
+    border-color: var(--ash-primary) !important;
+    box-shadow: none !important;
+}
+.btn-primary:hover,
+.btn-primary:active { background: var(--ash-primary-strong) !important; border-color: var(--ash-primary-strong) !important; }
+.form-control:focus {
+    border-color: var(--ash-primary) !important;
+    box-shadow: 0 0 0 3px var(--ash-primary-soft) !important;
+}
+.page-item.active .page-link { background: var(--ash-primary) !important; border-color: var(--ash-primary) !important; }
+.badge-primary { background: var(--ash-primary) !important; }
+
+/* ------------------------------------------------------------ sidebar ---- */
+
+/* One solid panel: the stock 25px side padding + a differently coloured
+   inner .navbar used to show as dark strips on both sides. */
+aside.left-panel {
+    background: var(--ash-side-bg) !important;
+    border-right: 0 !important;
+    box-shadow: var(--ash-side-shadow) !important;
+    padding: 0 !important;
+    width: 260px;
+}
+aside.left-panel .navbar,
+aside.left-panel .navbar .navbar-header,
+aside.left-panel .main-menu { background: transparent !important; }
+.right-panel { margin-left: 260px; }
+
+aside.left-panel .navbar .navbar-header {
+    border-bottom: 1px solid var(--ash-side-border) !important;
+    justify-content: flex-start !important;
+    padding: 18px 20px !important;
+}
+aside.left-panel .navbar .navbar-brand { border-bottom: 0 !important; min-height: 0 !important; }
+aside.left-panel .admin-sidebar-brand .asb-name,
+aside.left-panel .admin-sidebar-brand .asb-mark { color: var(--ash-side-brand) !important; }
+aside.left-panel .admin-sidebar-brand .asb-tag { color: var(--ash-side-icon) !important; }
+aside.left-panel .admin-sidebar-brand .asb-name-accent {
+    background: none !important;
+    color: var(--ash-primary) !important;
+    -webkit-text-fill-color: var(--ash-primary) !important;
+}
+html[data-ash-theme="emerald"] aside.left-panel .admin-sidebar-brand .asb-name-accent,
+html[data-ash-theme="sunset"] aside.left-panel .admin-sidebar-brand .asb-name-accent { color: var(--ash-side-sub-active-text) !important; -webkit-text-fill-color: var(--ash-side-sub-active-text) !important; }
+aside.left-panel .admin-sidebar-brand .asb-mark {
+    background: var(--ash-primary) !important;
+    color: #fff !important;
+}
+aside.left-panel .navbar-header code {
+    background: var(--ash-primary-soft) !important;
+    color: var(--ash-primary) !important;
+    margin-left: auto;
+}
+
+aside.left-panel .main-menu { padding: 12px 0 28px !important; }
+aside.left-panel .navbar .navbar-nav > li { padding: 0 12px !important; }
+
+aside.left-panel .navbar .navbar-nav > li > a {
+    border-radius: 10px !important;
+    color: var(--ash-side-text) !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    gap: 12px !important;
+    margin: 2px 0 !important;
+    padding: 10px 12px !important;
+    white-space: nowrap;
+}
+aside.left-panel .navbar .navbar-nav > li > a .menu-icon { color: var(--ash-side-icon) !important; width: 20px !important; }
+aside.left-panel .navbar .navbar-nav > li > a:hover,
+aside.left-panel .navbar .navbar-nav > li > a:focus {
+    background: var(--ash-side-hover-bg) !important;
+    color: var(--ash-side-hover-text) !important;
+}
+aside.left-panel .navbar .navbar-nav > li > a:hover .menu-icon { color: var(--ash-side-hover-text) !important; }
+aside.left-panel .navbar .navbar-nav > li.active > a,
+aside.left-panel .navbar .navbar-nav > li.active > a:hover,
+aside.left-panel .navbar .navbar-nav > li.active > a:focus,
+aside.left-panel .navbar .navbar-nav > li.show > a,
+aside.left-panel .navbar .navbar-nav > li > a[aria-expanded="true"] {
+    background: var(--ash-side-active-bg) !important;
+    box-shadow: 0 6px 16px rgba(var(--ash-primary-rgb), 0.28) !important;
+    color: var(--ash-side-active-text) !important;
+    font-weight: 600 !important;
+}
+aside.left-panel .navbar .navbar-nav > li.active > a .menu-icon,
+aside.left-panel .navbar .navbar-nav > li.show > a .menu-icon,
+aside.left-panel .navbar .navbar-nav > li > a[aria-expanded="true"] .menu-icon { color: var(--ash-side-active-text) !important; }
+aside.left-panel .navbar .navbar-nav > li > a .badge { margin-left: auto; }
+
+/* submenus: icon and label on one line */
+aside.left-panel .navbar-nav .sub-menu,
+aside.left-panel .navbar-nav .dropdown-menu {
+    background: var(--ash-side-sub-bg) !important;
+    border-radius: 10px !important;
+    margin: 4px 0 8px !important;
+    padding: 6px !important;
+}
+aside.left-panel .navbar-nav .sub-menu li,
+aside.left-panel .navbar-nav .dropdown-menu li {
+    align-items: center !important;
+    display: flex !important;
+    gap: 8px !important;
+    padding: 0 0 0 10px !important;
+    position: relative;
+}
+aside.left-panel .navbar-nav .sub-menu li > i,
+aside.left-panel .navbar-nav .dropdown-menu li > i {
+    color: var(--ash-side-icon) !important;
+    flex: 0 0 14px;
+    font-size: 11px !important;
+    left: auto !important;
+    line-height: 1 !important;
+    position: static !important;
+    text-align: center;
+    top: auto !important;
+}
+aside.left-panel .navbar-nav .sub-menu li a,
+aside.left-panel .navbar-nav .dropdown-menu li a {
+    color: var(--ash-side-sub-text) !important;
+    font-size: 13px !important;
+    padding: 7px 10px !important;
+}
+aside.left-panel .navbar-nav .sub-menu li a:hover,
+aside.left-panel .navbar-nav .dropdown-menu li a:hover {
+    background: var(--ash-side-hover-bg) !important;
+    color: var(--ash-side-hover-text) !important;
+}
+aside.left-panel .navbar-nav .sub-menu li.active a,
+aside.left-panel .navbar-nav .dropdown-menu li.active a {
+    background: var(--ash-side-sub-active-bg) !important;
+    color: var(--ash-side-sub-active-text) !important;
+}
+
+/* submenus open inline under their item (Bootstrap's dropdown positioning
+   would otherwise float them over the menu) */
+aside.left-panel .navbar .navbar-nav li.menu-item-has-children > .sub-menu {
+    float: none !important;
+    left: auto !important;
+    min-width: 0 !important;
+    position: static !important;
+    top: auto !important;
+    transform: none !important;
+    width: auto !important;
+}
+aside.left-panel .navbar .navbar-nav li.menu-item-has-children > .sub-menu { display: none !important; }
+aside.left-panel .navbar .navbar-nav li.menu-item-has-children.show > .sub-menu { display: block !important; }
+aside.left-panel .navbar .navbar-nav li.menu-item-has-children { overflow: visible !important; }
+
+/* thin scrollbar inside the menu */
+aside.left-panel .main-menu { scrollbar-width: thin; scrollbar-color: var(--ash-side-border) transparent; }
+aside.left-panel .main-menu::-webkit-scrollbar { width: 6px; }
+aside.left-panel .main-menu::-webkit-scrollbar-thumb { background: var(--ash-side-border); border-radius: 6px; }
+
+/* icon-only rail (desktop, after pressing the menu button) */
+@media (min-width: 992px) {
+    body.open aside.left-panel { max-width: 72px !important; width: 72px !important; }
+    body.open .right-panel { margin-left: 72px !important; }
+    body.open aside.left-panel .navbar .navbar-header { justify-content: center !important; padding: 16px 6px !important; }
+    body.open aside.left-panel .navbar .navbar-nav > li { padding: 0 12px !important; }
+    body.open aside.left-panel .navbar .navbar-nav > li > a {
+        font-size: 0 !important;
+        gap: 0 !important;
+        justify-content: center !important;
+        padding: 11px 0 !important;
+    }
+    body.open aside.left-panel .navbar .navbar-nav > li > a .menu-icon { font-size: 17px !important; }
+    body.open aside.left-panel .navbar .navbar-nav > li > a .badge { display: none; }
+    body.open aside.left-panel .navbar .navbar-nav li.menu-item-has-children > .sub-menu,
+    body.open aside.left-panel .navbar .navbar-nav li.menu-item-has-children.show > .sub-menu { display: none !important; }
+}
+
+/* ------------------------------------------------------------- header ---- */
+
+#header.header {
+    background: var(--ash-surface) !important;
+    backdrop-filter: none !important;
+    border-bottom: 1px solid var(--ash-border) !important;
+    box-shadow: none !important;
+}
+#header .menutoggle,
+#header .for-message .btn {
+    background: var(--ash-primary-soft) !important;
+    color: var(--ash-primary) !important;
+}
+#header .user-area .user-avatar { border-color: var(--ash-primary-soft) !important; object-fit: cover; }
+.lch-btn.has-unread { background: var(--ash-primary) !important; border-color: var(--ash-primary) !important; }
+
+/* ---------------------------------------------------- stat cards ---- */
+
+/* five dashboard tiles fit one row instead of leaving one alone below */
+.content .card-group {
+    display: grid !important;
+    gap: 18px !important;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) !important;
+}
+.content .card-group > .card {
+    border-radius: var(--ash-radius, 16px) !important;
+    flex: none !important;
+    margin: 0 !important;
+    max-width: none !important;
+    width: auto !important;
+}
+.content .card-group .h1.text-muted i { color: var(--ash-primary) !important; }
+.content .card-group .h1.text-muted { margin-bottom: 14px !important; }
+/* the coloured bar under each tile was drawn in the page background colour */
+.content .card-group .progress.progress-xs {
+    background: var(--ash-primary) !important;
+    border-radius: 999px;
+    opacity: .85;
+    width: 36px !important;
+}
+.content .card-group > .card:nth-child(5n+2) .progress.progress-xs { background: var(--ash-accent) !important; }
+.content .card-group > .card:nth-child(5n+3) .progress.progress-xs { background: #10b981 !important; }
+.content .card-group > .card:nth-child(5n+4) .progress.progress-xs { background: #f59e0b !important; }
+.content .card-group > .card:nth-child(5n+5) .progress.progress-xs { background: #ef4444 !important; }
+
+/* ------------------------------------------- tablet + phone: drawer ---- */
+
+@media (max-width: 991.98px) {
+    html, body { height: auto !important; overflow: auto !important; }
+
+    /* the menu slides in over the page instead of squeezing it */
+    aside.left-panel,
+    body.open aside.left-panel {
+        bottom: 0 !important;
+        display: flex !important;
+        height: 100vh !important;
+        left: 0 !important;
+        max-height: 100vh !important;
+        overflow: hidden !important;
+        position: fixed !important;
+        top: 0 !important;
+        transform: translateX(-105%);
+        transition: transform .25s ease;
+        max-width: 85vw !important;
+        width: 280px !important;
+        z-index: 1100 !important;
+    }
+    body.open aside.left-panel { transform: none; }
+    aside.left-panel .navbar { display: flex !important; flex-direction: column !important; overflow: hidden !important; }
+    aside.left-panel #main-menu,
+    aside.left-panel .main-menu {
+        display: block !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow-y: auto !important;
+    }
+    aside.left-panel .navbar-toggler { display: none !important; }
+    aside.left-panel .navbar .navbar-brand.hidden,
+    body.open aside.left-panel .navbar .navbar-brand.hidden { display: none !important; }
+    aside.left-panel .navbar .navbar-brand:not(.hidden),
+    body.open aside.left-panel .navbar .navbar-brand:not(.hidden) { display: inline-flex !important; }
+    aside.left-panel .navbar .navbar-header code,
+    body.open aside.left-panel .navbar .navbar-header code { display: inline-block !important; }
+    aside.left-panel .navbar .navbar-header,
+    body.open aside.left-panel .navbar .navbar-header { height: auto !important; justify-content: flex-start !important; padding: 18px 20px !important; }
+
+    /* the stock "collapsed" rules (tiny labels, submenus forced open) must not
+       apply to the drawer */
+    body.open aside.left-panel .navbar .navbar-nav li { overflow: visible !important; }
+    body.open aside.left-panel .navbar .navbar-nav > li > a {
+        font-size: 14px !important;
+        max-width: none !important;
+    }
+    body.open aside.left-panel .navbar .navbar-nav > li > a .menu-icon { font-size: 15px !important; z-index: auto !important; }
+    body.open aside.left-panel .navbar .navbar-nav > li.menu-item-has-children > a::after { content: '\f105' !important; }
+    html body.open aside.left-panel .navbar .navbar-nav li.menu-item-has-children.show > .sub-menu {
+        max-height: none !important;
+        overflow: visible !important;
+        position: static !important;
+        transform: none !important;
+    }
+    body.open aside.left-panel .navbar .navbar-nav li.menu-item-has-children > .sub-menu {
+        background: var(--ash-side-sub-bg) !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        margin: 4px 0 8px !important;
+    }
+    body.open aside.left-panel .navbar .navbar-nav li.menu-item-has-children .sub-menu li a {
+        font-size: 13px !important;
+        padding: 7px 10px !important;
+    }
+
+    /* in the drawer everything shows full labels, never the icon rail */
+    body.open aside.left-panel .navbar .navbar-nav > li > a {
+        justify-content: flex-start !important;
+        padding: 10px 12px !important;
+        gap: 12px !important;
+    }
+    body.open aside.left-panel .navbar .navbar-nav > li > a .menu-title,
+    body.open aside.left-panel .navbar .navbar-nav > li > a span { display: inline !important; }
+
+    .right-panel,
+    body.open .right-panel { height: auto !important; margin-left: 0 !important; overflow: visible !important; }
+
+    body.open::before {
+        background: rgba(15, 23, 42, .45);
+        content: "";
+        inset: 0;
+        position: fixed;
+        z-index: 1090;
+    }
+
+    /* header: one tidy row */
+    #header .header-menu { display: flex !important; align-items: center; flex-wrap: nowrap; padding: 10px 14px !important; }
+    #header .header-menu > [class*="col-"] { flex: 1 1 auto; float: none !important; max-width: none; padding: 0 !important; width: auto !important; }
+    #header .header-menu > .col-sm-7 { display: flex; align-items: center; }
+    #header .header-left { display: flex; align-items: center; margin-left: 10px; }
+    #header .header-left .dropdown { margin: 0 !important; }
+    #header .menutoggle { display: inline-flex !important; float: none !important; margin: 0 !important; }
+    #header .header-menu > .col-sm-5 { display: flex; align-items: center; justify-content: flex-end; flex: 0 0 auto; }
+    #header .header-menu > .col-sm-5 > * { float: none !important; }
+    #header .lch { margin-right: 10px !important; margin-top: 0 !important; order: -1; }
+}
