@@ -2816,6 +2816,74 @@ class SettingsController extends Controller
 	
 	/* payment settings */
 	
+	/* Home page promo banner (Black Friday etc.) */
+
+	public function promo_banner()
+	{
+		$sid = 1;
+		$setting['setting'] = Settings::editGeneral($sid);
+		$banner = Settings::editPromoBanner();
+		$tableMissing = !\Illuminate\Support\Facades\Schema::hasTable('promo_banners');
+		$timezone = $banner->timezone ?? 'UTC';
+		$endsLocal = '';
+		if (!empty($banner->ends_at)) {
+			$endsLocal = \Carbon\Carbon::parse($banner->ends_at, 'UTC')->setTimezone($timezone)->format('Y-m-d\TH:i');
+		}
+		if ($this->custom() != 0) {
+			return view('admin.promo-banner', [
+				'setting' => $setting,
+				'sid' => $sid,
+				'banner' => $banner,
+				'tableMissing' => $tableMissing,
+				'timezone' => $timezone,
+				'endsLocal' => $endsLocal,
+				'timezones' => \DateTimeZone::listIdentifiers(),
+			]);
+		}
+		return redirect('/admin/license');
+	}
+
+	public function update_promo_banner(Request $request)
+	{
+		if (!\Illuminate\Support\Facades\Schema::hasTable('promo_banners')) {
+			return redirect()->back()->with('error', 'Please run the database migration first (php artisan migrate).');
+		}
+
+		$request->validate([
+			'enabled' => 'required|in:0,1',
+			'badge' => 'nullable|string|max:60',
+			'heading' => 'required|string|max:191',
+			'discount_text' => 'nullable|string|max:120',
+			'subheading' => 'nullable|string|max:500',
+			'coupon_code' => 'nullable|string|max:60',
+			'button_text' => 'nullable|string|max:60',
+			'button_url' => 'nullable|string|max:500',
+			'ends_at' => 'nullable|date',
+			'timezone' => ['required', Rule::in(\DateTimeZone::listIdentifiers())],
+		]);
+
+		$timezone = $request->input('timezone', 'UTC');
+		$endsAt = null;
+		if ($request->filled('ends_at')) {
+			$endsAt = \Carbon\Carbon::parse($request->input('ends_at'), $timezone)->setTimezone('UTC')->format('Y-m-d H:i:s');
+		}
+
+		Settings::updatePromoBanner([
+			'enabled' => (int) $request->input('enabled'),
+			'badge' => $request->input('badge'),
+			'heading' => $request->input('heading'),
+			'discount_text' => $request->input('discount_text'),
+			'subheading' => $request->input('subheading'),
+			'coupon_code' => $request->filled('coupon_code') ? trim($request->input('coupon_code')) : null,
+			'button_text' => $request->input('button_text'),
+			'button_url' => $request->input('button_url'),
+			'ends_at' => $endsAt,
+			'timezone' => $timezone,
+		]);
+
+		return redirect()->back()->with('success', 'Promo banner updated successfully.');
+	}
+
 	/* AI API Connection (OpenAI) */
 
 	public function ai_api_connection()

@@ -327,6 +327,11 @@ Route::group(['middleware' => ['is_admin', 'HtmlMinifier', 'cache', 'XSS']], fun
 	Route::post('/admin/preferred-settings', ['as' => 'admin.preferred-settings','uses'=>'Admin\SettingsController@update_preferred_settings']);
 	/* preferred settings */
 
+	/* Home page promo banner (Black Friday) */
+	Route::get('/admin/promo-banner', 'Admin\SettingsController@promo_banner');
+	Route::post('/admin/promo-banner', ['as' => 'admin.promo-banner','uses'=>'Admin\SettingsController@update_promo_banner']);
+	/* Home page promo banner */
+
 	/* AI API Connection */
 	Route::get('/admin/ai-api-connection', 'Admin\SettingsController@ai_api_connection');
 	Route::post('/admin/ai-api-connection', ['as' => 'admin.ai-api-connection','uses'=>'Admin\SettingsController@update_ai_api_connection']);
