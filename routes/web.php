@@ -454,6 +454,17 @@ Route::group(['middleware' => ['is_admin', 'HtmlMinifier', 'cache', 'XSS']], fun
 	Route::get('/admin/backup/delete/{file_name}', 'Admin\BackupController@delete');
 	Route::post('/admin/backup', ['as' => 'admin.backup','uses'=>'Admin\BackupController@backup']);
 
+	/* live chat with landing page visitors */
+	Route::get('/admin/live-chat', 'Admin\LiveChatController@index');
+	Route::post('/admin/live-chat/settings', ['as' => 'admin.live-chat.settings', 'uses' => 'Admin\LiveChatController@updateSettings']);
+	Route::get('/admin/live-chat/conversations', 'Admin\LiveChatController@conversations');
+	Route::get('/admin/live-chat/unread', 'Admin\LiveChatController@unread');
+	Route::get('/admin/live-chat/{id}/messages', 'Admin\LiveChatController@messages')->where('id', '[0-9]+');
+	Route::post('/admin/live-chat/{id}/reply', 'Admin\LiveChatController@reply')->where('id', '[0-9]+');
+	Route::post('/admin/live-chat/{id}/close', 'Admin\LiveChatController@close')->where('id', '[0-9]+');
+	Route::post('/admin/live-chat/{id}/delete', 'Admin\LiveChatController@destroy')->where('id', '[0-9]+');
+	/* live chat */
+
 	/* landing pages */
 	Route::get('/admin/landing-pages', 'Admin\LandingPageController@index')->name('admin.landing-pages');
 	Route::post('/admin/landing-pages/{lp_id}/ads-status', 'Admin\LandingPageController@updateAdsStatus')->name('admin.landing-pages.ads-status');
@@ -981,6 +992,8 @@ Route::get('/deposit-stripe-success/{order_id}', 'ItemController@deposit_stripe_
 Route::get('/api/sales-notifications', 'CommonController@getSalesNotifications');
 
 /* landing pages - public routes (must be BEFORE catch-all route) */
+Route::post('/live-chat/send', 'LiveChatController@send')->middleware('throttle:20,1');
+Route::get('/live-chat/poll', 'LiveChatController@poll')->middleware('throttle:60,1');
 Route::get('/landing/{slug}', 'LandingPagePublicController@show')->name('landing-page.show');
 Route::get('/landing/{slug}/add-to-cart', 'LandingPagePublicController@addToCart')->name('landing-page.add-to-cart');
 Route::get('/landing/{slug}/buy-now', 'LandingPagePublicController@buyNow')->name('landing-page.buy-now');

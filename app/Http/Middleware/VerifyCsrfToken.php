@@ -63,6 +63,7 @@ class VerifyCsrfToken extends Middleware
 		'paytm/status',
         '/landing/track',
         '/visit',
+        '/live-chat/send',
 		
 		
     ];

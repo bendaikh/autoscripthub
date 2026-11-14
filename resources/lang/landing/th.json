@@ -246,5 +246,16 @@
     "Let the system handle the routine steps.": "ให้ระบบจัดการขั้นตอนประจำ",
     "All": "ทั้งหมด",
     "Send us a note and we will reply by email, usually within a few hours.": "ส่งข้อความหาเรา แล้วเราจะตอบกลับทางอีเมล โดยปกติภายในไม่กี่ชั่วโมง",
-    "Watch the product in a short video": "ชมวิดีโอแนะนำสินค้า"
+    "Watch the product in a short video": "ชมวิดีโอแนะนำสินค้า",
+    "Chat with us": "แชทกับเรา",
+    "Ask anything before you buy. We usually reply within minutes.": "สอบถามได้ทุกเรื่องก่อนซื้อ ปกติเราตอบกลับภายในไม่กี่นาที",
+    "Type your message…": "พิมพ์ข้อความของคุณ…",
+    "Send": "ส่ง",
+    "Your name (optional)": "ชื่อของคุณ (ไม่บังคับ)",
+    "Email (optional, in case you leave the page)": "อีเมล (ไม่บังคับ เผื่อคุณออกจากหน้านี้)",
+    "Could not send. Please try again.": "ส่งไม่สำเร็จ โปรดลองอีกครั้ง",
+    "You": "คุณ",
+    "Support": "ฝ่ายช่วยเหลือ",
+    "Message sent. Keep this page open — our reply will appear here.": "ส่งข้อความแล้ว เปิดหน้านี้ไว้ — คำตอบของเราจะแสดงที่นี่",
+    "Hi! Have a question before buying? Send us a message and we will reply right here.": "สวัสดี! มีคำถามก่อนซื้อไหม? ส่งข้อความถึงเรา แล้วเราจะตอบกลับที่นี่"
 }
