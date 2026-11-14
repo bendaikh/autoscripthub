@@ -268,8 +268,20 @@ body.home-vibrant .hvx-hero h1 .hv-grad-text {
 .hvx-tile--2:hover { transform: rotate(-3deg) translateY(-6px); }
 .hvx-tile--3:hover { transform: rotate(2deg) translateY(-6px); }
 .hvx-tile--1:hover { transform: translateY(-6px); }
-.hvx-stack--1 .hvx-tile--1 { left: 50%; top: 40px; transform: translateX(-50%) rotate(-3deg); width: 360px; }
-.hvx-stack--2 .hvx-tile--1 { left: 30%; top: 170px; }
+.hvx-set--1 .hvx-tile--1 { left: 50%; top: 40px; transform: translateX(-50%) rotate(-3deg); width: 360px; }
+.hvx-set--2 .hvx-tile--1 { left: 30%; top: 170px; }
+
+/* rotating sets of three */
+.hvx-set { inset: 0; position: absolute; visibility: hidden; }
+.hvx-set .hvx-tile { opacity: 0; transition: opacity .5s ease, translate .6s cubic-bezier(.2, .8, .2, 1), box-shadow .25s ease; translate: 0 26px; }
+.hvx-set.is-active { visibility: visible; }
+.hvx-set.is-active .hvx-tile { opacity: 1; translate: 0 0; }
+.hvx-set.is-active .hvx-tile--2 { transition-delay: .08s; }
+.hvx-set.is-active .hvx-tile--3 { transition-delay: .16s; }
+.hvx-set:not(.is-active) { transition: visibility 0s .5s; }
+.hvx-dots { bottom: -44px; display: flex; gap: 8px; justify-content: center; left: 0; position: absolute; right: 0; z-index: 6; }
+.hvx-dot { background: rgba(255, 255, 255, .45); border: 0; border-radius: 999px; cursor: pointer; height: 8px; padding: 0; transition: width .25s ease, background .25s ease; width: 8px; }
+.hvx-dot.is-active { background: #fff; width: 26px; }
 
 /* the Black Friday strip sits right above the hero: let it blend in */
 body.home-vibrant .bf-strip { border-bottom: 0; }
@@ -428,7 +440,8 @@ body.home-vibrant footer .btn-primary { background: var(--hvx-purple) !important
   .hvx-stack { height: 380px; margin: 0 auto; max-width: 560px; width: 100%; }
 }
 @media (max-width: 575.98px) {
-  .hvx-hero { padding: 34px 0 86px; }
+  .hvx-hero { padding: 34px 0 120px; }
+  .hvx-dots { bottom: -30px; }
   body.home-vibrant .hvx-hero h1 { font-size: 36px; }
   .hvx-lead { font-size: 16px; }
   .hvx-search { flex-wrap: wrap; padding: 8px; }
@@ -442,10 +455,11 @@ body.home-vibrant footer .btn-primary { background: var(--hvx-purple) !important
   .hvx-tile-meta strong { font-size: 13px; }
   .hvx-tile-meta em { font-size: 15px; }
   .hvx-tile--1 { left: 22%; top: 140px; }
-  .hvx-stack--1 .hvx-tile--1 { width: 260px; }
+  .hvx-set--1 .hvx-tile--1 { width: 260px; }
   body.home-vibrant .hv-head h2 { font-size: 26px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .hvx-set .hvx-tile { transition: none; translate: none; }
   .hvx-tile, .hvx-btn, body.home-vibrant .hv-cat, body.home-vibrant .product-card-alt, body.home-vibrant .hv-trend-card { transition: none; }
 }

@@ -92,11 +92,12 @@
 
 <!-- ============================ Hero ============================ -->
 @php
-  // Three real products for the tilted card stack: featured first, then popular, then newest.
+  // Real products for the tilted card stack, shown three at a time and rotated:
+  // featured first, then popular, then newest (up to 9).
   $hvxPool = collect();
   foreach ([$featured['items'] ?? [], $popular['items'] ?? [], $newest['items'] ?? []] as $hvxList) {
       foreach ($hvxList as $hvxItem) {
-          if ($hvxPool->count() >= 3) break 2;
+          if ($hvxPool->count() >= 9) break 2;
           if (!$hvxPool->contains('item_id', $hvxItem->item_id)) $hvxPool->push($hvxItem);
       }
   }
@@ -110,6 +111,11 @@
           'price' => ((int) $it->free_download === 1) ? __('Free') : Helper::price_format($allsettings->site_currency_position, Helper::catalog_price($it), $currency_symbol, $multicurrency ?? '', $exact),
       ];
   })->values();
+  // Fill the last set of three by wrapping round to the first products.
+  if ($hvxCards->count() > 3 && $hvxCards->count() % 3 !== 0) {
+      $hvxCards = $hvxCards->concat($hvxCards->take(3 - $hvxCards->count() % 3))->values();
+  }
+  $hvxSets = $hvxCards->chunk(3)->values();
   $hvxPromo = $promo ?? null;
 @endphp
 <section class="hvx-hero">
@@ -171,13 +177,24 @@
     </div>
 
     @if($hvxCards->count() > 0)
-    <div class="hvx-stack hvx-stack--{{ $hvxCards->count() }}" aria-label="{{ __('Featured Products') }}">
-      @foreach($hvxCards as $hvxIndex => $hvxCard)
-      <a class="hvx-tile hvx-tile--{{ $hvxIndex + 1 }}" href="{{ $hvxCard['url'] }}">
-        <span class="hvx-tile-img"><img src="{{ $hvxCard['img'] }}" alt="{{ $hvxCard['name'] }}" @if($hvxIndex > 0) loading="lazy" @endif decoding="async"></span>
-        <span class="hvx-tile-meta"><strong>{{ \Illuminate\Support\Str::limit($hvxCard['name'], 34) }}</strong><em>{{ $hvxCard['price'] }}</em></span>
-      </a>
+    <div class="hvx-stack" data-hvx-stack aria-label="{{ __('Featured Products') }}">
+      @foreach($hvxSets as $hvxSetIndex => $hvxSet)
+      <div class="hvx-set hvx-set--{{ $hvxSet->count() }}{{ $hvxSetIndex === 0 ? ' is-active' : '' }}" @if($hvxSetIndex > 0) aria-hidden="true" @endif>
+        @foreach($hvxSet->values() as $hvxIndex => $hvxCard)
+        <a class="hvx-tile hvx-tile--{{ $hvxIndex + 1 }}" href="{{ $hvxCard['url'] }}" @if($hvxSetIndex > 0) tabindex="-1" @endif>
+          <span class="hvx-tile-img"><img src="{{ $hvxCard['img'] }}" alt="{{ $hvxCard['name'] }}" @if($hvxSetIndex > 0 || $hvxIndex > 0) loading="lazy" @endif decoding="async"></span>
+          <span class="hvx-tile-meta"><strong>{{ \Illuminate\Support\Str::limit($hvxCard['name'], 34) }}</strong><em>{{ $hvxCard['price'] }}</em></span>
+        </a>
+        @endforeach
+      </div>
       @endforeach
+      @if($hvxSets->count() > 1)
+      <div class="hvx-dots" role="tablist" aria-label="{{ __('Featured Products') }}">
+        @foreach($hvxSets as $hvxSetIndex => $hvxSet)
+        <button type="button" class="hvx-dot{{ $hvxSetIndex === 0 ? ' is-active' : '' }}" data-index="{{ $hvxSetIndex }}" aria-label="{{ __('Slide') }} {{ $hvxSetIndex + 1 }}"></button>
+        @endforeach
+      </div>
+      @endif
     </div>
     @endif
   </div>
@@ -1011,6 +1028,41 @@ jQuery(function ($) {
     watcher.observe(visual);
   }
   showSpot(0);
+  play();
+})();
+</script>
+<script>
+(function () {
+  var stack = document.querySelector('[data-hvx-stack]');
+  if (!stack) return;
+  var sets = stack.querySelectorAll('.hvx-set');
+  var dots = stack.querySelectorAll('.hvx-dot');
+  if (sets.length < 2) return;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var index = 0, timer = null, paused = false;
+  function show(next) {
+    index = (next + sets.length) % sets.length;
+    Array.prototype.forEach.call(sets, function (set, i) {
+      var on = i === index;
+      set.classList.toggle('is-active', on);
+      set.setAttribute('aria-hidden', on ? 'false' : 'true');
+      Array.prototype.forEach.call(set.querySelectorAll('a'), function (a) { a.tabIndex = on ? 0 : -1; });
+    });
+    Array.prototype.forEach.call(dots, function (dot, i) { dot.classList.toggle('is-active', i === index); });
+  }
+  function play() {
+    window.clearInterval(timer);
+    if (reduce || paused || document.hidden) return;
+    timer = window.setInterval(function () { show(index + 1); }, 4500);
+  }
+  stack.addEventListener('mouseenter', function () { paused = true; play(); });
+  stack.addEventListener('mouseleave', function () { paused = false; play(); });
+  stack.addEventListener('focusin', function () { paused = true; play(); });
+  stack.addEventListener('focusout', function () { paused = false; play(); });
+  Array.prototype.forEach.call(dots, function (dot) {
+    dot.addEventListener('click', function () { show(parseInt(dot.getAttribute('data-index'), 10) || 0); play(); });
+  });
+  document.addEventListener('visibilitychange', play);
   play();
 })();
 </script>

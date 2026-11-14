@@ -66,6 +66,8 @@ src="https://www.facebook.com/tr?id=4153934531541650&ev=PageView&noscript=1"
 <link rel="stylesheet" href="{{ asset('assets/style.css') }}">
 @php $asbBrandFile = base_path('public/assets/brand.css'); @endphp
 <link rel="stylesheet" href="{{ asset('assets/brand.css') }}?v={{ file_exists($asbBrandFile) ? filemtime($asbBrandFile) : 1 }}">
+@php $hmMenuFile = base_path('public/assets/header-menu.css'); @endphp
+<link rel="stylesheet" href="{{ asset('assets/header-menu.css') }}?v={{ file_exists($hmMenuFile) ? filemtime($hmMenuFile) : 1 }}">
 @if($view_name == 'index')
 @php $hvThemeFile = base_path('public/assets/home-theme.css'); @endphp
 <link rel="stylesheet" href="{{ asset('assets/home-theme.css') }}?v={{ file_exists($hvThemeFile) ? filemtime($hvThemeFile) : 1 }}">

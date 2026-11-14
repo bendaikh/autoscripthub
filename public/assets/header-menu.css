@@ -1,0 +1,147 @@
+/*
+ * Top bar menus (both header layouts): clear hover state and card-style
+ * dropdowns. Loaded on every page after the theme and dynamic colour rules.
+ */
+
+:root {
+  --hm-accent: #7c3aed;
+  --hm-accent-soft: #f3e8ff;
+  --hm-text: #1f1640;
+  --hm-muted: #6b6280;
+  --hm-line: #ece6f5;
+}
+
+/* ---------------------------------------------- layout two (.mainmenu) ---- */
+
+/* the hovered item kept white text on a background that may not be set,
+   so its label disappeared */
+.mainmenu__menu .navbar-nav > li,
+.mainmenu__menu .navbar-nav > li:hover {
+  background: transparent !important;
+  border-radius: 10px;
+  color: inherit !important;
+}
+.mainmenu__menu .navbar-nav > li > a {
+  border-radius: 10px;
+  color: var(--hm-text) !important;
+  font-weight: 600;
+  transition: background .15s ease, color .15s ease;
+}
+.mainmenu__menu .navbar-nav > li:hover > a,
+.mainmenu__menu .navbar-nav > li > a:focus {
+  background: var(--hm-accent-soft) !important;
+  color: var(--hm-accent) !important;
+}
+.mainmenu__menu .navbar-nav > li.has_dropdown > a::after {
+  border-bottom: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  content: "";
+  display: inline-block;
+  height: 6px;
+  margin-left: 8px;
+  opacity: .55;
+  transform: translateY(-3px) rotate(45deg);
+  transition: transform .15s ease;
+  width: 6px;
+}
+.mainmenu__menu .navbar-nav > li.has_dropdown:hover > a::after { transform: translateY(0) rotate(-135deg); }
+
+.mainmenu__menu .dropdowns {
+  background: #fff !important;
+  border: 1px solid var(--hm-line) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 18px 44px rgba(31, 22, 64, .14) !important;
+  margin-top: 6px;
+  min-width: 230px;
+  padding: 8px !important;
+  transform: translateY(6px);
+  transition: opacity .16s ease, transform .16s ease, visibility .16s;
+  z-index: 1050 !important;
+}
+.mainmenu__menu .navbar-nav > li.has_dropdown:hover > .dropdowns,
+.mainmenu__menu .dropdowns.active { transform: translateY(0); }
+/* invisible bridge so the menu stays open while the pointer moves down */
+.mainmenu__menu .dropdowns::before { content: ""; height: 10px; left: 0; position: absolute; right: 0; top: -10px; }
+
+.mainmenu__menu .dropdowns ul { margin: 0; padding: 0; }
+.mainmenu__menu .dropdowns ul li { list-style: none; margin: 0; padding: 0; }
+.mainmenu__menu .dropdowns ul li a,
+.mainmenu__menu .dropdowns .hv-menu-group > a {
+  border-radius: 8px;
+  color: var(--hm-text) !important;
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35 !important;
+  padding: 9px 12px !important;
+  text-transform: none;
+  transition: background .12s ease, color .12s ease;
+}
+.mainmenu__menu .dropdowns ul li a:hover,
+.mainmenu__menu .dropdowns .hv-menu-group > a:hover {
+  background: var(--hm-accent-soft) !important;
+  color: var(--hm-accent) !important;
+}
+
+/* grouped panels (License Keys / More): category = heading, subs indented */
+.mainmenu__menu .dropdowns .hv-menu-group { padding: 4px 0; }
+.mainmenu__menu .dropdowns .hv-menu-group + .hv-menu-group { border-top: 1px solid var(--hm-line); }
+.mainmenu__menu .dropdowns .hv-menu-group > a:first-child {
+  color: var(--hm-text) !important;
+  font-weight: 700;
+}
+.mainmenu__menu .dropdowns .hv-menu-group > a.hv-menu-sub {
+  color: var(--hm-muted) !important;
+  font-size: 13.5px;
+  font-weight: 400;
+  margin-left: 12px;
+  padding: 7px 12px !important;
+}
+.mainmenu__menu .dropdowns .hv-menu-group > a.hv-menu-sub::before {
+  background: #d8cdea;
+  border-radius: 50%;
+  content: "";
+  display: inline-block;
+  height: 5px;
+  margin-right: 9px;
+  vertical-align: middle;
+  width: 5px;
+}
+.mainmenu__menu .dropdowns .hv-menu-group > a.hv-menu-sub:hover { color: var(--hm-accent) !important; }
+.mainmenu__menu .dropdowns .hv-menu-group > a.hv-menu-sub:hover::before { background: var(--hm-accent); }
+.mainmenu__menu .dropdowns.hv-menu-panel { max-height: 70vh; overflow-y: auto; scrollbar-width: thin; }
+
+/* ---------------------------------------- layout one (bootstrap navbar) ---- */
+
+header.navbar-sticky .navbar .dropdown-menu {
+  border: 1px solid var(--hm-line) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 18px 44px rgba(31, 22, 64, .14) !important;
+  padding: 8px !important;
+}
+header.navbar-sticky .navbar .dropdown-menu .dropdown-item {
+  border-radius: 8px;
+  color: var(--hm-text);
+  font-size: 14px;
+  padding: 9px 12px;
+}
+header.navbar-sticky .navbar .dropdown-menu .dropdown-item:hover,
+header.navbar-sticky .navbar .dropdown-menu .dropdown-item:focus {
+  background: var(--hm-accent-soft);
+  color: var(--hm-accent);
+}
+header.navbar-sticky .navbar .dropdown-menu .hv-menu-group + .hv-menu-group { border-top: 1px solid var(--hm-line); }
+header.navbar-sticky .navbar .dropdown-menu .hv-menu-parent { font-weight: 700; }
+header.navbar-sticky .navbar .dropdown-menu .hv-menu-sub { color: var(--hm-muted); margin-left: 12px; padding-left: 12px; }
+
+/* --------------------------------------------------------------- phones ---- */
+
+@media (max-width: 767.98px) {
+  .mainmenu__menu .dropdowns {
+    border: 0 !important;
+    box-shadow: none !important;
+    margin-top: 0;
+    padding: 4px 0 4px 10px !important;
+    transform: none;
+  }
+}
