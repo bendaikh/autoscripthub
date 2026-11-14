@@ -43,8 +43,11 @@
 @if(!empty($category['license_slides']) || count($popular['items'] ?? []) != 0)
 <link rel="stylesheet" href="{{ asset('assets/css/owl.carousel.css') }}">
 @endif
+@php $hvxCss = base_path('public/assets/home-vibrant.css'); @endphp
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ asset('assets/home-vibrant.css') }}?v={{ is_file($hvxCss) ? filemtime($hvxCss) : 1 }}">
 </head>
-<body class="home-v2">
+<body class="home-v2 home-vibrant">
 @include('header')
 
 @include('partials.black-friday-banner')
@@ -88,180 +91,95 @@
 @endphp
 
 <!-- ============================ Hero ============================ -->
-<section class="hv-hero">
-  <div class="container">
-    <div class="row align-items-center">
+@php
+  // Three real products for the tilted card stack: featured first, then popular, then newest.
+  $hvxPool = collect();
+  foreach ([$featured['items'] ?? [], $popular['items'] ?? [], $newest['items'] ?? []] as $hvxList) {
+      foreach ($hvxList as $hvxItem) {
+          if ($hvxPool->count() >= 3) break 2;
+          if (!$hvxPool->contains('item_id', $hvxItem->item_id)) $hvxPool->push($hvxItem);
+      }
+  }
+  $hvxCards = $hvxPool->map(function ($it) use ($allsettings, $currency_symbol, $multicurrency) {
+      $exact = Helper::is_single_price_item($it);
+      $img = Helper::card_image($it);
+      return [
+          'name' => $it->item_name,
+          'url' => URL::to('/item').'/'.$it->item_slug,
+          'img' => $img ? Helper::Image_Path($img, 'no-image.png') : url('/').'/public/img/no-image.png',
+          'price' => ((int) $it->free_download === 1) ? __('Free') : Helper::price_format($allsettings->site_currency_position, Helper::catalog_price($it), $currency_symbol, $multicurrency ?? '', $exact),
+      ];
+  })->values();
+  $hvxPromo = $promo ?? null;
+@endphp
+<section class="hvx-hero">
+  <span class="hvx-blob hvx-blob--a" aria-hidden="true"></span>
+  <span class="hvx-blob hvx-blob--b" aria-hidden="true"></span>
+  <div class="container hvx-hero-in">
+    <div class="hvx-copy">
+      @if($hvxPromo && !empty($hvxPromo->badge))
+      <span class="hvx-badge"><i class="fa fa-bolt"></i>{{ $hvxPromo->badge }}@if(!empty($hvxPromo->discount_text)) · {{ $hvxPromo->discount_text }}@endif</span>
+      @else
+      <span class="hvx-badge"><i class="fa fa-bolt"></i>{{ __('Trusted Digital Marketplace') }}</span>
+      @endif
 
-      <div class="col-lg-6">
-        <span class="hv-hero-badge"><i class="fa fa-bolt"></i>{{ __('Trusted Digital Marketplace') }}</span>
+      <h1>{!! $hvHeadingHtml !!}</h1>
 
-        <h1>{!! $hvHeadingHtml !!}</h1>
+      @if(trim((string) $allsettings->site_banner_subheading) !== '')
+      <p class="hvx-lead">{{ $allsettings->site_banner_subheading }}</p>
+      @endif
 
-        <p class="hv-hero-sub">{{ $allsettings->site_banner_subheading }}</p>
-
-        <ul class="hv-pills">
-          <li class="hv-pill"><i class="fa fa-download"></i>{{ __('Instant Download') }}</li>
-          <li class="hv-pill"><i class="fa fa-refresh"></i>{{ __('Regular Updates') }}</li>
-          <li class="hv-pill"><i class="fa fa-certificate"></i>{{ __('Commercial License') }}</li>
-          <li class="hv-pill"><i class="fa fa-shield"></i>{{ __('30-Day Money Back') }}</li>
-        </ul>
-
-        <form action="{{ route('shop') }}" id="search_form" method="post" class="form-noborder searchbox" enctype="multipart/form-data">
-          {{ csrf_field() }}
-          <div class="hv-search">
-            <div class="hv-search-field">
-              <i class="dwg-search"></i>
-              <input class="form-control" type="text" id="product_item" name="product_item" placeholder="{{ __('Search for products, scripts, tools...') }}">
-            </div>
-            @if(count($category['view']) != 0)
-            <select name="category_names[]" id="product_cat" class="custom-select">
-              <option value="">{{ __('All categories') }}</option>
-              @foreach($category['view'] as $cat)
-              <option value="{{ 'category_'.$cat->cat_id }}">{{ $cat->category_name }}</option>
-              @foreach($cat->subcategory as $sub_category)
-              <option value="{{ 'subcategory_'.$sub_category->subcat_id }}"> - {{ $sub_category->subcategory_name }}</option>
-              @endforeach
-              @endforeach
-            </select>
-            @endif
-            <button class="hv-search-btn" type="submit">{{ __('Search') }}</button>
-          </div>
-        </form>
-
+      <form action="{{ route('shop') }}" id="search_form" method="post" class="hvx-search" enctype="multipart/form-data">
+        {{ csrf_field() }}
+        <i class="dwg-search" aria-hidden="true"></i>
+        <input type="text" id="product_item" name="product_item" placeholder="{{ __('Search for products, scripts, tools...') }}" aria-label="{{ __('Search') }}">
         @if(count($category['view']) != 0)
-        <div class="hv-popular">
-          <span>{{ __('Popular Searches') }}:</span>
-          @foreach($category['view']->take(5) as $cat)
-          <a href="{{ URL::to('/shop/category/') }}/{{ $cat->category_slug }}">{{ $cat->category_name }}</a>
+        <select name="category_names[]" id="product_cat" aria-label="{{ __('All categories') }}">
+          <option value="">{{ __('All categories') }}</option>
+          @foreach($category['view'] as $cat)
+          <option value="{{ 'category_'.$cat->cat_id }}">{{ $cat->category_name }}</option>
+          @foreach($cat->subcategory as $sub_category)
+          <option value="{{ 'subcategory_'.$sub_category->subcat_id }}"> - {{ $sub_category->subcategory_name }}</option>
           @endforeach
-        </div>
+          @endforeach
+        </select>
         @endif
+        <button type="submit">{{ __('Search') }}</button>
+      </form>
+
+      @if(count($category['view']) != 0)
+      <div class="hvx-chips">
+        <span>{{ __('Popular') }}:</span>
+        @foreach($category['view']->take(4) as $cat)
+        <a href="{{ URL::to('/shop/category/') }}/{{ $cat->category_slug }}">{{ $cat->category_name }}</a>
+        @endforeach
+      </div>
+      @endif
+
+      <div class="hvx-actions">
+        <a class="hvx-btn hvx-btn--main" href="{{ URL::to('/popular-items') }}"><i class="dwg-cart"></i>{{ __('Shop best sellers') }}</a>
+        <a class="hvx-btn hvx-btn--ghost" href="{{ URL::to('/free-items') }}"><i class="dwg-download"></i>{{ __('Free items') }}</a>
       </div>
 
-      <div class="col-lg-6">
-        <div class="hv-visual">
-          <div class="hv-dash">
-            <div class="hv-dash-bar">
-              <span class="hv-dash-dot"></span><span class="hv-dash-dot"></span><span class="hv-dash-dot"></span>
-              <span class="hv-dash-title">{{ __('Dashboard') }}</span>
-            </div>
-
-            @php
-              $hvSpots = $category['showcase']['groups'] ?? [];
-              $hvMarquee = $category['showcase']['marquee'] ?? [];
-            @endphp
-            <div class="hv-show{{ !empty($hvSpots) ? ' hv-show--split' : '' }}">
-              @if(!empty($hvSpots))
-              <div class="hv-stage" data-hv-stage>
-                <span class="hv-blob hv-blob--a" aria-hidden="true"></span>
-                <span class="hv-blob hv-blob--b" aria-hidden="true"></span>
-                @foreach($hvSpots as $spotIndex => $spot)
-                @php
-                  $spotItems = $spot['items'];
-                  $spotLead = $spotItems[0];
-                  $spotPhoto = $spotLead['preview'] !== '' ? $spotLead['preview'] : $spotLead['thumb'];
-                  $spotObj = (object) $spotLead;
-                  $spotExact = Helper::is_single_price_item($spotObj);
-                  $spotPrice = ((int) ($spotLead['free_download'] ?? 0) === 1)
-                    ? __('Free')
-                    : Helper::price_format($allsettings->site_currency_position, Helper::catalog_price($spotObj), $currency_symbol, $multicurrency ?? '', $spotExact);
-                  $spotKey = ($spot['slug'] ?? '') !== '' ? $spot['kind'].':'.$spot['slug'] : '';
-                @endphp
-                <div class="hv-spot{{ $spotIndex === 0 ? ' is-active' : '' }}" @if($spotKey !== '') data-hv-group="{{ $spotKey }}" @endif>
-                  @foreach(array_slice($spotItems, 1) as $orbitIndex => $orbit)
-                  @php $orbitFile = $orbit['thumb'] !== '' ? $orbit['thumb'] : $orbit['preview']; @endphp
-                  <a class="hv-orbit hv-orbit--{{ $orbitIndex === 0 ? 'a' : 'b' }}" href="{{ URL::to('/item') }}/{{ $orbit['slug'] }}">
-                    <img loading="lazy" decoding="async" src="{{ Helper::Image_Path($orbitFile, 'no-image.png') }}" alt="{{ $orbit['name'] }}">
-                  </a>
-                  @endforeach
-                  <div class="hv-spot-float">
-                    <a class="hv-spot-card" href="{{ URL::to('/item') }}/{{ $spotLead['slug'] }}">
-                      <span class="hv-spot-chip" style="background:{{ $spot['color'] }};"><i class="fa {{ $spot['icon'] }}"></i>{{ $spot['name'] }}</span>
-                      <span class="hv-spot-photo"><img loading="lazy" decoding="async" src="{{ Helper::Image_Path($spotPhoto, 'no-image.png') }}" alt="{{ $spotLead['name'] }}"></span>
-                      <span class="hv-spot-copy">
-                        <strong>{{ $spotLead['name'] }}</strong>
-                        <em>{{ $spotPrice }}</em>
-                      </span>
-                    </a>
-                  </div>
-                </div>
-                @endforeach
-              </div>
-              @endif
-              <div class="hv-top-col">
-                <div class="hv-dash-panel hv-top" data-hv-top>
-                  <div class="hv-top-head">
-                    <h6>{{ __('Top Products') }}</h6>
-                    @if(count($category['top_slides'] ?? []) > 1)
-                    <div class="hv-top-dots" role="tablist" aria-label="{{ __('Top Products') }}">
-                      @foreach($category['top_slides'] as $slideIndex => $slide)
-                      <button type="button" class="hv-top-dot{{ $slideIndex === 0 ? ' is-active' : '' }}" data-index="{{ $slideIndex }}" aria-label="{{ __('Slide') }} {{ $slideIndex + 1 }}"><span class="hv-top-dot-bar"></span></button>
-                      @endforeach
-                    </div>
-                    @endif
-                  </div>
-                  @if(!empty($category['top_slides']))
-                  <div class="hv-top-stage">
-                    @foreach($category['top_slides'] as $slideIndex => $slide)
-                    <ul class="hv-dash-list hv-top-slide{{ $slideIndex === 0 ? ' is-active' : '' }}">
-                      @foreach($slide as $rowIndex => $row)
-                      <li style="--hv-i: {{ $rowIndex }}" data-hv-row="{{ $row['kind'] }}:{{ $row['slug'] }}">
-                        <a href="{{ URL::to('/shop/'.$row['kind'].'/'.$row['slug']) }}">
-                          <span class="hv-dash-chip" style="background:{{ $row['color'] }};"><i class="fa {{ $row['icon'] }}"></i></span>
-                          <span class="hv-top-name">{{ $row['name'] }}</span>
-                          <b>{{ number_format($row['count']) }}</b>
-                        </a>
-                      </li>
-                      @endforeach
-                    </ul>
-                    @endforeach
-                  </div>
-                  @else
-                  <ul class="hv-dash-list">
-                    <li><span class="hv-dash-chip" style="background:#4f46e5;"><i class="fa fa-code"></i></span>{{ __('Scripts') }}<b>412</b></li>
-                    <li><span class="hv-dash-chip" style="background:#0ea5e9;"><i class="fa fa-paint-brush"></i></span>{{ __('Themes') }}<b>318</b></li>
-                    <li><span class="hv-dash-chip" style="background:#10b981;"><i class="fa fa-th-large"></i></span>{{ __('Apps') }}<b>264</b></li>
-                    <li><span class="hv-dash-chip" style="background:#f59e0b;"><i class="fa fa-picture-o"></i></span>{{ __('Graphics') }}<b>197</b></li>
-                  </ul>
-                  @endif
-                </div>
-              </div>
-            </div>
-            @if(!empty($hvMarquee))
-            <div class="hv-marquee">
-              <div class="hv-marquee-track">
-                @for($hvCopy = 0; $hvCopy < 2; $hvCopy++)
-                @foreach($hvMarquee as $tile)
-                @php $tileFile = $tile['thumb'] !== '' ? $tile['thumb'] : $tile['preview']; @endphp
-                <a href="{{ URL::to('/item') }}/{{ $tile['slug'] }}">
-                  <img loading="lazy" decoding="async" src="{{ Helper::Image_Path($tileFile, 'no-image.png') }}" alt="{{ $tile['name'] }}">
-                </a>
-                @endforeach
-                @endfor
-              </div>
-            </div>
-            @endif
-          </div>
-
-          <div class="hv-float hv-float--products">
-            <span class="hv-float-icon" style="background:linear-gradient(135deg,#7c3aed,#a855f7);"><i class="fa fa-cube"></i></span>
-            <span>
-              <strong>{{ $total_files }}+</strong>
-              <span>{{ __('Premium Products') }}</span>
-            </span>
-          </div>
-
-          <div class="hv-float hv-float--customers">
-            <span class="hv-float-icon" style="background:linear-gradient(135deg,#f59e0b,#f97316);"><i class="fa fa-star"></i></span>
-            <span>
-              <strong>{{ Helper::member_count() }}+</strong>
-              <span>{{ __('Happy Customers') }}</span>
-            </span>
-          </div>
-        </div>
+      <div class="hvx-proof">
+        <span class="hvx-faces" aria-hidden="true"><span>A</span><span>M</span><span>S</span><span>K</span></span>
+        <span>
+          <b><span class="hvx-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span> {{ Helper::member_count() }}+ {{ __('Happy Customers') }}</b>
+          <small>{{ $total_files }}+ {{ __('Premium Products') }} · {{ __('Instant Download') }}</small>
+        </span>
       </div>
-
     </div>
+
+    @if($hvxCards->count() > 0)
+    <div class="hvx-stack hvx-stack--{{ $hvxCards->count() }}" aria-label="{{ __('Featured Products') }}">
+      @foreach($hvxCards as $hvxIndex => $hvxCard)
+      <a class="hvx-tile hvx-tile--{{ $hvxIndex + 1 }}" href="{{ $hvxCard['url'] }}">
+        <span class="hvx-tile-img"><img src="{{ $hvxCard['img'] }}" alt="{{ $hvxCard['name'] }}" @if($hvxIndex > 0) loading="lazy" @endif decoding="async"></span>
+        <span class="hvx-tile-meta"><strong>{{ \Illuminate\Support\Str::limit($hvxCard['name'], 34) }}</strong><em>{{ $hvxCard['price'] }}</em></span>
+      </a>
+      @endforeach
+    </div>
+    @endif
   </div>
 </section>
 
