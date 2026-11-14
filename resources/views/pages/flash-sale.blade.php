@@ -4,8 +4,9 @@
 <title>{{ $allsettings->site_title }} - {{ __('Flash Sale') }}</title>
 @include('meta')
 @include('style')
+@include('partials.listing-head')
 </head>
-<body>
+<body class="home-vibrant listing-page">
 @include('header')
 @php
     $flashEnd = $allsettings->site_flash_end_date ?? null;
@@ -72,6 +73,7 @@
     </div>
 @include('footer')
 @include('script')
+@include('partials.listing-script')
 @if($flashActive)
 	<script type="text/javascript">
             $('#example').countdown({

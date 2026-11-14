@@ -100,8 +100,8 @@ class Pages extends Model
   public static function editpageCount($page_slug){
     $get = DB::table('pages')
       ->where('page_slug', $page_slug)
-      ->get();
-	$value = $get->count(); 
+      ->count();
+	$value = $get; 
     return $value;
   }
   
@@ -109,8 +109,8 @@ class Pages extends Model
   public static function helppageCount($page_id)
   {
 
-    $get=DB::table('pages')->where('page_id', $page_id)->get();
-	$value = $get->count(); 
+    $get=DB::table('pages')->where('page_id', $page_id)->count();
+	$value = $get; 
     return $value;
 	
   }
@@ -126,8 +126,8 @@ class Pages extends Model
   public static function totalpageData()
   {
 
-    $get=DB::table('pages')->where('page_status','=','1')->get(); 
-    $value = $get->count(); 
+    $get=DB::table('pages')->where('page_status','=','1')->count(); 
+    $value = $get; 
     return $value;
 	
   }
@@ -136,8 +136,8 @@ class Pages extends Model
   public static function totaldemoData()
   {
 
-    $get=DB::table('pages')->get(); 
-    $value = $get->count(); 
+    $get=DB::table('pages')->count(); 
+    $value = $get; 
     return $value;
 	
   }

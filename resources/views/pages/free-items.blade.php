@@ -4,8 +4,9 @@
 <title>{{ $allsettings->site_title }} - {{ __('Free Items') }}</title>
 @include('meta')
 @include('style')
+@include('partials.listing-head')
 </head>
-<body>
+<body class="home-vibrant listing-page">
 @include('header')
 <section class="bg-position-center-top" style="background-image: url('{{ url('/') }}/public/storage/settings/{{ $allsettings->site_banner }}');">
       <div class="py-4">
@@ -70,6 +71,7 @@
     </div>
 @include('footer')
 @include('script')
+@include('partials.listing-script')
 @if(!empty($allsettings->site_free_end_date))
 	<script type="text/javascript">
             $('#example').countdown({

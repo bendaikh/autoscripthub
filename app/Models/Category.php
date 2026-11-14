@@ -33,8 +33,8 @@ class Category extends Model
   public static function getcategoryCheck($slug)
   {
 
-    $get=DB::table('category')->where('category_slug','=',$slug)->where('drop_status','=','no')->get(); 
-    $value = $get->count(); 
+    $get=DB::table('category')->where('category_slug','=',$slug)->where('drop_status','=','no')->count(); 
+    $value = $get; 
 	return $value;
 	
   }	
@@ -50,8 +50,8 @@ class Category extends Model
   public static function getsubcategoryCheck($slug)
   {
 
-    $get=DB::table('subcategory')->where('subcategory_slug','=',$slug)->where('subcategory_status','=',1)->where('drop_status','=','no')->get(); 
-    $value = $get->count(); 
+    $get=DB::table('subcategory')->where('subcategory_slug','=',$slug)->where('subcategory_status','=',1)->where('drop_status','=','no')->count(); 
+    $value = $get; 
 	return $value;
 	
   }	

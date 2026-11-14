@@ -26,8 +26,8 @@ class Settings extends Model
 	  public static function checkuserSubscription($user_id)
 	  {
 	  $today = date('Y-m-d');
-	  $get=DB::table('users')->leftJoin('subscription','subscription.subscr_id','users.user_subscr_id')->where('subscription.subscr_status','=',1)->where('subscription.subscr_drop_status','=','no')->where('users.id','=',$user_id)->where('users.user_subscr_date','>',$today)->where('subscription.subscr_payment_mode','=',1)->get();
-	  $value = $get->count(); 
+	  $get=DB::table('users')->leftJoin('subscription','subscription.subscr_id','users.user_subscr_id')->where('subscription.subscr_status','=',1)->where('subscription.subscr_drop_status','=','no')->where('users.id','=',$user_id)->where('users.user_subscr_date','>',$today)->where('subscription.subscr_payment_mode','=',1)->count();
+	  $value = $get; 
 	  return $value;
 	  
 	  }

@@ -141,8 +141,8 @@ class Items extends Model
     public static function checkPurchased($logged,$token)
   {
 
-    $get=DB::table('item_order')->where('item_token','=', $token)->where('user_id','=', $logged)->where('approval_status','!=', 'payment released to buyer')->get();
-	$value = $get->count(); 
+    $get=DB::table('item_order')->where('item_token','=', $token)->where('user_id','=', $logged)->where('approval_status','!=', 'payment released to buyer')->count();
+	$value = $get; 
     return $value;
 	
   }
@@ -211,8 +211,8 @@ class Items extends Model
   public static function checkoutLevel($purchased_token)
   {
 
-    $get=DB::table('item_checkout')->where('payment_token','!=',"")->where('purchase_token','=',$purchased_token)->get();
-	$value = $get->count(); 
+    $get=DB::table('item_checkout')->where('payment_token','!=',"")->where('purchase_token','=',$purchased_token)->count();
+	$value = $get; 
     return $value;
 	
 	
@@ -221,8 +221,8 @@ class Items extends Model
   public static function findProduct($product_token)
   {
 
-    $get=DB::table('items')->where('item_token','=',$product_token)->get();
-	$value = $get->count(); 
+    $get=DB::table('items')->where('item_token','=',$product_token)->count();
+	$value = $get; 
     return $value;
 	
 	
@@ -231,8 +231,8 @@ class Items extends Model
   public static function checkItemUser($user_id)
   {
 
-    $get=DB::table('items')->where('user_id','=',$user_id)->where('drop_status','=','no')->get();
-	$value = $get->count(); 
+    $get=DB::table('items')->where('user_id','=',$user_id)->where('drop_status','=','no')->count();
+	$value = $get; 
     return $value;
 	
 	
@@ -478,8 +478,8 @@ class Items extends Model
   public static function typeIDCountUncached($id)
   {
     
-    $get=DB::table('item_type')->where('item_type_id', $id)->get(); 
-	$value = $get->count();
+    $get=DB::table('item_type')->where('item_type_id', $id)->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -1057,8 +1057,8 @@ class Items extends Model
   public static function getuseritemCount($user_id)
   {
     
-    $get=DB::table('items')->where('user_id','=',$user_id)->where('item_status','=',1)->where('drop_status','=','no')->orderBy('item_id', 'desc')->get(); 
-	$value = $get->count();
+    $get=DB::table('items')->where('user_id','=',$user_id)->where('item_status','=',1)->where('drop_status','=','no')->orderBy('item_id', 'desc')->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -1066,8 +1066,8 @@ class Items extends Model
    public static function getfollowuserCheck($user_id)
   {
     $login_id = Auth::user()->id;
-    $get=DB::table('follow')->where('follower_user_id','=',$login_id)->where('following_user_id','=',$user_id)->get(); 
-	$value = $get->count();
+    $get=DB::table('follow')->where('follower_user_id','=',$login_id)->where('following_user_id','=',$user_id)->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -1075,8 +1075,8 @@ class Items extends Model
   public static function checkDels($token)
   {
     
-    $get=DB::table('items')->where('item_token','=',$token)->where('drop_status','=','no')->get(); 
-	$value = $get->count();
+    $get=DB::table('items')->where('item_token','=',$token)->where('drop_status','=','no')->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -1087,8 +1087,8 @@ class Items extends Model
   public static function getfollowingCount($user_id)
   {
     
-    $get=DB::table('follow')->where('follower_user_id','=',$user_id)->get(); 
-	$value = $get->count();
+    $get=DB::table('follow')->where('follower_user_id','=',$user_id)->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -1097,8 +1097,8 @@ class Items extends Model
   public static function getfollowerCount($user_id)
   {
     
-    $get=DB::table('follow')->where('following_user_id','=',$user_id)->get(); 
-	$value = $get->count();
+    $get=DB::table('follow')->where('following_user_id','=',$user_id)->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -1123,8 +1123,8 @@ class Items extends Model
   public static function getsaleitemCount($user_id)
   {
     
-    $get=DB::table('item_order')->where('item_user_id','=',$user_id)->where('order_status','=','completed')->where('approval_status','=','payment released to vendor')->orderBy('ord_id', 'desc')->get(); 
-	$value = $get->count();
+    $get=DB::table('item_order')->where('item_user_id','=',$user_id)->where('order_status','=','completed')->where('approval_status','=','payment released to vendor')->orderBy('ord_id', 'desc')->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -1134,8 +1134,8 @@ class Items extends Model
   public static function getimagesCount($token)
   {
 
-    $get=DB::table('items_images')->where('item_token','=', $token)->orderBy('itm_id', 'desc')->get();
-	$value = $get->count(); 
+    $get=DB::table('items_images')->where('item_token','=', $token)->orderBy('itm_id', 'desc')->count();
+	$value = $get; 
     return $value;
 	
   }
@@ -1211,8 +1211,8 @@ class Items extends Model
   public static function minpriceCount()
   {
 
-    $get=DB::table('items')->where('item_status','=',1)->where('drop_status','=','no')->orderBy('regular_price', 'asc')->get();
-	$value = $get->count();  
+    $get=DB::table('items')->where('item_status','=',1)->where('drop_status','=','no')->orderBy('regular_price', 'asc')->count();
+	$value = $get;  
     return $value;
 	
   }	
@@ -1220,8 +1220,8 @@ class Items extends Model
   public static function maxpriceCount()
   {
 
-    $get=DB::table('items')->where('item_status','=',1)->where('drop_status','=','no')->orderBy('extended_price', 'desc')->get();
-	$value = $get->count();  
+    $get=DB::table('items')->where('item_status','=',1)->where('drop_status','=','no')->orderBy('extended_price', 'desc')->count();
+	$value = $get;  
     return $value;
 	
   }
@@ -1380,8 +1380,8 @@ class Items extends Model
   public static function getfavouriteCount($item_id,$log_user)
   {
 
-    $get=DB::table('items_favorite')->where('item_id','=', $item_id)->where('user_id','=', $log_user)->get();
-	$value = $get->count(); 
+    $get=DB::table('items_favorite')->where('item_id','=', $item_id)->where('user_id','=', $log_user)->count();
+	$value = $get; 
     return $value;
 	
   }
@@ -1407,8 +1407,8 @@ class Items extends Model
   {
     $today = date('Y-m-d');
 	$user_id = Auth::user()->id;
-    $get=DB::table('item_order')->where('item_token','=', $token)->where('user_id','=', $user_id)->where('order_status','=','completed')->where('end_date','>',$today)->get();
-	$value = $get->count(); 
+    $get=DB::table('item_order')->where('item_token','=', $token)->where('user_id','=', $user_id)->where('order_status','=','completed')->where('end_date','>',$today)->count();
+	$value = $get; 
     return $value;
 	
   }
@@ -1496,8 +1496,8 @@ class Items extends Model
   public static function getorderCount($item_id,$session_id,$order_status)
   {
 
-    $get=DB::table('item_order')->where('item_id','=', $item_id)->where('session_id','=', $session_id)->where('order_status','=', $order_status)->get();
-	$value = $get->count(); 
+    $get=DB::table('item_order')->where('item_id','=', $item_id)->where('session_id','=', $session_id)->where('order_status','=', $order_status)->count();
+	$value = $get; 
     return $value;
 	
   }
@@ -1535,8 +1535,8 @@ class Items extends Model
   public static function getcartCount()
   {
     $session_id = Session::getId();
-    $get=DB::table('item_order')->join('users','users.id','item_order.item_user_id')->join('items','items.item_id','item_order.item_id')->where('item_order.session_id','=',$session_id)->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('item_order.order_status','=','pending')->orderBy('item_order.ord_id', 'desc')->get(); 
-	$value = $get->count();
+    $get=DB::table('item_order')->join('users','users.id','item_order.item_user_id')->join('items','items.item_id','item_order.item_id')->where('item_order.session_id','=',$session_id)->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('item_order.order_status','=','pending')->orderBy('item_order.ord_id', 'desc')->count(); 
+	$value = $get;
     return $value;
 	
   }
@@ -1569,8 +1569,8 @@ class Items extends Model
   public static function getcheckoutCount($purchase_token,$user_id,$payment_status)
   {
 
-    $get=DB::table('item_checkout')->where('purchase_token','=', $purchase_token)->where('user_id','=', $user_id)->where('payment_status','=', $payment_status)->get();
-	$value = $get->count(); 
+    $get=DB::table('item_checkout')->where('purchase_token','=', $purchase_token)->where('user_id','=', $user_id)->where('payment_status','=', $payment_status)->count();
+	$value = $get; 
     return $value;
 	
   }
@@ -1613,8 +1613,8 @@ class Items extends Model
   public static function SessionCheck($session_id)
   {
 
-    $get=DB::table('item_order')->where('session_id', $session_id)->where('order_status', 'pending')->get();
-	$value = $get->count(); 
+    $get=DB::table('item_order')->where('session_id', $session_id)->where('order_status', 'pending')->count();
+	$value = $get; 
     return $value;
 	
   }
@@ -1673,8 +1673,8 @@ class Items extends Model
   public static function checkVerify($purchase_code) 
   {
 
-    $get=DB::table('item_order')->join('users','users.id','item_order.user_id')->join('items','items.item_id','item_order.item_id')->where('item_order.order_status','=', 'completed')->where('item_order.approval_status','=', 'payment released to vendor')->where('item_order.purchase_code','=', $purchase_code)->get();
-	$value = $get->count();
+    $get=DB::table('item_order')->join('users','users.id','item_order.user_id')->join('items','items.item_id','item_order.item_id')->where('item_order.order_status','=', 'completed')->where('item_order.approval_status','=', 'payment released to vendor')->where('item_order.purchase_code','=', $purchase_code)->count();
+	$value = $get;
 	return $value;
 	
   }
@@ -1683,8 +1683,8 @@ class Items extends Model
   public static function checkSold($token,$user_id)
   {
 
-    $get=DB::table('item_order')->join('users','users.id','item_order.user_id')->join('items','items.item_id','item_order.item_id')->where('item_order.order_status','=', 'completed')->where('item_order.approval_status','!=', 'payment released to buyer')->where('items.item_token','=', $token)->where('item_order.user_id','=', $user_id)->get();
-	$value = $get->count(); 
+    $get=DB::table('item_order')->join('users','users.id','item_order.user_id')->join('items','items.item_id','item_order.item_id')->where('item_order.order_status','=', 'completed')->where('item_order.approval_status','!=', 'payment released to buyer')->where('items.item_token','=', $token)->where('item_order.user_id','=', $user_id)->count();
+	$value = $get; 
     return $value;
 	
   }
@@ -1719,8 +1719,8 @@ class Items extends Model
   public static function checkInSeller($token,$logged_id)
   {
 
-    $get=DB::table('items')->where('user_id','=',$logged_id)->where('item_token','=',$token)->get();
-	$value = $get->count(); 
+    $get=DB::table('items')->where('user_id','=',$logged_id)->where('item_token','=',$token)->count();
+	$value = $get; 
     return $value;
 	
   }
@@ -1760,8 +1760,8 @@ class Items extends Model
   public static function checkRating($item_token,$user_id)
   {
 
-    $get=DB::table('item_ratings')->where('or_item_token','=', $item_token)->where('or_user_id','=', $user_id)->get();
-	$value = $get->count(); 
+    $get=DB::table('item_ratings')->where('or_item_token','=', $item_token)->where('or_user_id','=', $user_id)->count();
+	$value = $get; 
     return $value;
 	
   }
@@ -1842,8 +1842,8 @@ class Items extends Model
   public static function checkRefund($item_token,$user_id)
   {
 
-    $get=DB::table('item_refund')->where('ref_item_token','=', $item_token)->where('ref_user_id','=', $user_id)->where('ref_refund_approval','=', 'accepted')->get();
-	$value = $get->count(); 
+    $get=DB::table('item_refund')->where('ref_item_token','=', $item_token)->where('ref_user_id','=', $user_id)->where('ref_refund_approval','=', 'accepted')->count();
+	$value = $get; 
     return $value;
 	
   }
@@ -1867,8 +1867,8 @@ class Items extends Model
   public static function getreviewData($user_id)
   {
 
-    $get=DB::table('item_ratings')->where('or_item_user_id','=', $user_id)->get();
-	$value = $get->count(); 
+    $get=DB::table('item_ratings')->where('or_item_user_id','=', $user_id)->count();
+	$value = $get; 
     return $value;
 	
   }
@@ -1891,8 +1891,8 @@ class Items extends Model
   public static function getreviewCount($item_id)
   {
 
-    $get=DB::table('item_ratings')->where('or_item_id','=', $item_id)->get();
-	$value = $get->count(); 
+    $get=DB::table('item_ratings')->where('or_item_id','=', $item_id)->count();
+	$value = $get; 
     return $value;
 	
   }
@@ -1917,8 +1917,8 @@ class Items extends Model
   
   public static function getreviewCountUser($user_id)
   {
-    $get = DB::table('item_ratings')->join('users','users.id','item_ratings.or_user_id')->join('items','items.item_id','item_ratings.or_item_id')->where('or_item_user_id','=', $user_id)->orderBy('item_ratings.rating_date', 'desc')->get();
-	$value = $get->count(); 
+    $get = DB::table('item_ratings')->join('users','users.id','item_ratings.or_user_id')->join('items','items.item_id','item_ratings.or_item_id')->where('or_item_user_id','=', $user_id)->orderBy('item_ratings.rating_date', 'desc')->count();
+	$value = $get; 
 	return $value;
   }
   
@@ -2146,8 +2146,8 @@ class Items extends Model
   public static function getcontactCount($from_email)
   {
     
-    $get=DB::table('contact')->where('from_email','=',$from_email)->get(); 
-	$value = $get->count();
+    $get=DB::table('contact')->where('from_email','=',$from_email)->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -2167,8 +2167,8 @@ class Items extends Model
   public static function CollectedAmount($item_user_id)
   {
     
-    $get=DB::table('item_order')->where('order_status','=','completed')->where('approval_status','=','payment released to vendor')->where('user_id','=',$item_user_id)->get(); 
-	$value = $get->count();
+    $get=DB::table('item_order')->where('order_status','=','completed')->where('approval_status','=','payment released to vendor')->where('user_id','=',$item_user_id)->count(); 
+	$value = $get;
     return $value;
 	
   }
@@ -2186,8 +2186,8 @@ class Items extends Model
   public static function trendsCount($token)
   {
     $today = date('Y-m-d', strtotime('today - 30 days'));
-    $get=DB::table('item_order')->where('order_status','=','completed')->where('start_date','>',$today)->where('item_token','=',$token)->get(); 
-	$value = $get->count();
+    $get=DB::table('item_order')->where('order_status','=','completed')->where('start_date','>',$today)->where('item_token','=',$token)->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -2203,8 +2203,8 @@ class Items extends Model
   public static function totalsaleitemCount()
   {
     
-    $get=DB::table('item_order')->where('order_status','=','completed')->orderBy('ord_id', 'desc')->get(); 
-	$value = $get->count();
+    $get=DB::table('item_order')->where('order_status','=','completed')->orderBy('ord_id', 'desc')->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -2213,8 +2213,8 @@ class Items extends Model
   public static function totalfileItems()
   {
     
-    $get=DB::table('items')->where('drop_status','=','no')->where('item_status','=',1)->orderBy('item_id', 'desc')->get(); 
-	$value = $get->count();
+    $get=DB::table('items')->where('drop_status','=','no')->where('item_status','=',1)->orderBy('item_id', 'desc')->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -2259,8 +2259,8 @@ class Items extends Model
   public static function orderdataCheck($check_date)
   {
     
-    $get=DB::table('item_checkout')->where('payment_status','=','completed')->where('payment_date','=',$check_date)->get(); 
-	$value = $get->count();
+    $get=DB::table('item_checkout')->where('payment_status','=','completed')->where('payment_date','=',$check_date)->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -2270,8 +2270,8 @@ class Items extends Model
   public static function itemapprovedCheck($status)
   {
     
-    $get=DB::table('items')->join('users','users.id','items.user_id')->where('items.drop_status','=','no')->where('items.item_status','=',$status)->get(); 
-	$value = $get->count();
+    $get=DB::table('items')->join('users','users.id','items.user_id')->where('items.drop_status','=','no')->where('items.item_status','=',$status)->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -2280,8 +2280,8 @@ class Items extends Model
   public static function totalorderData()
   {
     
-    $get=DB::table('item_checkout')->join('users','users.id','item_checkout.user_id')->orderBy('item_checkout.chout_id', 'desc')->get(); 
-	$value = $get->count();
+    $get=DB::table('item_checkout')->join('users','users.id','item_checkout.user_id')->orderBy('item_checkout.chout_id', 'desc')->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -2290,8 +2290,8 @@ class Items extends Model
   public static function totalitemCheck()
   {
     
-    $get=DB::table('items')->join('users','users.id','items.user_id')->where('items.drop_status','=','no')->get(); 
-	$value = $get->count();
+    $get=DB::table('items')->join('users','users.id','items.user_id')->where('items.drop_status','=','no')->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -2301,8 +2301,8 @@ class Items extends Model
   public static function totalitemcommentCheck()
   {
     
-    $get=DB::table('item_comments')->get(); 
-	$value = $get->count();
+    $get=DB::table('item_comments')->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -2323,8 +2323,8 @@ class Items extends Model
 	public static function checkCoupon($coupon)
    {
     $today_date = date('Y-m-d h:i a');
-    $get=DB::table('coupon')->where('coupon_start_date','<=',$today_date)->where('coupon_end_date','>=',$today_date)->where('coupon_code','=',$coupon)->where('coupon_status','=',1)->get(); 
-    $value = $get->count(); 
+    $get=DB::table('coupon')->where('coupon_start_date','<=',$today_date)->where('coupon_end_date','>=',$today_date)->where('coupon_code','=',$coupon)->where('coupon_status','=',1)->count(); 
+    $value = $get; 
     return $value;
 	
    }
@@ -2382,8 +2382,8 @@ class Items extends Model
   public static function emptycheck()
   {
     
-    $get=DB::table('items')->where('item_type_id','=',Null)->where('drop_status','=','no')->get(); 
-	$value = $get->count();
+    $get=DB::table('items')->where('item_type_id','=',Null)->where('drop_status','=','no')->count(); 
+	$value = $get;
     return $value;
 	
   }
@@ -2405,8 +2405,8 @@ class Items extends Model
   public static function totalsuccessOrder()
   {
     
-    $get=DB::table('item_checkout')->join('users','users.id','item_checkout.user_id')->where('item_checkout.payment_status','=','completed')->get(); 
-	$value = $get->count();
+    $get=DB::table('item_checkout')->join('users','users.id','item_checkout.user_id')->where('item_checkout.payment_status','=','completed')->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -2414,8 +2414,8 @@ class Items extends Model
   public static function totalfailedOrder()
   {
     
-    $get=DB::table('item_checkout')->join('users','users.id','item_checkout.user_id')->where('item_checkout.payment_status','=','pending')->get(); 
-	$value = $get->count();
+    $get=DB::table('item_checkout')->join('users','users.id','item_checkout.user_id')->where('item_checkout.payment_status','=','pending')->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -2437,8 +2437,8 @@ class Items extends Model
 		->where('items.drop_status','=','no')
 		->where('created_item', '>=', $from)
         ->where('created_item', '<=', $to)
-		->get(); 
-	$value = $get->count();
+		->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -2451,8 +2451,8 @@ class Items extends Model
 		->where('item_checkout.payment_status','=','completed')
 		->where('payment_date', '>=', $from)
         ->where('payment_date', '<=', $to)
-		->get(); 
-	$value = $get->count();
+		->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -2465,8 +2465,8 @@ class Items extends Model
 		->where('item_checkout.payment_status','=','pending')
 		->where('payment_date', '>=', $from)
         ->where('payment_date', '<=', $to)
-		->get(); 
-	$value = $get->count();
+		->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -2492,8 +2492,8 @@ class Items extends Model
 		 ->where('items.drop_status','=','no')
 		 ->where('created_item', '>=', $from)
          ->where('created_item', '<=', $to)
-		 ->get(); 
-	$value = $get->count();
+		 ->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -2505,8 +2505,8 @@ class Items extends Model
 	     ->join('users','users.id','item_checkout.user_id')
 		 ->where('payment_date', '>=', $from)
          ->where('payment_date', '<=', $to)
-		 ->get(); 
-	$value = $get->count();
+		 ->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -2518,8 +2518,8 @@ class Items extends Model
 		 ->where('items.drop_status','=','no')
 		 ->where('created_item', '>=', $from)
          ->where('created_item', '<=', $to)
-		 ->get(); 
-	$value = $get->count();
+		 ->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -2530,8 +2530,8 @@ class Items extends Model
 	    ->join('users','users.id','item_checkout.user_id')
 		->where('payment_date', '>=', $from)
         ->where('payment_date', '<=', $to)
-		->get(); 
-	$value = $get->count();
+		->count(); 
+	$value = $get;
     return $value;
 	
   }
@@ -2542,8 +2542,8 @@ class Items extends Model
 	     ->join('users','users.id','item_checkout.user_id')
 		 ->where('payment_date', '>=', $from)
          ->where('payment_date', '<=', $to)
-		 ->get(); 
-	$value = $get->count();
+		 ->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -2555,8 +2555,8 @@ class Items extends Model
 	     ->where('item_type', '=', $slug)
          ->where('drop_status', '=', 'no')
 		 ->where('item_status', '=', 1)
-		 ->get(); 
-	$value = $get->count();
+		 ->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -2568,8 +2568,8 @@ class Items extends Model
 		 ->where('item_category_type', '=', $slug)
          ->where('drop_status', '=', 'no')
 		 ->where('item_status', '=', 1)
-		 ->get(); 
-	$value = $get->count();
+		 ->count(); 
+	$value = $get;
     return $value;
 	
   }
@@ -2584,8 +2584,8 @@ class Items extends Model
   public static function countNotify($user_id)
   {
     
-    $get=DB::table('notifications')->where('noti_receiver_id','=',$user_id)->where('noti_status','=','unread')->get(); 
-	$value = $get->count();
+    $get=DB::table('notifications')->where('noti_receiver_id','=',$user_id)->where('noti_status','=','unread')->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -2593,8 +2593,8 @@ class Items extends Model
   public static function NocountNotify($user_id)
   {
     
-    $get=DB::table('notifications')->where('noti_receiver_id','=',$user_id)->where('noti_status','=','unread')->get(); 
-	$value = $get->count();
+    $get=DB::table('notifications')->where('noti_receiver_id','=',$user_id)->where('noti_status','=','unread')->count(); 
+	$value = $get;
     return $value;
 	
   }	

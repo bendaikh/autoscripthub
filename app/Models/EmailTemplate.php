@@ -34,8 +34,8 @@ class EmailTemplate extends Model
   
   public static function checkTemplate($id)
   {
-    $get=DB::table('email_template')->where('et_id', '=', $id)->where('et_status', '=', 1)->get();
-	$value = $get->count(); 
+    $get=DB::table('email_template')->where('et_id', '=', $id)->where('et_status', '=', 1)->count();
+	$value = $get; 
     return $value;
 	 
   }

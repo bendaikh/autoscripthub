@@ -27,8 +27,9 @@
 <link rel="canonical" href="{{ $shopCanonical }}" />
 <meta name="twitter:image:src" content="{{ url('/') }}/public/storage/settings/{{ $allsettings->site_logo }}">
 @include('style')
+@include('partials.listing-head')
 </head>
-<body>
+<body class="home-vibrant listing-page">
 @include('header')
 <section class="bg-position-center-top" style="background-image: url('{{ url('/') }}/public/storage/settings/{{ $allsettings->site_banner }}');">
       <div class="py-4">
@@ -57,5 +58,6 @@
     </div>
 @include('footer')
 @include('script')
+@include('partials.listing-script')
 </body>
 </html>
