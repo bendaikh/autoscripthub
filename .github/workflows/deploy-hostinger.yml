@@ -35,11 +35,11 @@ jobs:
 
       - name: Find the website folder on the server
         # Uses the DEPLOY_PATH secret if set; otherwise looks for the folder
-        # under ~/domains/*/public_html that contains this Laravel app.
+        # under ~/domains (or ~/public_html) that contains this Laravel app.
         run: |
           if [ -z "$DEPLOY_PATH" ]; then
             DEPLOY_PATH="$(sshpass -e ssh -p "$SSH_PORT" -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" \
-              'for d in domains/*/public_html; do [ -f "$d/artisan" ] && [ -f "$d/app/Http/Controllers/CommonController.php" ] && echo "$d"; done')"
+              'for f in $(find domains public_html -maxdepth 4 -name artisan -type f 2>/dev/null); do d=$(dirname "$f"); if [ -f "$d/app/Http/Controllers/CommonController.php" ]; then echo "$d"; fi; done; true')"
             count="$(printf '%s\n' "$DEPLOY_PATH" | grep -c . || true)"
             if [ "$count" != "1" ]; then
               echo "::error::Found $count matching website folders ($DEPLOY_PATH). Add a DEPLOY_PATH secret to choose one."
