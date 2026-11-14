@@ -82,6 +82,34 @@ class ProductImage
         return is_file(base_path('public/storage/items/'.$safe));
     }
 
+    /**
+     * True when a stored product image can be shown: the file exists in
+     * public/storage/items, is not empty and opens as an image at least
+     * $minWidth pixels wide. With cloud storage the file cannot be checked
+     * cheaply, so any non-empty name passes.
+     */
+    public static function isUsable(?string $filename, bool $localStorage = true, int $minWidth = 120): bool
+    {
+        $filename = trim((string) $filename);
+        if ($filename === '') {
+            return false;
+        }
+        if (! $localStorage) {
+            return true;
+        }
+        $safe = basename(str_replace('\\', '/', $filename));
+        if ($safe === '' || $safe === '.' || $safe === '..') {
+            return false;
+        }
+        $path = base_path('public/storage/items/'.$safe);
+        if (! is_file($path) || @filesize($path) < 100) {
+            return false;
+        }
+        $width = self::localWidth($path);
+
+        return $width !== null && $width >= $minWidth;
+    }
+
     public static function localWidth(string $absolutePath): ?int
     {
         if (! is_file($absolutePath)) {
