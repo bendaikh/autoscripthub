@@ -44,6 +44,39 @@ class Settings extends Model
 		  ->update($data);
 	  }
 	
+	/* Home page promo banner (Black Friday etc.) */
+	public static function editPromoBanner(){
+		try {
+			return DB::table('promo_banners')->where('id', 1)->first();
+		} catch (\Throwable $e) {
+			// Table not created yet (migration not run): behave as "no banner".
+			return null;
+		}
+	}
+
+	public static function updatePromoBanner($data){
+		$data['updated_at'] = now();
+		if (DB::table('promo_banners')->where('id', 1)->exists()) {
+			DB::table('promo_banners')->where('id', 1)->update($data);
+		} else {
+			$data['id'] = 1;
+			$data['created_at'] = now();
+			DB::table('promo_banners')->insert($data);
+		}
+	}
+
+	/** The banner if it is switched on and not yet expired, otherwise null. */
+	public static function activePromoBanner(){
+		$banner = self::editPromoBanner();
+		if (!$banner || (int) $banner->enabled !== 1) {
+			return null;
+		}
+		if (!empty($banner->ends_at) && \Carbon\Carbon::parse($banner->ends_at, 'UTC')->isPast()) {
+			return null;
+		}
+		return $banner;
+	}
+
 	public static function editAdditional(){ return \Fickrr\Support\RequestMemo::remember('settings.additional', function(){ return static::editAdditionalUncached(); }); }
 
 	public static function editAdditionalUncached(){

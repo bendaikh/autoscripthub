@@ -4989,7 +4989,7 @@ class CommonController extends Controller
 			   : (int) ($subSlideCounts[$licenseSlide['id']] ?? 0);
 	   }
 	   $category['license_items'] = $this->licenseHomeItems($category['license_slides']);
-	   $data = array('blog' => $blog, 'comments' => $comments, 'review' => $review, 'totalmembers' => $totalmembers, 'totalsales' => $totalsales, 'totalfiles' => $totalfiles, 'totalearning' => $totalearning, 'featured' => $featured, 'newest' => $newest, 'free' => $free, 'popular' => $popular, 'flash' => $flash, 'category' => $category);
+	   $data = array('blog' => $blog, 'comments' => $comments, 'review' => $review, 'totalmembers' => $totalmembers, 'totalsales' => $totalsales, 'totalfiles' => $totalfiles, 'totalearning' => $totalearning, 'featured' => $featured, 'newest' => $newest, 'free' => $free, 'popular' => $popular, 'flash' => $flash, 'category' => $category, 'promo' => Settings::activePromoBanner());
 	  //SitemapGenerator::create(URL::to('/'))->writeToFile('sitemap.xml');
 	  
 	  return view('index')->with($data);

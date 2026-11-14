@@ -47,6 +47,8 @@
 <body class="home-v2">
 @include('header')
 
+@include('partials.black-friday-banner')
+
 @php
   // Palette + icon used by the "Browse Categories" tiles, cycled by position.
   $hvCatStyles = [

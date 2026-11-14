@@ -154,6 +154,13 @@
                     </li>
                     @if(in_array('settings',$avilable))
                     <li>
+                        <a href="{{ url('/admin/promo-banner') }}">
+                            <i class="menu-icon fa fa-tags"></i>{{ __('Black Friday Banner') }}
+                        </a>
+                    </li>
+                    @endif
+                    @if(in_array('settings',$avilable))
+                    <li>
                         <a href="{{ url('/admin/ai-api-connection') }}">
                             <i class="menu-icon fa fa-magic"></i>{{ __('AI API Connection') }}
                         </a>
