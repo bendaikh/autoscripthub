@@ -345,6 +345,7 @@
 
         });
     </script>
+@include('partials.visit-tracker')
 </body>
 </html>
 
