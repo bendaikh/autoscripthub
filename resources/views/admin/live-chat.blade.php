@@ -146,11 +146,20 @@
 </div>
 @include('admin.javascript')
 @if($ready)
+@php
+  $lcaText = [
+    'you' => __('You'),
+    'confirmDelete' => __('Delete this conversation permanently?'),
+    'empty' => __('No conversations yet.'),
+    'emptyClosed' => __('No closed conversations.'),
+    'failed' => __('Could not send. Please try again.'),
+  ];
+@endphp
 <script>
 (function () {
   var base = @json(url('/admin/live-chat'));
   var csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
-  var T = @json(['you' => __('You'), 'confirmDelete' => __('Delete this conversation permanently?'), 'empty' => __('No conversations yet.'), 'emptyClosed' => __('No closed conversations.'), 'failed' => __('Could not send. Please try again.')]);
+  var T = @json($lcaText);
   var status = 'open', current = null, lastId = 0, listTimer = null, msgTimer = null, lastUnread = null, sending = false;
   var items = document.getElementById('lca-items');
   var msgs = document.getElementById('lca-msgs');
