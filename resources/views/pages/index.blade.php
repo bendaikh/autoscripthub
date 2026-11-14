@@ -203,13 +203,16 @@
     @if($hvxSets->count() > 0)
     <div class="hvx-stack" data-hvx-stack aria-label="{{ __('Featured Products') }}">
       @foreach($hvxSets as $hvxSetIndex => $hvxSet)
-      <div class="hvx-set hvx-set--{{ $hvxSet['cards']->count() }}{{ $hvxSetIndex === 0 ? ' is-active' : '' }}" @if($hvxSetIndex > 0) aria-hidden="true" @endif>
+      <div class="hvx-set hvx-set--{{ min(3, $hvxSet['cards']->count()) }}{{ $hvxSetIndex === 0 ? ' is-active' : '' }}" @if($hvxSetIndex > 0) aria-hidden="true" @endif>
         @if($hvxSet['label'])
         <a class="hvx-set-label" href="{{ $hvxSet['url'] }}" @if($hvxSetIndex > 0) tabindex="-1" @endif><span>{{ $hvxSet['label'] }}</span>@if($hvxSet['count'] > 0)<em>{{ $hvxSet['count'] }} {{ trans_choice('Item|Items', $hvxSet['count']) }}</em>@endif<i class="dwg-arrow-right"></i></a>
         @endif
         @foreach($hvxSet['cards'] as $hvxIndex => $hvxCard)
-        <a class="hvx-tile hvx-tile--{{ $hvxIndex + 1 }}" href="{{ $hvxCard['url'] }}" @if($hvxSetIndex > 0) tabindex="-1" @endif>
-          <span class="hvx-tile-img"><img src="{{ $hvxCard['img'] }}" alt="{{ $hvxCard['name'] }}" @if($hvxSetIndex > 0 || $hvxIndex > 0) loading="lazy" @endif decoding="async"></span>
+        {{-- the first set loads at once; the others (and the two spare cards per
+             set) get their image only when needed, see the script at the bottom --}}
+        @php $hvxEager = $hvxSetIndex === 0 && $hvxIndex < 3; @endphp
+        <a class="hvx-tile {{ $hvxIndex < 3 ? 'hvx-tile--'.($hvxIndex + 1) : 'hvx-tile--spare' }}" href="{{ $hvxCard['url'] }}" @if($hvxSetIndex > 0 || $hvxIndex >= 3) tabindex="-1" @endif>
+          <span class="hvx-tile-img"><img @if($hvxEager) src="{{ $hvxCard['img'] }}" @else data-src="{{ $hvxCard['img'] }}" @endif alt="{{ $hvxCard['name'] }}" decoding="async"></span>
           <span class="hvx-tile-meta"><strong>{{ \Illuminate\Support\Str::limit($hvxCard['name'], 34) }}</strong><em>{{ $hvxCard['price'] }}</em></span>
         </a>
         @endforeach
@@ -1062,34 +1065,103 @@ jQuery(function ($) {
 (function () {
   var stack = document.querySelector('[data-hvx-stack]');
   if (!stack) return;
-  var sets = stack.querySelectorAll('.hvx-set');
-  var dots = stack.querySelectorAll('.hvx-dot');
-  if (sets.length < 2) return;
+  var sets = Array.prototype.slice.call(stack.querySelectorAll('.hvx-set'));
+  var dots = Array.prototype.slice.call(stack.querySelectorAll('.hvx-dot'));
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var index = 0, timer = null, paused = false;
+
+  // --- never leave a broken product image on screen -----------------------
+  // Each set carries up to five products: three shown, two in reserve. When an
+  // image fails to load, its card is dropped and the next one moves up; a set
+  // with no working image is skipped entirely (and its dot hidden).
+  function tiles(set) { return Array.prototype.slice.call(set.querySelectorAll('.hvx-tile')); }
+  function load(img) {
+    if (img && !img.getAttribute('src') && img.getAttribute('data-src')) img.setAttribute('src', img.getAttribute('data-src'));
+  }
+  function usable(set) { return !set.classList.contains('is-empty'); }
+  function relayout(set) {
+    var good = tiles(set).filter(function (t) { return !t.classList.contains('is-broken'); });
+    var shown = good.slice(0, 3);
+    tiles(set).forEach(function (t) {
+      t.classList.remove('hvx-tile--1', 'hvx-tile--2', 'hvx-tile--3');
+      var at = shown.indexOf(t);
+      if (at >= 0) {
+        t.classList.remove('hvx-tile--spare');
+        t.classList.add('hvx-tile--' + (at + 1));
+        if (set.classList.contains('is-active') || set.classList.contains('is-next')) load(t.querySelector('img'));
+      } else {
+        t.classList.add('hvx-tile--spare');
+      }
+    });
+    set.classList.remove('hvx-set--1', 'hvx-set--2', 'hvx-set--3');
+    if (shown.length) set.classList.add('hvx-set--' + shown.length);
+    var empty = shown.length === 0;
+    set.classList.toggle('is-empty', empty);
+    var dot = dots[sets.indexOf(set)];
+    if (dot) dot.style.display = empty ? 'none' : '';
+    if (empty && set.classList.contains('is-active')) show(index + 1);
+    var left = sets.filter(usable).length;
+    stack.classList.toggle('is-single', left < 2);
+    if (left === 0) stack.style.display = 'none';
+  }
+  function watch(set) {
+    tiles(set).forEach(function (t) {
+      var img = t.querySelector('img');
+      if (!img) return;
+      var fail = function () {
+        if (t.classList.contains('is-broken')) return;
+        t.classList.add('is-broken');
+        relayout(set);
+      };
+      img.addEventListener('error', fail);
+      img.addEventListener('load', function () { if (!img.naturalWidth) fail(); });
+      if (img.complete && img.getAttribute('src') && !img.naturalWidth) fail();
+    });
+  }
+  sets.forEach(watch);
+
+  // --- rotation -------------------------------------------------------------
+  function nextUsable(from, step) {
+    for (var n = 1; n <= sets.length; n++) {
+      var i = ((from + step * n) % sets.length + sets.length) % sets.length;
+      if (usable(sets[i])) return i;
+    }
+    return from;
+  }
+  function prepare(set) {
+    tiles(set).forEach(function (t) { if (!t.classList.contains('hvx-tile--spare')) load(t.querySelector('img')); });
+  }
   function show(next) {
-    index = (next + sets.length) % sets.length;
-    Array.prototype.forEach.call(sets, function (set, i) {
+    if (!usable(sets[(next % sets.length + sets.length) % sets.length])) next = nextUsable(next, 1);
+    index = ((next % sets.length) + sets.length) % sets.length;
+    sets.forEach(function (set, i) {
       var on = i === index;
       set.classList.toggle('is-active', on);
+      set.classList.remove('is-next');
       set.setAttribute('aria-hidden', on ? 'false' : 'true');
-      Array.prototype.forEach.call(set.querySelectorAll('a'), function (a) { a.tabIndex = on ? 0 : -1; });
+      Array.prototype.forEach.call(set.querySelectorAll('a'), function (a) {
+        a.tabIndex = on && !a.classList.contains('hvx-tile--spare') ? 0 : -1;
+      });
     });
-    Array.prototype.forEach.call(dots, function (dot, i) { dot.classList.toggle('is-active', i === index); });
+    dots.forEach(function (dot, i) { dot.classList.toggle('is-active', i === index); });
+    prepare(sets[index]);
+    var upcoming = nextUsable(index, 1);
+    if (upcoming !== index) { sets[upcoming].classList.add('is-next'); prepare(sets[upcoming]); }
   }
   function play() {
     window.clearInterval(timer);
-    if (reduce || paused || document.hidden) return;
-    timer = window.setInterval(function () { show(index + 1); }, 4500);
+    if (reduce || paused || document.hidden || sets.filter(usable).length < 2) return;
+    timer = window.setInterval(function () { show(nextUsable(index, 1)); }, 4500);
   }
   stack.addEventListener('mouseenter', function () { paused = true; play(); });
   stack.addEventListener('mouseleave', function () { paused = false; play(); });
   stack.addEventListener('focusin', function () { paused = true; play(); });
   stack.addEventListener('focusout', function () { paused = false; play(); });
-  Array.prototype.forEach.call(dots, function (dot) {
+  dots.forEach(function (dot) {
     dot.addEventListener('click', function () { show(parseInt(dot.getAttribute('data-index'), 10) || 0); play(); });
   });
   document.addEventListener('visibilitychange', play);
+  show(0);
   play();
 })();
 </script>

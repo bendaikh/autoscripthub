@@ -272,6 +272,8 @@ body.home-vibrant .hvx-hero h1 .hv-grad-text {
 .hvx-set--2 .hvx-tile--1 { left: 30%; top: 170px; }
 
 /* rotating sets of three */
+.hvx-tile--spare, .hvx-tile.is-broken, .hvx-set.is-empty { display: none !important; }
+.hvx-stack.is-single .hvx-dots { display: none; }
 .hvx-set-label {
   align-items: center;
   background: rgba(26, 16, 51, .82);
