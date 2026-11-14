@@ -160,6 +160,7 @@
   var base = @json(url('/admin/live-chat'));
   var csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
   var T = @json($lcaText);
+  var wantId = parseInt(new URLSearchParams(location.search).get('c') || '0', 10) || 0;
   var status = 'open', current = null, lastId = 0, listTimer = null, msgTimer = null, lastUnread = null, sending = false;
   var items = document.getElementById('lca-items');
   var msgs = document.getElementById('lca-msgs');
@@ -218,6 +219,11 @@
     clearTimeout(listTimer);
     api(base + '/conversations?status=' + status).then(function (d) {
       renderList(d.conversations || []);
+      if (wantId) {
+        var want = (d.conversations || []).filter(function (c) { return c.id === wantId; })[0];
+        wantId = 0;
+        if (want) openConversation(want);
+      }
       var oc = document.getElementById('lca-open-count');
       oc.style.display = d.unread > 0 ? 'inline-block' : 'none';
       oc.textContent = d.unread;

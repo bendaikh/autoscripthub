@@ -136,9 +136,34 @@ class LiveChatController extends Controller
         return $this->json(['ok' => (bool) $conversation]);
     }
 
+    /** Unread count plus the conversations waiting for a reply, for the header icon. */
     public function unread()
     {
-        return $this->json(['ok' => true, 'unread' => LiveChat::totalUnreadForAdmin()]);
+        $waiting = [];
+        if (LiveChat::ready()) {
+            $rows = DB::table('live_chat_conversations as c')
+                ->leftJoin('landing_pages as lp', 'lp.lp_id', '=', 'c.lp_id')
+                ->where('c.status', 'open')
+                ->where('c.unread_admin', '>', 0)
+                ->orderByDesc('c.last_message_at')
+                ->limit(6)
+                ->get(['c.id', 'c.visitor_name', 'c.country_code', 'c.page_path', 'c.unread_admin', 'c.last_message_at', 'lp.lp_title']);
+            foreach ($rows as $c) {
+                $last = DB::table('live_chat_messages')->where('conversation_id', $c->id)
+                    ->where('sender', 'visitor')->orderByDesc('id')->first(['id', 'body']);
+                $waiting[] = [
+                    'id' => (int) $c->id,
+                    'name' => $c->visitor_name ?: ('Visitor #'.$c->id),
+                    'country' => $c->country_code,
+                    'page' => $c->lp_title ?: $c->page_path,
+                    'unread' => (int) $c->unread_admin,
+                    'last' => $last ? mb_substr($last->body, 0, 90) : '',
+                    'last_id' => $last ? (int) $last->id : 0,
+                    'at' => $c->last_message_at ? \Carbon\Carbon::parse($c->last_message_at, config('app.timezone'))->toIso8601String() : null,
+                ];
+            }
+        }
+        return $this->json(['ok' => true, 'unread' => LiveChat::totalUnreadForAdmin(), 'waiting' => $waiting]);
     }
 
     private function find($id)
