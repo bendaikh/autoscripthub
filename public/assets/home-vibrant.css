@@ -50,10 +50,20 @@ body.home-vibrant .h1, body.home-vibrant .h2, body.home-vibrant .h3 {
 body.home-vibrant header.navbar-sticky,
 body.home-vibrant header.navbar-sticky .navbar.bg-light,
 body.home-vibrant .navbar-sticky.navbar-stuck .navbar {
-  background: rgba(255, 250, 245, .94) !important;
-  backdrop-filter: blur(10px);
+  background: #fffaf5 !important;
 }
 body.home-vibrant header.navbar-sticky { border-bottom: 1px solid var(--hvx-line); }
+/* Keep the top bar (and its dropdown menus) above the Black Friday strip and
+   the hero that follow it. No backdrop-filter here: it traps the dropdowns
+   in a stacking layer below everything after the header. When the header is
+   stuck to the top it is position:fixed with its own z-index, so leave that. */
+body.home-vibrant header.navbar-sticky:not(.navbar-stuck),
+body.home-vibrant .menu-area {
+  position: relative;
+  z-index: 1030;
+}
+body.home-vibrant .bf-strip,
+body.home-vibrant .hvx-hero { z-index: 0; }
 body.home-vibrant .navbar-sticky.navbar-stuck .navbar { box-shadow: 0 8px 26px rgba(26, 16, 51, .08) !important; }
 body.home-vibrant header .topbar.bg-dark { background: var(--hvx-ink) !important; border-bottom: 0; }
 body.home-vibrant header .navbar .navbar-nav .nav-link,
