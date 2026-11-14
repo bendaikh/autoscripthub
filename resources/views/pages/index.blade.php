@@ -1165,5 +1165,65 @@ jQuery(function ($) {
   play();
 })();
 </script>
+<script>
+(function () {
+  // Safety net: the server already leaves out products whose image file is
+  // missing or broken. If an image still fails to load in the browser (or is
+  // the "no image" placeholder), remove that product card from the page.
+  var CARD_IMGS = '.product-card-alt .product-thumb img, .hv-trend-card img.hv-trend-img, .hv-mini img';
+
+  function placeholder(img) { return /\/no-image\.png(\?|$)/.test(img.getAttribute('src') || ''); }
+
+  function dropFromSlider(img) {
+    var owlItem = img.closest('.owl-item');
+    var $ = window.jQuery;
+    if (!owlItem || !$) return false;
+    var $carousel = $(owlItem).closest('.owl-carousel');
+    var owl = $carousel.data('owl.carousel');
+    if (!owl || !owl._items) return false;
+    var link = img.closest('a') || owlItem.querySelector('a[href]');
+    var href = link ? link.getAttribute('href') : null;
+    var at = -1;
+    owl._items.forEach(function ($it, i) {
+      var el = $it[0] || $it;
+      if (el === owlItem || (href && at < 0 && el.querySelector('a[href="' + href + '"]'))) at = at < 0 ? i : at;
+    });
+    if (at < 0) return false;
+    $carousel.trigger('remove.owl.carousel', [at]).trigger('refresh.owl.carousel');
+    var row = $carousel.closest('.hv-license-row, .hv-popular-slider');
+    row.find('.hv-license-dots, .hv-trend-dots').children().last().remove();
+    if (owl._items.length < 2) row.find('.hv-license-arrow, .hv-license-dots, .hv-trend-arrow, .hv-trend-dots').hide();
+    if (owl._items.length === 0) $carousel.closest('section').hide();
+    return true;
+  }
+
+  function dropCard(img) {
+    if (img.dataset.hvGone) return;
+    img.dataset.hvGone = '1';
+    if (dropFromSlider(img)) return;
+    var box = img.closest('.hv-license-product-slide') || img.closest('.hv-trend-card') ||
+              img.closest('[class*="col-lg-"]') || img.closest('.card');
+    if (!box) return;
+    var section = box.closest('section');
+    box.parentNode && box.parentNode.removeChild(box);
+    if (section && !section.querySelector('.product-card-alt, .hv-trend-card, .hv-mini')) section.style.display = 'none';
+  }
+
+  function watch(img) {
+    if (img.dataset.hvWatch) return;
+    img.dataset.hvWatch = '1';
+    if (placeholder(img)) { dropCard(img); return; }
+    img.addEventListener('error', function () { dropCard(img); });
+    img.addEventListener('load', function () { if (!img.naturalWidth || placeholder(img)) dropCard(img); });
+    if (img.complete && img.getAttribute('src') && !img.naturalWidth) dropCard(img);
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll(CARD_IMGS), watch);
+  // Owl clones slides for looping: watch the copies too once sliders are built.
+  window.addEventListener('load', function () {
+    Array.prototype.forEach.call(document.querySelectorAll(CARD_IMGS), watch);
+  });
+})();
+</script>
 </body>
 </html>
