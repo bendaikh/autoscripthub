@@ -9,76 +9,75 @@
       ? \Carbon\Carbon::parse($promo->ends_at, 'UTC')->toIso8601String()
       : null;
 @endphp
-<section class="bf-banner" id="bf-banner" @if($bfEnds) data-ends="{{ $bfEnds }}" @endif aria-label="{{ $promo->heading }}">
+<section class="bf-strip" id="bf-banner" @if($bfEnds) data-ends="{{ $bfEnds }}" @endif aria-label="{{ $promo->heading }}">
   <div class="container">
-    <div class="bf-inner">
-      <div class="bf-text">
+    <div class="bf-row">
+      <div class="bf-title">
         @if(!empty($promo->badge))
-        <span class="bf-badge"><i class="fa fa-bolt"></i>{{ $promo->badge }}</span>
+        <span class="bf-badge"><i class="fa fa-bolt"></i> {{ $promo->badge }}</span>
         @endif
-        <h2 class="bf-heading">{{ $promo->heading }}</h2>
+        <span class="bf-heading">{{ $promo->heading }}</span>
         @if(!empty($promo->discount_text))
-        <div class="bf-discount">{{ $promo->discount_text }}</div>
+        <span class="bf-discount">{{ $promo->discount_text }}</span>
         @endif
         @if(!empty($promo->subheading))
-        <p class="bf-sub">{{ $promo->subheading }}</p>
+        <span class="bf-sub">{{ $promo->subheading }}</span>
         @endif
-        <div class="bf-actions">
-          @if($bfUrl !== '' && !empty($promo->button_text))
-          <a class="bf-btn" href="{{ $bfUrl }}">{{ $promo->button_text }} <i class="dwg-arrow-right"></i></a>
-          @endif
-          @if(!empty($promo->coupon_code))
-          <button type="button" class="bf-coupon" data-code="{{ $promo->coupon_code }}" title="{{ __('Click to copy') }}">
-            <span class="bf-coupon-label">{{ __('Use code') }}</span>
-            <span class="bf-coupon-code">{{ $promo->coupon_code }}</span>
-            <i class="fa fa-copy"></i>
-          </button>
-          @endif
-        </div>
       </div>
-      @if($bfEnds)
-      <div class="bf-timer-wrap">
-        <div class="bf-timer-title">{{ __('Sale ends in') }}</div>
-        <div class="bf-timer" role="timer">
-          <div class="bf-unit"><span data-bf="d">00</span><small>{{ __('Days') }}</small></div>
-          <div class="bf-unit"><span data-bf="h">00</span><small>{{ __('Hours') }}</small></div>
-          <div class="bf-unit"><span data-bf="m">00</span><small>{{ __('Minutes') }}</small></div>
-          <div class="bf-unit"><span data-bf="s">00</span><small>{{ __('Seconds') }}</small></div>
+      <div class="bf-side">
+        @if($bfEnds)
+        <div class="bf-timer" role="timer" aria-label="{{ __('Sale ends in') }}">
+          <span class="bf-unit"><b data-bf="d">00</b><small>{{ __('d') }}</small></span>
+          <span class="bf-unit"><b data-bf="h">00</b><small>{{ __('h') }}</small></span>
+          <span class="bf-unit"><b data-bf="m">00</b><small>{{ __('m') }}</small></span>
+          <span class="bf-unit"><b data-bf="s">00</b><small>{{ __('s') }}</small></span>
         </div>
+        @endif
+        @if(!empty($promo->coupon_code))
+        <button type="button" class="bf-coupon" data-code="{{ $promo->coupon_code }}" title="{{ __('Click to copy') }}">
+          <span class="bf-coupon-code">{{ $promo->coupon_code }}</span><i class="fa fa-copy"></i>
+        </button>
+        @endif
+        @if($bfUrl !== '' && !empty($promo->button_text))
+        <a class="bf-btn" href="{{ $bfUrl }}">{{ $promo->button_text }} <i class="fa fa-arrow-right"></i></a>
+        @endif
       </div>
-      @endif
     </div>
   </div>
 </section>
 <style>
-.bf-banner{background:radial-gradient(1200px 400px at 85% -20%,rgba(250,204,21,.18),transparent 60%),radial-gradient(900px 400px at 0% 120%,rgba(239,68,68,.22),transparent 60%),#0b0b0f;color:#fff;padding:28px 0;position:relative;overflow:hidden}
-.bf-inner{display:flex;align-items:center;justify-content:space-between;gap:28px;flex-wrap:wrap}
-.bf-text{flex:1 1 420px;min-width:0}
-.bf-badge{display:inline-flex;align-items:center;gap:6px;background:#facc15;color:#0b0b0f;font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border-radius:999px}
-.bf-heading{color:#fff;font-weight:800;font-size:clamp(26px,4vw,40px);line-height:1.1;margin:12px 0 4px}
-.bf-discount{font-weight:800;font-size:clamp(22px,3.2vw,32px);line-height:1.15;background:linear-gradient(90deg,#facc15,#f97316,#ef4444);-webkit-background-clip:text;background-clip:text;color:transparent}
-.bf-sub{color:rgba(255,255,255,.78);margin:10px 0 0;max-width:560px}
-.bf-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}
-.bf-btn{display:inline-flex;align-items:center;gap:8px;background:#facc15;color:#0b0b0f!important;font-weight:700;padding:12px 22px;border-radius:10px;text-decoration:none!important;transition:transform .15s ease,background .15s ease}
+.bf-strip{position:relative;overflow:hidden;color:#fff;padding:10px 0;background:linear-gradient(100deg,#0b0b0f 0%,#1a1208 45%,#0b0b0f 100%);border-bottom:2px solid #facc15}
+.bf-strip::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 30%,rgba(250,204,21,.12) 45%,transparent 60%);background-size:250% 100%;animation:bf-shine 6s linear infinite}
+@keyframes bf-shine{from{background-position:150% 0}to{background-position:-100% 0}}
+.bf-row{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:10px 18px;flex-wrap:wrap}
+.bf-title{display:flex;align-items:center;gap:6px 10px;flex-wrap:nowrap;min-width:0;flex:1 1 0}
+.bf-badge{display:inline-flex;align-items:center;gap:4px;background:#facc15;color:#0b0b0f;font-weight:800;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.bf-heading{font-weight:800;font-size:16px;color:#fff;white-space:nowrap}
+.bf-discount{font-weight:800;font-size:16px;white-space:nowrap;background:linear-gradient(90deg,#facc15,#fb923c);-webkit-background-clip:text;background-clip:text;color:transparent}
+.bf-sub{font-size:13px;color:rgba(255,255,255,.65);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
+.bf-side{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;flex:0 0 auto}
+.bf-timer{display:flex;gap:4px}
+.bf-unit{display:inline-flex;align-items:baseline;gap:1px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:6px;padding:3px 6px;line-height:1.2}
+.bf-unit b{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
+.bf-unit small{font-size:10px;color:rgba(255,255,255,.6);text-transform:uppercase}
+.bf-coupon{display:inline-flex;align-items:center;gap:6px;background:transparent;color:#facc15;border:1px dashed rgba(250,204,21,.8);border-radius:6px;padding:4px 10px;font:inherit;font-size:13px;font-weight:800;letter-spacing:.05em;cursor:pointer}
+.bf-coupon:hover{background:rgba(250,204,21,.1)}
+.bf-coupon i{font-size:12px;color:rgba(255,255,255,.7)}
+.bf-btn{display:inline-flex;align-items:center;gap:6px;background:#facc15;color:#0b0b0f!important;font-weight:700;font-size:13px;padding:6px 14px;border-radius:6px;text-decoration:none!important;white-space:nowrap;transition:background .15s ease,transform .15s ease}
 .bf-btn:hover{background:#fde047;transform:translateY(-1px)}
-.bf-coupon{display:inline-flex;align-items:center;gap:10px;background:transparent;color:#fff;border:2px dashed rgba(250,204,21,.7);border-radius:10px;padding:9px 16px;cursor:pointer;font:inherit}
-.bf-coupon:hover{border-color:#facc15}
-.bf-coupon-label{font-size:13px;color:rgba(255,255,255,.7)}
-.bf-coupon-code{font-weight:800;letter-spacing:.06em;color:#facc15}
-.bf-timer-wrap{flex:0 0 auto;text-align:center}
-.bf-timer-title{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:10px}
-.bf-timer{display:flex;gap:10px}
-.bf-unit{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:12px;min-width:74px;padding:12px 8px}
-.bf-unit span{display:block;font-size:30px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
-.bf-unit small{display:block;margin-top:6px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.65)}
-@media (max-width:575.98px){
-  .bf-banner{padding:22px 0}
-  .bf-timer-wrap{width:100%}
-  .bf-timer{justify-content:center;gap:6px}
-  .bf-unit{min-width:0;flex:1;padding:10px 4px}
-  .bf-unit span{font-size:22px}
-  .bf-btn,.bf-coupon{flex:1 1 100%;justify-content:center}
+@media (max-width:991.98px){.bf-sub{display:none}}
+@media (max-width:767.98px){
+  .bf-strip{padding:8px 0}
+  .bf-row{justify-content:center;gap:6px}
+  .bf-title,.bf-side{justify-content:center;flex:1 1 100%;gap:6px}
+  .bf-heading{display:none}
+  .bf-discount{font-size:14px}
+  .bf-unit{padding:2px 4px}
+  .bf-unit b{font-size:13px}
+  .bf-coupon{padding:3px 7px;font-size:12px}
+  .bf-btn{padding:5px 10px;font-size:12px}
 }
+@media (prefers-reduced-motion:reduce){.bf-strip::after{animation:none}}
 </style>
 <script>
 (function () {
@@ -89,11 +88,10 @@
   if (coupon) {
     coupon.addEventListener('click', function () {
       var code = coupon.getAttribute('data-code');
-      var label = coupon.querySelector('.bf-coupon-label');
+      var label = coupon.querySelector('.bf-coupon-code');
       var done = function () {
-        var old = label.textContent;
         label.textContent = @json(__('Copied!'));
-        setTimeout(function () { label.textContent = old; }, 1500);
+        setTimeout(function () { label.textContent = code; }, 1500);
       };
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(code).then(done, function () {});
