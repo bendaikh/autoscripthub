@@ -4963,6 +4963,7 @@ class CommonController extends Controller
 	   $category['view'] = Category::with('SubCategory')->where('category_status','=','1')->where('drop_status','=','no')->orderBy('menu_order','asc')->get();
 	   $category['top_slides'] = $this->heroTopSlides($additional['settings']->subscription_mode == 1, $today, $category['view']);
 	   $category['showcase'] = $this->heroShowcase($additional['settings']->subscription_mode == 1, $today, $category['view']);
+	   $category['hero_sets'] = $this->heroCategorySets($additional['settings']->subscription_mode == 1, $today, $category['view'], $setting['setting']);
 	   $category['counts'] = DB::table('items')->select('item_category_parent', DB::raw('count(*) as total'))->where('item_status','=',1)->where('drop_status','=','no')->groupBy('item_category_parent')->pluck('total','item_category_parent');
 	   $category['license_slides'] = \Fickrr\Support\OsLicenseCatalog::homeSlides($category['view'], config('os_licenses', []));
 	   $subSlideIds = [];
@@ -5108,6 +5109,92 @@ class CommonController extends Controller
 	   }
 
 	   return $out;
+	}
+
+	/**
+	 * Hero product rotator: one set per active category with up to three of its
+	 * most viewed products, keeping only products whose image really exists and
+	 * opens. Categories without any such product are left out. Cached briefly.
+	 *
+	 * @return array<int, array{name:string,slug:string,count:int,items:array}>
+	 */
+	private function heroCategorySets(bool $subscriptionMode, string $today, $categories, $settings): array
+	{
+	   $cats = [];
+	   foreach ($categories as $cat) {
+		   $cats[] = ['id' => (int) $cat->cat_id, 'name' => (string) $cat->category_name, 'slug' => (string) $cat->category_slug];
+	   }
+	   if ($cats === []) {
+		   return [];
+	   }
+	   $local = (int) ($settings->site_s3_storage ?? 0) === 0;
+	   $key = 'home.hero.sets.'.($subscriptionMode ? '1' : '0').'.'.$today.'.'.($local ? 'l' : 'r').'.'.md5(json_encode($cats));
+
+	   return Cache::remember($key, 180, function () use ($subscriptionMode, $today, $cats, $local) {
+		   $query = DB::table('items')
+			   ->select(
+				   'items.item_id', 'items.item_slug', 'items.item_name', 'items.item_preview', 'items.item_thumbnail',
+				   'items.regular_price', 'items.extended_price', 'items.item_flash', 'items.free_download',
+				   'items.item_category', 'items.item_category_parent', 'items.item_category_type'
+			   )
+			   ->where('items.item_status', '=', 1)
+			   ->where('items.drop_status', '=', 'no');
+		   if ($subscriptionMode) {
+			   $query->leftJoin('users', 'users.id', '=', 'items.user_id')
+				   ->where('users.user_subscr_date', '>=', $today)
+				   ->where('users.user_subscr_payment_status', '=', 'completed');
+		   }
+
+		   $sets = [];
+		   $used = [];
+		   foreach ($cats as $cat) {
+			   $rows = (clone $query)
+				   ->where('items.item_category_parent', '=', $cat['id'])
+				   ->orderBy('items.item_views', 'desc')
+				   ->orderBy('items.item_id', 'desc')
+				   ->limit(15)
+				   ->get();
+			   $items = [];
+			   foreach ($rows as $row) {
+				   $id = (int) $row->item_id;
+				   if (isset($used[$id])) {
+					   continue;
+				   }
+				   // same file the product cards use: preview first, then thumbnail
+				   $image = null;
+				   foreach ([$row->item_preview, $row->item_thumbnail] as $candidate) {
+					   if (\Fickrr\Support\ProductImage::isUsable($candidate, $local)) {
+						   $image = trim((string) $candidate);
+						   break;
+					   }
+				   }
+				   if ($image === null) {
+					   continue;
+				   }
+				   $used[$id] = true;
+				   $items[] = [
+					   'name' => (string) $row->item_name,
+					   'slug' => (string) $row->item_slug,
+					   'image' => $image,
+					   'regular_price' => $row->regular_price,
+					   'extended_price' => $row->extended_price,
+					   'item_flash' => $row->item_flash,
+					   'free_download' => $row->free_download,
+					   'item_category' => $row->item_category,
+					   'item_category_parent' => $row->item_category_parent,
+					   'item_category_type' => $row->item_category_type,
+				   ];
+				   if (count($items) === 3) {
+					   break;
+				   }
+			   }
+			   if ($items !== []) {
+				   $sets[] = ['name' => $cat['name'], 'slug' => $cat['slug'], 'id' => $cat['id'], 'items' => $items];
+			   }
+		   }
+
+		   return $sets;
+	   });
 	}
 
 	/**

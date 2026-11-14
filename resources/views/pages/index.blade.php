@@ -115,7 +115,31 @@
   if ($hvxCards->count() > 3 && $hvxCards->count() % 3 !== 0) {
       $hvxCards = $hvxCards->concat($hvxCards->take(3 - $hvxCards->count() % 3))->values();
   }
-  $hvxSets = $hvxCards->chunk(3)->values();
+  $hvxSets = $hvxCards->chunk(3)->values()->map(function ($set) {
+      return ['label' => null, 'url' => null, 'count' => null, 'cards' => $set->values()];
+  });
+
+  // Preferred: one set per category, only products whose image file exists and opens.
+  if (!empty($category['hero_sets'])) {
+      $hvxSets = collect($category['hero_sets'])->map(function ($set) use ($allsettings, $currency_symbol, $multicurrency, $hvCatCounts) {
+          $cards = collect($set['items'])->map(function ($it) use ($allsettings, $currency_symbol, $multicurrency) {
+              $obj = (object) $it;
+              $exact = Helper::is_single_price_item($obj);
+              return [
+                  'name' => $it['name'],
+                  'url' => URL::to('/item').'/'.$it['slug'],
+                  'img' => Helper::Image_Path($it['image'], 'no-image.png'),
+                  'price' => ((int) $it['free_download'] === 1) ? __('Free') : Helper::price_format($allsettings->site_currency_position, Helper::catalog_price($obj), $currency_symbol, $multicurrency ?? '', $exact),
+              ];
+          })->values();
+          return [
+              'label' => $set['name'],
+              'url' => URL::to('/shop/category/').'/'.$set['slug'],
+              'count' => (int) ($hvCatCounts[$set['id']] ?? 0),
+              'cards' => $cards,
+          ];
+      })->values();
+  }
   $hvxPromo = $promo ?? null;
 @endphp
 <section class="hvx-hero">
@@ -176,11 +200,14 @@
       </div>
     </div>
 
-    @if($hvxCards->count() > 0)
+    @if($hvxSets->count() > 0)
     <div class="hvx-stack" data-hvx-stack aria-label="{{ __('Featured Products') }}">
       @foreach($hvxSets as $hvxSetIndex => $hvxSet)
-      <div class="hvx-set hvx-set--{{ $hvxSet->count() }}{{ $hvxSetIndex === 0 ? ' is-active' : '' }}" @if($hvxSetIndex > 0) aria-hidden="true" @endif>
-        @foreach($hvxSet->values() as $hvxIndex => $hvxCard)
+      <div class="hvx-set hvx-set--{{ $hvxSet['cards']->count() }}{{ $hvxSetIndex === 0 ? ' is-active' : '' }}" @if($hvxSetIndex > 0) aria-hidden="true" @endif>
+        @if($hvxSet['label'])
+        <a class="hvx-set-label" href="{{ $hvxSet['url'] }}" @if($hvxSetIndex > 0) tabindex="-1" @endif><span>{{ $hvxSet['label'] }}</span>@if($hvxSet['count'] > 0)<em>{{ $hvxSet['count'] }} {{ trans_choice('Item|Items', $hvxSet['count']) }}</em>@endif<i class="dwg-arrow-right"></i></a>
+        @endif
+        @foreach($hvxSet['cards'] as $hvxIndex => $hvxCard)
         <a class="hvx-tile hvx-tile--{{ $hvxIndex + 1 }}" href="{{ $hvxCard['url'] }}" @if($hvxSetIndex > 0) tabindex="-1" @endif>
           <span class="hvx-tile-img"><img src="{{ $hvxCard['img'] }}" alt="{{ $hvxCard['name'] }}" @if($hvxSetIndex > 0 || $hvxIndex > 0) loading="lazy" @endif decoding="async"></span>
           <span class="hvx-tile-meta"><strong>{{ \Illuminate\Support\Str::limit($hvxCard['name'], 34) }}</strong><em>{{ $hvxCard['price'] }}</em></span>
@@ -191,7 +218,7 @@
       @if($hvxSets->count() > 1)
       <div class="hvx-dots" role="tablist" aria-label="{{ __('Featured Products') }}">
         @foreach($hvxSets as $hvxSetIndex => $hvxSet)
-        <button type="button" class="hvx-dot{{ $hvxSetIndex === 0 ? ' is-active' : '' }}" data-index="{{ $hvxSetIndex }}" aria-label="{{ __('Slide') }} {{ $hvxSetIndex + 1 }}"></button>
+        <button type="button" class="hvx-dot{{ $hvxSetIndex === 0 ? ' is-active' : '' }}" data-index="{{ $hvxSetIndex }}" aria-label="{{ $hvxSet['label'] ?: __('Slide').' '.($hvxSetIndex + 1) }}" title="{{ $hvxSet['label'] }}"></button>
         @endforeach
       </div>
       @endif
