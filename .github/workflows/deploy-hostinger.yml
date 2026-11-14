@@ -1,0 +1,74 @@
+name: Deploy to Hostinger
+
+# Runs on every push/merge to feature/landing-video-qa (the live branch), or manually from the Actions tab.
+on:
+  push:
+    branches: [feature/landing-video-qa]
+  workflow_dispatch:
+    inputs:
+      run_migrations:
+        description: "Run database migrations (php artisan migrate --force)"
+        type: boolean
+        default: false
+
+# Never run two deploys at the same time.
+concurrency:
+  group: deploy-hostinger
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SSHPASS: ${{ secrets.SSH_PASSWORD }}
+      SSH_HOST: ${{ secrets.SSH_HOST }}
+      SSH_PORT: ${{ secrets.SSH_PORT }}
+      SSH_USER: ${{ secrets.SSH_USER }}
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check secrets
+        run: |
+          for v in SSHPASS SSH_HOST SSH_PORT SSH_USER DEPLOY_PATH; do
+            if [ -z "${!v}" ]; then echo "::error::Missing secret for $v"; exit 1; fi
+          done
+
+      - name: Install sshpass and rsync
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq sshpass rsync
+
+      - name: Upload changed files
+        # No --delete: files that exist only on the server (.env, vendor,
+        # uploads, logs) are never removed. Only files tracked in Git are
+        # added or overwritten.
+        run: |
+          rsync -rlzc --itemize-changes \
+            -e "sshpass -e ssh -p $SSH_PORT -o StrictHostKeyChecking=accept-new" \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='.env' \
+            --exclude='vendor/' \
+            --exclude='node_modules/' \
+            --exclude='storage/' \
+            --exclude='bootstrap/cache/' \
+            --exclude='public/storage' \
+            --exclude='tests/' \
+            --exclude='*.md' \
+            ./ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/"
+
+      - name: Install dependencies and refresh Laravel caches
+        env:
+          RUN_MIGRATIONS: ${{ github.event.inputs.run_migrations || 'false' }}
+        run: |
+          sshpass -e ssh -p "$SSH_PORT" -o StrictHostKeyChecking=accept-new "$SSH_USER@$SSH_HOST" \
+            "DEPLOY_PATH='$DEPLOY_PATH' RUN_MIGRATIONS='$RUN_MIGRATIONS' bash -s" <<'REMOTE'
+          set -e
+          cd "$DEPLOY_PATH"
+          composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+          if [ "$RUN_MIGRATIONS" = "true" ]; then
+            php artisan migrate --force
+          fi
+          php artisan optimize:clear
+          echo "Deploy finished."
+          REMOTE
