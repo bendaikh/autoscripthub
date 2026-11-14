@@ -240,4 +240,24 @@
             @endif
         </nav>
     </aside>
+    <script>
+    (function () {
+      var mq = window.matchMedia('(max-width: 991.98px)');
+      if (mq.matches) document.body.classList.remove('open');
+      document.addEventListener('click', function (e) {
+        if (!mq.matches || !document.body.classList.contains('open')) return;
+        var aside = document.getElementById('left-panel'), toggle = document.getElementById('menuToggle');
+        if ((aside && aside.contains(e.target)) || (toggle && toggle.contains(e.target))) return;
+        document.body.classList.remove('open');
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && mq.matches) document.body.classList.remove('open');
+      });
+      var menu = document.getElementById('main-menu');
+      if (menu) menu.addEventListener('click', function (e) {
+        var link = e.target.closest('.menu-item-has-children > a');
+        if (link && !mq.matches && document.body.classList.contains('open')) document.body.classList.remove('open');
+      }, true);
+    })();
+    </script>
      

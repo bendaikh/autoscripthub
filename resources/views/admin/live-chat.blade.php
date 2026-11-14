@@ -7,15 +7,15 @@
     .lca-list{width:320px;flex:0 0 320px;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;min-width:0}
     .lca-tabs{display:flex;border-bottom:1px solid #e5e7eb}
     .lca-tabs button{flex:1;border:0;background:#fff;padding:12px;font-weight:600;color:#6b7280;cursor:pointer;border-bottom:2px solid transparent}
-    .lca-tabs button.active{color:#111827;border-bottom-color:#4f46e5}
+    .lca-tabs button.active{color:#111827;border-bottom-color:var(--ash-primary,#4f46e5)}
     .lca-items{flex:1;overflow-y:auto}
     .lca-item{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid #f1f2f4;background:#fff;padding:12px 14px;cursor:pointer}
     .lca-item:hover{background:#f9fafb}
-    .lca-item.active{background:#eef2ff}
+    .lca-item.active{background:var(--ash-primary-soft,#eef2ff)}
     .lca-item-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
     .lca-item-name{font-weight:700;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .lca-item-time{font-size:11px;color:#9ca3af;white-space:nowrap}
-    .lca-item-page{font-size:11.5px;color:#4f46e5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+    .lca-item-page{font-size:11.5px;color:var(--ash-primary,#4f46e5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
     .lca-item-last{font-size:13px;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
     .lca-item.unread .lca-item-last{color:#111827;font-weight:600}
     .lca-dot{display:inline-block;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#ef4444;color:#fff;font-size:11px;font-weight:700;line-height:20px;text-align:center}
@@ -31,7 +31,7 @@
     .lca-msg.a{align-self:flex-end;align-items:flex-end}
     .lca-bubble{padding:9px 13px;border-radius:14px;font-size:14px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
     .lca-msg.v .lca-bubble{background:#fff;border:1px solid #e5e7eb;border-bottom-left-radius:4px}
-    .lca-msg.a .lca-bubble{background:#4f46e5;color:#fff;border-bottom-right-radius:4px}
+    .lca-msg.a .lca-bubble{background:var(--ash-primary,#4f46e5);color:#fff;border-bottom-right-radius:4px}
     .lca-time{font-size:11px;color:#9ca3af;margin-top:3px}
     .lca-reply{display:flex;gap:8px;padding:12px;border-top:1px solid #e5e7eb}
     .lca-reply textarea{flex:1;resize:none;border:1px solid #d1d5db;border-radius:10px;padding:10px 12px;font-size:14px;height:46px;max-height:140px}

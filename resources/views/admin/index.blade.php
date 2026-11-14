@@ -282,7 +282,7 @@
                                             @endif
                                             {{ $country['flag'] }} {{ $country['name'] }}
                                             <div class="progress mt-1" style="height:6px;">
-                                                <div class="progress-bar" style="width: {{ $country['percent'] }}%; background:#7c3aed;"></div>
+                                                <div class="progress-bar" style="width: {{ $country['percent'] }}%; background:var(--ash-primary,#7c3aed);"></div>
                                             </div>
                                         </td>
                                         <td class="text-right">{{ number_format($country['visits']) }}</td>
