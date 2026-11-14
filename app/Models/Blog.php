@@ -38,8 +38,8 @@ class Blog extends Model
   public static function previous_count($post_id)
   {
 
-    $get=DB::table('post')->where('post_id', '<', $post_id)->orderBy('post_id','desc')->get(); 
-    $value = $get->count(); 
+    $get=DB::table('post')->where('post_id', '<', $post_id)->orderBy('post_id','desc')->count(); 
+    $value = $get; 
     return $value;
 	
   }
@@ -53,16 +53,16 @@ class Blog extends Model
   public static function next_count($post_id)
   {
 
-    $get=DB::table('post')->where('post_id', '>', $post_id)->orderBy('post_id','asc')->get(); 
-    $value = $get->count(); 
+    $get=DB::table('post')->where('post_id', '>', $post_id)->orderBy('post_id','asc')->count(); 
+    $value = $get; 
     return $value;
 	
   }
   public static function editsingleCount($slug){
     $get = DB::table('post')
       ->where('post_slug', $slug)
-	  ->get();
-	$value = $get->count(); 
+	  ->count();
+	$value = $get; 
     return $value;
   }   
   
@@ -252,8 +252,8 @@ class Blog extends Model
   public static function commentCheck($post_id,$user_id)
   {
 
-    $get=DB::table('post_comment')->where('post_id','=', $post_id)->where('user_id','=', $user_id)->get();
-	$value = $get->count(); 
+    $get=DB::table('post_comment')->where('post_id','=', $post_id)->where('user_id','=', $user_id)->count();
+	$value = $get; 
     return $value;
 	
   }
@@ -287,8 +287,8 @@ class Blog extends Model
   public static function getcommentCount($post_id)
   {
 
-    $get=DB::table('post_comment')->where('post_id','=',$post_id)->where('comment_status','=',1)->orderBy('comment_id', 'desc')->get(); 
-    $value = $get->count(); 
+    $get=DB::table('post_comment')->where('post_id','=',$post_id)->where('comment_status','=',1)->orderBy('comment_id', 'desc')->count(); 
+    $value = $get; 
 	return $value;
 	
   }	
@@ -354,8 +354,8 @@ class Blog extends Model
   public static function totalblogData()
   {
 
-    $get=DB::table('post')->where('post_status','=',1)->orderBy('post_id', 'desc')->get(); 
-    $value = $get->count(); 
+    $get=DB::table('post')->where('post_status','=',1)->orderBy('post_id', 'desc')->count(); 
+    $value = $get; 
     return $value;
 	
   }
@@ -400,8 +400,8 @@ class Blog extends Model
     $get = DB::table('item_other_market_details')
       ->where('im_id', '=', $im_id)
 	  ->where('iom_item_token', '=', $item_token)
-	  ->get();
-	$value = $get->count(); 
+	  ->count();
+	$value = $get; 
     return $value;
   }
 	

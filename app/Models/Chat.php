@@ -56,8 +56,8 @@ class Chat extends Model
   public static function miniChat($user_id)
   {
   
-     $get=DB::table('conversation')->join('users','users.id','conversation.conver_seller_id')->where('conversation.conver_seller_id','=',$user_id)->where('conversation.message_read_type','=','unread')->get();
-	 $value = $get->count(); 
+     $get=DB::table('conversation')->join('users','users.id','conversation.conver_seller_id')->where('conversation.conver_seller_id','=',$user_id)->where('conversation.message_read_type','=','unread')->count();
+	 $value = $get; 
 	  return $value;
   
   }

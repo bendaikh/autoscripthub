@@ -62,6 +62,38 @@ class AppServiceProvider extends ServiceProvider
         $ipaddress = 'UNKNOWN';
     return $ipaddress;
     }
+    /**
+     * One-time schema repairs from the original script used to run on every
+     * request (about 20 information_schema queries). Run them at most once a
+     * day per key; if the cache is unavailable they simply run as before.
+     */
+    private function onceADay(string $key, \Closure $work): void
+    {
+        try {
+            if (\Illuminate\Support\Facades\Cache::has($key)) {
+                return;
+            }
+        } catch (\Throwable $e) {
+            $work();
+            return;
+        }
+        $work();
+        try {
+            \Illuminate\Support\Facades\Cache::put($key, 1, 86400);
+        } catch (\Throwable $e) {
+        }
+    }
+
+    /** Site-wide totals shown in the layout, cached for 5 minutes. */
+    private function cachedStat(string $key, \Closure $compute)
+    {
+        try {
+            return \Illuminate\Support\Facades\Cache::remember($key, 300, $compute);
+        } catch (\Throwable $e) {
+            return $compute();
+        }
+    }
+
     public function boot()
     {
 	
@@ -75,10 +107,10 @@ class AppServiceProvider extends ServiceProvider
 		View::share('dg_ver', $dg_ver);
 		$drop_column = 'user_license_4_1';
 		
-		$total_sale = Items::totalsaleitemCount();
+		$total_sale = $this->cachedStat('stats.total_sale', function () { return Items::totalsaleitemCount(); });
 		View::share('total_sale', $total_sale);
 		
-		$total_files = Items::totalfileItems();
+		$total_files = $this->cachedStat('stats.total_files', function () { return Items::totalfileItems(); });
 		View::share('total_files', $total_files);
 		
 		$allsettings = Settings::allSettings();
@@ -197,20 +229,22 @@ class AppServiceProvider extends ServiceProvider
 			}
 		});
 		
+		$this->onceADay('schema.selfheal.tables.v1', function () {
 		if (!Schema::hasTable('visitors')) 
-		{
-		   
-		   $destinationPath = app_path('/Seeds/visitors.sql');
+			{
+			   
+			   $destinationPath = app_path('/Seeds/visitors.sql');
            DB::unprepared(file_get_contents($destinationPath));
-		   
-		}
-		if (!Schema::hasTable('custom_settings')) 
-		{
-		   
-		   $destinationPath = app_path('/Seeds/custom_settings.sql');
+			   
+			}
+			if (!Schema::hasTable('custom_settings')) 
+			{
+			   
+			   $destinationPath = app_path('/Seeds/custom_settings.sql');
            DB::unprepared(file_get_contents($destinationPath));
-		   
-		}
+			   
+			}
+		});
 		$custom_settings = Settings::customSettings();
 		View::share('custom_settings', $custom_settings);
 		$visitor = Members::visitorCheck($this->get_client_ip(),date('Y-m-d'));
@@ -336,91 +370,93 @@ class AppServiceProvider extends ServiceProvider
 		
 		
 			
+		$this->onceADay('schema.selfheal.columns.v1', function () use ($dg_ver, $drop_column) {
 		Schema::table('settings', function($table) {
-		
-		    if (!Schema::hasColumn('settings', 'flutterwave_default_currency')) 
-			{
-			$table->string('flutterwave_default_currency',20)->default("NGN")->nullable();;
-			}
-			if (!Schema::hasColumn('settings', 'paystack_default_currency')) 
-			{
-			$table->string('paystack_default_currency',20)->default("NGN")->nullable();;
-			}
 			
+			    if (!Schema::hasColumn('settings', 'flutterwave_default_currency')) 
+				{
+				$table->string('flutterwave_default_currency',20)->default("NGN")->nullable();;
+				}
+				if (!Schema::hasColumn('settings', 'paystack_default_currency')) 
+				{
+				$table->string('paystack_default_currency',20)->default("NGN")->nullable();;
+				}
+				
+				
+			    
+			});	
 			
-		    
-		});	
-		
-		Schema::table('custom_settings', function($table) use ($dg_ver,$drop_column)
+			Schema::table('custom_settings', function($table) use ($dg_ver,$drop_column)
         {
-		
-		    if (!Schema::hasColumn('custom_settings', $dg_ver)) 
-			{
-			$table->integer($dg_ver)->default(0);
-			}
-			if (Schema::hasColumn('custom_settings', $drop_column)) 
+			
+			    if (!Schema::hasColumn('custom_settings', $dg_ver)) 
+				{
+				$table->integer($dg_ver)->default(0);
+				}
+				if (Schema::hasColumn('custom_settings', $drop_column)) 
             {
-		    $table->dropColumn($drop_column);
-			}
-			if (!Schema::hasColumn('custom_settings', 'author_key')) 
-			{
-			$table->integer('author_key')->default(0);
-			}
+			    $table->dropColumn($drop_column);
+				}
+				if (!Schema::hasColumn('custom_settings', 'author_key')) 
+				{
+				$table->integer('author_key')->default(0);
+				}
+				
+			});	
 			
-		});	
-		
-		
-		
-		Schema::table('contact', function($table) 
-		{
-		    if (!Schema::hasColumn('contact', 'from_phone')) 
-			{
-			$table->string('from_phone')->nullable();
-			}
 			
-		});
-		
-		Schema::table('additional_settings', function($table) 
-		{
-		    if (!Schema::hasColumn('additional_settings', 'files_count')) 
-			{
-			$table->integer('files_count')->default(0);
-			}
-			if (!Schema::hasColumn('additional_settings', 'members_count')) 
-			{
-			$table->integer('members_count')->default(0);
-			}
 			
-		});
-		Schema::table('category', function($table) 
-		{
-		    if (!Schema::hasColumn('category', 'category_allow_seo')) 
+			Schema::table('contact', function($table) 
 			{
-			$table->integer('category_allow_seo')->after('menu_order');
-			}
-			if (!Schema::hasColumn('category', 'category_seo_keyword')) 
+			    if (!Schema::hasColumn('contact', 'from_phone')) 
+				{
+				$table->string('from_phone')->nullable();
+				}
+				
+			});
+			
+			Schema::table('additional_settings', function($table) 
 			{
-			$table->string('category_seo_keyword')->after('category_allow_seo')->nullable();;
-			}
-			if (!Schema::hasColumn('category', 'category_seo_desc')) 
+			    if (!Schema::hasColumn('additional_settings', 'files_count')) 
+				{
+				$table->integer('files_count')->default(0);
+				}
+				if (!Schema::hasColumn('additional_settings', 'members_count')) 
+				{
+				$table->integer('members_count')->default(0);
+				}
+				
+			});
+			Schema::table('category', function($table) 
 			{
-			$table->string('category_seo_desc')->after('category_seo_keyword')->nullable();;
-			}
-		});
-		Schema::table('subcategory', function($table) 
-		{
-		    if (!Schema::hasColumn('subcategory', 'subcategory_allow_seo')) 
+			    if (!Schema::hasColumn('category', 'category_allow_seo')) 
+				{
+				$table->integer('category_allow_seo')->after('menu_order');
+				}
+				if (!Schema::hasColumn('category', 'category_seo_keyword')) 
+				{
+				$table->string('category_seo_keyword')->after('category_allow_seo')->nullable();;
+				}
+				if (!Schema::hasColumn('category', 'category_seo_desc')) 
+				{
+				$table->string('category_seo_desc')->after('category_seo_keyword')->nullable();;
+				}
+			});
+			Schema::table('subcategory', function($table) 
 			{
-			$table->integer('subcategory_allow_seo')->after('subcategory_status');
-			}
-			if (!Schema::hasColumn('subcategory', 'subcategory_seo_keyword')) 
-			{
-			$table->string('subcategory_seo_keyword')->after('subcategory_allow_seo')->nullable();;
-			}
-			if (!Schema::hasColumn('subcategory', 'subcategory_seo_desc')) 
-			{
-			$table->string('subcategory_seo_desc')->after('subcategory_seo_keyword')->nullable();;
-			}
+			    if (!Schema::hasColumn('subcategory', 'subcategory_allow_seo')) 
+				{
+				$table->integer('subcategory_allow_seo')->after('subcategory_status');
+				}
+				if (!Schema::hasColumn('subcategory', 'subcategory_seo_keyword')) 
+				{
+				$table->string('subcategory_seo_keyword')->after('subcategory_allow_seo')->nullable();;
+				}
+				if (!Schema::hasColumn('subcategory', 'subcategory_seo_desc')) 
+				{
+				$table->string('subcategory_seo_desc')->after('subcategory_seo_keyword')->nullable();;
+				}
+			});
 		});
 		Config::set('services.paytm-wallet.env', $addition_settings->paytm_mode);
 		Config::set('services.paytm-wallet.merchant_id', $addition_settings->paytm_merchant_id);
@@ -470,9 +506,11 @@ class AppServiceProvider extends ServiceProvider
 		View::share('currencyview', $currencyview);
 		if($custom_settings->author_key == 1)
 		{
+			$this->onceADay('schema.selfheal.market.v1', function () {
 			if (!Schema::hasTable('item_other_market')){ $destinationPath = app_path('/Seeds/item_other_market.sql'); DB::unprepared(file_get_contents($destinationPath));}
 			if (!Schema::hasTable('item_other_market_details')){ $destinationPath = app_path('/Seeds/item_other_market_details.sql'); DB::unprepared(file_get_contents($destinationPath));}
 			if (!Schema::hasTable('notifications')){ $destinationPath = app_path('/Seeds/notifications.sql'); DB::unprepared(file_get_contents($destinationPath));}
+			});
 		}
 		
     }

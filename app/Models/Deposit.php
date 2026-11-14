@@ -55,8 +55,8 @@ class Deposit extends Model
 	public static function getdepositCount($purchase_token,$user_id,$payment_status)
   {
 
-    $get=DB::table('deposit_details')->where('purchase_token','=', $purchase_token)->where('user_id','=', $user_id)->where('payment_status','=', $payment_status)->get();
-	$value = $get->count(); 
+    $get=DB::table('deposit_details')->where('purchase_token','=', $purchase_token)->where('user_id','=', $user_id)->where('payment_status','=', $payment_status)->count();
+	$value = $get; 
     return $value;
 	
   }

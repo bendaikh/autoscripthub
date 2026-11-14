@@ -74,8 +74,8 @@ class Currencies extends Model
   public static function CheckCurrencyCount($code)
   {
 
-    $get=DB::table('currencies')->where('currency_code', '=', $code)->get(); 
-	$value = $get->count(); 
+    $get=DB::table('currencies')->where('currency_code', '=', $code)->count(); 
+	$value = $get; 
     return $value;
     
 	
@@ -85,8 +85,8 @@ class Currencies extends Model
   public static function defaultCurrencyCount()
   {
 
-    $get=DB::table('currencies')->where('currency_default', '=', 1)->where('currency_status', '=', 1)->get(); 
-	$value = $get->count(); 
+    $get=DB::table('currencies')->where('currency_default', '=', 1)->where('currency_status', '=', 1)->count(); 
+	$value = $get; 
     return $value;
     
 	

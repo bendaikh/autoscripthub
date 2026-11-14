@@ -30,8 +30,8 @@ class Members extends Model
 	  public static function getuserSubscription($user_id)
 	  {
 	  $today = date('Y-m-d');
-	  $get=DB::table('users')->leftJoin('subscription','subscription.subscr_id','users.user_subscr_id')->where('subscription.subscr_status','=',1)->where('subscription.subscr_drop_status','=','no')->where('users.id','=',$user_id)->where('users.user_subscr_date','>',$today)->where('subscription.subscr_email_support','=',1)->get();
-	  $value = $get->count(); 
+	  $get=DB::table('users')->leftJoin('subscription','subscription.subscr_id','users.user_subscr_id')->where('subscription.subscr_status','=',1)->where('subscription.subscr_drop_status','=','no')->where('users.id','=',$user_id)->where('users.user_subscr_date','>',$today)->where('subscription.subscr_email_support','=',1)->count();
+	  $value = $get; 
 	  return $value;
 	  
 	  }
@@ -40,8 +40,8 @@ class Members extends Model
 	  public static function getdirectSubscription($user_id)
 	  {
 	  $today = date('Y-m-d');
-	  $get=DB::table('users')->leftJoin('subscription','subscription.subscr_id','users.user_subscr_id')->where('subscription.subscr_drop_status','=','no')->where('users.id','=',$user_id)->where('subscription.subscr_payment_mode','=',1)->get();
-	  $value = $get->count(); 
+	  $get=DB::table('users')->leftJoin('subscription','subscription.subscr_id','users.user_subscr_id')->where('subscription.subscr_drop_status','=','no')->where('users.id','=',$user_id)->where('subscription.subscr_payment_mode','=',1)->count();
+	  $value = $get; 
 	  return $value;
 	  
 	  }
@@ -96,8 +96,8 @@ class Members extends Model
 	  
 	  public static function checkNewsletter($token)
 	  {
-	  $get=DB::table('newsletter')->where('news_token','=',$token)->where('news_status','=',0)->get();
-	  $value = $get->count();  
+	  $get=DB::table('newsletter')->where('news_token','=',$token)->where('news_status','=',0)->count();
+	  $value = $get;  
 		return $value;
 	  
 	  }
@@ -127,8 +127,8 @@ class Members extends Model
   public static function referralCheck($referral_by)
   {
 
-    $get=DB::table('users')->where('id', $referral_by)->where('verified', 1)->get(); 
-    $value = $get->count(); 
+    $get=DB::table('users')->where('id', $referral_by)->where('verified', 1)->count(); 
+    $value = $get; 
     return $value;
 	
   }
@@ -136,8 +136,8 @@ class Members extends Model
   public static function countryCheck($country_id)
   {
 
-    $get=DB::table('country')->where('country_id', $country_id)->get(); 
-    $value = $get->count(); 
+    $get=DB::table('country')->where('country_id', $country_id)->count(); 
+    $value = $get; 
     return $value;
 	
   }
@@ -327,8 +327,8 @@ class Members extends Model
     $get = DB::table('users')
       ->where('username', $slug)
 	  ->where('drop_status', 'no')
-      ->get();
-	$value = $get->count(); 
+      ->count();
+	$value = $get; 
     return $value;
   }
   
@@ -373,8 +373,8 @@ class Members extends Model
 	  ->where('drop_status', 'no')
 	  ->where('referral_by', '!=', 0)
 	  ->where('referral_payout', 'pending')
-      ->get();
-	$value = $get->count(); 
+      ->count();
+	$value = $get; 
     return $value;
   }
   
@@ -475,8 +475,8 @@ class Members extends Model
   public static function getmemberData()
   {
 
-    $get=DB::table('users')->where('user_type','=','vendor')->where('drop_status','=','no')->orderBy('id', 'desc')->get();
-	$value = $get->count(); 
+    $get=DB::table('users')->where('user_type','=','vendor')->where('drop_status','=','no')->orderBy('id', 'desc')->count();
+	$value = $get; 
     return $value;
 	
   }
@@ -484,8 +484,8 @@ class Members extends Model
   public static function footermemberData()
   {
 
-    $get=DB::table('users')->where('id','!=',1)->where('drop_status','=','no')->orderBy('id', 'desc')->get();
-	$value = $get->count(); 
+    $get=DB::table('users')->where('id','!=',1)->where('drop_status','=','no')->orderBy('id', 'desc')->count();
+	$value = $get; 
     return $value;
 	
   }
@@ -494,8 +494,8 @@ class Members extends Model
   public static function logData($token)
   {
 
-    $get=DB::table('users')->where('user_token','=',$token)->where('drop_status','=','no')->where('verified','=',1)->get();
-	$value = $get->count(); 
+    $get=DB::table('users')->where('user_token','=',$token)->where('drop_status','=','no')->where('verified','=',1)->count();
+	$value = $get; 
     return $value;
 	
   }
@@ -506,8 +506,8 @@ class Members extends Model
 	public static function getcontactCount($from_email)
   {
     
-    $get=DB::table('contact')->where('from_email','=',$from_email)->get(); 
-	$value = $get->count();
+    $get=DB::table('contact')->where('from_email','=',$from_email)->count(); 
+	$value = $get;
     return $value;
 	
   }	
@@ -529,8 +529,8 @@ class Members extends Model
     $get=DB::table('item_checkout')
 	     ->where('item_user_id','=',$user_id)
 		 ->orWhere('user_id','=',$user_id)
-		 ->get(); 
-	$value = $get->count();
+		 ->count(); 
+	$value = $get;
     return $value;
 	
   }	*/
@@ -625,8 +625,8 @@ class Members extends Model
   public static function totalrefund()
   {
 	
-		$get=DB::table('item_refund')->orderBy('refund_id', 'desc')->get();
-		$value = $get->count();
+		$get=DB::table('item_refund')->orderBy('refund_id', 'desc')->count();
+		$value = $get;
         return $value;
 		
   }
@@ -635,8 +635,8 @@ class Members extends Model
   public static function visitorCheck($ipaddress,$date)
   {
 
-    $get=DB::table('visitors')->where('visit_user_ip', $ipaddress)->where('visit_date', $date)->get(); 
-    $value = $get->count(); 
+    $get=DB::table('visitors')->where('visit_user_ip', $ipaddress)->where('visit_date', $date)->count(); 
+    $value = $get; 
     return $value;
 	
   }
@@ -663,8 +663,8 @@ class Members extends Model
   public static function Visitors()
   {
 	
-		$get=DB::table('visitors')->get();
-		$value = $get->count();
+		$get=DB::table('visitors')->count();
+		$value = $get;
         return $value;
 		
   }
@@ -674,8 +674,8 @@ class Members extends Model
 		$get=DB::table('visitors')
 		    ->where('visit_date', '>=', $from)
             ->where('visit_date', '<=', $to)
-			->get();
-		$value = $get->count();
+			->count();
+		$value = $get;
         return $value;
 		
   }
@@ -687,8 +687,8 @@ class Members extends Model
 		 ->where('drop_status','=','no')
 		 ->where('created_at', '>=', $from)
          ->where('created_at', '<=', $to)
-		 ->get();
-	$value = $get->count(); 
+		 ->count();
+	$value = $get; 
     return $value;
 	
   }
@@ -701,8 +701,8 @@ class Members extends Model
 		 ->where('drop_status','=','no')
 		 ->where('created_at', '>=', $from)
 		 ->where('created_at', '<=', $to)
-		 ->get();
-	$value = $get->count(); 
+		 ->count();
+	$value = $get; 
     return $value;
 	
   }
@@ -713,8 +713,8 @@ class Members extends Model
 		 ->where('drop_status','=','no')
 		 ->where('created_at', '>=', $from)
 		 ->where('created_at', '<=', $to)
-		 ->get();
-	$value = $get->count(); 
+		 ->count();
+	$value = $get; 
     return $value;
 	
   }
