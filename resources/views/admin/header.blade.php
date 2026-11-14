@@ -118,6 +118,9 @@
 .lch-item-page{font-size:11.5px;color:#4f46e5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lch-item-last{font-size:13px;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lch-item .lch-n{display:inline-block;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#ef4444;color:#fff;font-size:10.5px;font-weight:700;line-height:18px;text-align:center;margin-left:4px}
+.lc-flag{display:inline-block;width:20px;height:15px;margin-right:6px;vertical-align:-2px;border-radius:2px;box-shadow:0 0 0 1px rgba(0,0,0,.08);background-size:cover}
+.lc-flag-none{box-shadow:none;width:auto;height:auto;color:#9ca3af;vertical-align:0}
+.lc-country{color:#374151;font-weight:600}
 .lch-empty{padding:22px 14px;text-align:center;color:#9ca3af;font-size:13px}
 .lch-alerts{display:block;width:100%;border:0;border-top:1px solid #f1f2f4;background:#fffbeb;color:#92400e;font-size:12.5px;padding:9px 14px;text-align:left;cursor:pointer}
 .lch-all{display:block;padding:11px 14px;text-align:center;font-weight:600;background:#f9fafb;color:#4f46e5!important}
@@ -141,9 +144,11 @@
   var lastCount = null, seenIds = {};
 
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
-  function flag(code) {
-    if (!code || code.length !== 2) return '';
-    return String.fromCodePoint.apply(null, code.toUpperCase().split('').map(function (c) { return 127397 + c.charCodeAt(0); })) + ' ';
+  function flagNode(code) {
+    var f = document.createElement('span');
+    if (code && /^[A-Za-z]{2}$/.test(code)) { f.className = 'flag-icon flag-icon-' + code.toLowerCase() + ' lc-flag'; }
+    else { f.className = 'fa fa-globe lc-flag lc-flag-none'; }
+    return f;
   }
   function ago(iso) {
     if (!iso) return '';
@@ -162,7 +167,7 @@
   function desktopAlert(c) {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
     try {
-      var n = new Notification(L.newFrom + ' ' + c.name, { body: c.last, tag: 'lc-' + c.id });
+      var n = new Notification(L.newFrom + ' ' + c.name + (c.country_name ? ' (' + c.country_name + ')' : ''), { body: c.last, tag: 'lc-' + c.id });
       n.onclick = function () { window.focus(); location.href = chatUrl + '?c=' + c.id; };
     } catch (e) {}
   }
@@ -190,12 +195,15 @@
       var a = el('a', 'lch-item');
       a.href = chatUrl + '?c=' + c.id;
       var top = el('div', 'lch-item-top');
-      top.appendChild(el('span', 'lch-item-name', flag(c.country) + c.name));
+      var nm = el('span', 'lch-item-name'); nm.appendChild(flagNode(c.country)); nm.appendChild(document.createTextNode(c.name));
+      top.appendChild(nm);
       var meta = el('span', 'lch-item-meta', ago(c.at));
       meta.appendChild(el('span', 'lch-n', String(c.unread)));
       top.appendChild(meta);
       a.appendChild(top);
-      a.appendChild(el('div', 'lch-item-page', c.page || ''));
+      var pg = el('div', 'lch-item-page'); pg.appendChild(el('span', 'lc-country', c.country_name || ''));
+      pg.appendChild(document.createTextNode(c.page ? ' · ' + c.page : ''));
+      a.appendChild(pg);
       a.appendChild(el('div', 'lch-item-last', c.last || ''));
       list.appendChild(a);
     });
