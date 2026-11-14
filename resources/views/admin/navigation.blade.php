@@ -240,35 +240,4 @@
             @endif
         </nav>
     </aside>
-    <script>
-    (function () {
-      if (!window.fetch || window.__lcNav) return;
-      window.__lcNav = 1;
-      var badge = document.getElementById('lc-nav-badge');
-      if (!badge) return;
-      var onChatPage = location.pathname.indexOf('/admin/live-chat') !== -1;
-      var baseTitle = document.title, last = parseInt(badge.textContent, 10) || 0;
-      function beep() {
-        try {
-          var A = window.AudioContext || window.webkitAudioContext, ctx = new A(), o = ctx.createOscillator(), g = ctx.createGain();
-          o.frequency.value = 880; g.gain.value = 0.08; o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.18);
-        } catch (e) {}
-      }
-      function check() {
-        fetch(@json(url('/admin/live-chat/unread')), { credentials: 'same-origin', cache: 'no-store', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
-          .then(function (r) { return r.ok ? r.json() : null; })
-          .then(function (d) {
-            if (!d) return;
-            var n = d.unread || 0;
-            badge.textContent = n;
-            badge.style.display = n > 0 ? '' : 'none';
-            document.title = (n > 0 ? '(' + n + ') ' : '') + baseTitle;
-            if (n > last && !onChatPage) beep();
-            last = n;
-          })
-          .catch(function () {});
-      }
-      setInterval(check, 20000);
-    })();
-    </script>
      
