@@ -6,7 +6,6 @@
 
 /* ----------------------------------------------------------- themes ---- */
 
-:root,
 html[data-ash-theme="ocean"] {
     --ash-bg: #f4f7fb;
     --ash-surface: #ffffff;
@@ -35,6 +34,7 @@ html[data-ash-theme="ocean"] {
     --ash-side-sub-active-text: #1d4ed8;
     --ash-side-brand: #0f172a;
     --ash-side-shadow: 1px 0 0 #e3e9f2;
+    --ash-brand-accent: #2563eb;
 }
 
 html[data-ash-theme="emerald"] {
@@ -65,8 +65,10 @@ html[data-ash-theme="emerald"] {
     --ash-side-sub-active-text: #6ee7b7;
     --ash-side-brand: #ffffff;
     --ash-side-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
+    --ash-brand-accent: #34d399;
 }
 
+:root,
 html[data-ash-theme="sunset"] {
     --ash-bg: #f6f5f3;
     --ash-surface: #ffffff;
@@ -95,6 +97,7 @@ html[data-ash-theme="sunset"] {
     --ash-side-sub-active-text: #fdba74;
     --ash-side-brand: #ffffff;
     --ash-side-shadow: 4px 0 24px rgba(0, 0, 0, 0.14);
+    --ash-brand-accent: #fb923c;
 }
 
 /* ------------------------------------------------- base colour usage ---- */
@@ -118,6 +121,23 @@ a:hover { color: var(--ash-primary-strong); }
 }
 .page-item.active .page-link { background: var(--ash-primary) !important; border-color: var(--ash-primary) !important; }
 .badge-primary { background: var(--ash-primary) !important; }
+
+/* older rules that hard-coded purple */
+.btn-primary { background-image: none !important; box-shadow: 0 6px 16px rgba(var(--ash-primary-rgb), 0.25) !important; }
+.btn-outline-primary { border-color: var(--ash-primary) !important; color: var(--ash-primary) !important; }
+.btn-outline-primary:hover { background: var(--ash-primary) !important; color: #fff !important; }
+.badge-primary { background: var(--ash-primary-soft) !important; color: var(--ash-primary-strong) !important; }
+.card.bg-flat-color-1, .card-body.bg-flat-color-1 { background: linear-gradient(135deg, var(--ash-primary) 0%, var(--ash-accent) 100%) !important; }
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover { border-color: var(--ash-primary) !important; }
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: var(--ash-primary) !important;
+    border-color: var(--ash-primary) !important;
+    color: #fff !important;
+}
+#header .menutoggle:hover { background: rgba(var(--ash-primary-rgb), 0.18) !important; }
+#header .user-area .user-avatar { box-shadow: 0 0 0 2px rgba(var(--ash-primary-rgb), 0.35) !important; }
+#header .language-select > a:hover { border-color: var(--ash-primary) !important; }
 
 /* ------------------------------------------------------------ sidebar ---- */
 
@@ -146,11 +166,9 @@ aside.left-panel .admin-sidebar-brand .asb-mark { color: var(--ash-side-brand) !
 aside.left-panel .admin-sidebar-brand .asb-tag { color: var(--ash-side-icon) !important; }
 aside.left-panel .admin-sidebar-brand .asb-name-accent {
     background: none !important;
-    color: var(--ash-primary) !important;
-    -webkit-text-fill-color: var(--ash-primary) !important;
+    color: var(--ash-brand-accent) !important;
+    -webkit-text-fill-color: var(--ash-brand-accent) !important;
 }
-html[data-ash-theme="emerald"] aside.left-panel .admin-sidebar-brand .asb-name-accent,
-html[data-ash-theme="sunset"] aside.left-panel .admin-sidebar-brand .asb-name-accent { color: var(--ash-side-sub-active-text) !important; -webkit-text-fill-color: var(--ash-side-sub-active-text) !important; }
 aside.left-panel .admin-sidebar-brand .asb-mark {
     background: var(--ash-primary) !important;
     color: #fff !important;
