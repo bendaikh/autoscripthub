@@ -90,24 +90,35 @@ class ProductImage
      */
     public static function isUsable(?string $filename, bool $localStorage = true, int $minWidth = 120): bool
     {
-        $filename = trim((string) $filename);
-        if ($filename === '') {
+        $filename = (string) $filename;
+        if ($filename === '' || trim($filename) !== $filename) {
             return false;
         }
         if (! $localStorage) {
             return true;
         }
-        $safe = basename(str_replace('\\', '/', $filename));
-        if ($safe === '' || $safe === '.' || $safe === '..') {
+        // The page links to public/storage/items/<name> exactly as stored, so
+        // check that very file and refuse names a browser cannot request as-is
+        // (folders, '..', '#', '?', '%', quotes, control characters).
+        if ($filename !== basename($filename) || $filename === '.' || $filename === '..'
+            || preg_match('/[\\\\\/#?%"<>\x00-\x1F\x7F]/', $filename)) {
             return false;
         }
-        $path = base_path('public/storage/items/'.$safe);
+        $path = base_path('public/storage/items/'.$filename);
         if (! is_file($path) || @filesize($path) < 100) {
             return false;
         }
-        $width = self::localWidth($path);
+        $info = @getimagesize($path);
+        if (! is_array($info) || empty($info[0]) || (int) $info[0] < $minWidth) {
+            return false;
+        }
+        // only formats every browser can display
+        $browserSafe = [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_GIF, IMAGETYPE_WEBP];
+        if (defined('IMAGETYPE_AVIF')) {
+            $browserSafe[] = IMAGETYPE_AVIF;
+        }
 
-        return $width !== null && $width >= $minWidth;
+        return in_array((int) ($info[2] ?? 0), $browserSafe, true);
     }
 
     public static function localWidth(string $absolutePath): ?int

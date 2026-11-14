@@ -5128,7 +5128,7 @@ class CommonController extends Controller
 		   return [];
 	   }
 	   $local = (int) ($settings->site_s3_storage ?? 0) === 0;
-	   $key = 'home.hero.sets.'.($subscriptionMode ? '1' : '0').'.'.$today.'.'.($local ? 'l' : 'r').'.'.md5(json_encode($cats));
+	   $key = 'home.hero.sets2.'.($subscriptionMode ? '1' : '0').'.'.$today.'.'.($local ? 'l' : 'r').'.'.md5(json_encode($cats));
 
 	   return Cache::remember($key, 180, function () use ($subscriptionMode, $today, $cats, $local) {
 		   $query = DB::table('items')
@@ -5184,7 +5184,9 @@ class CommonController extends Controller
 					   'item_category_parent' => $row->item_category_parent,
 					   'item_category_type' => $row->item_category_type,
 				   ];
-				   if (count($items) === 3) {
+				   // three are shown; the extra two replace any image that still
+				   // fails to load in the visitor's browser
+				   if (count($items) === 5) {
 					   break;
 				   }
 			   }
