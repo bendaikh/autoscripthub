@@ -1,4 +1,5 @@
-{{-- Home page promotion banner (Black Friday etc.). Edited in Admin > Black Friday Banner. --}}
+{{-- Promotion banner (Black Friday etc.) on the home page and landing pages. Edited in Admin > Black Friday Banner.
+     On landing pages ($bfLanding) the shop link is hidden so visitors stay on the offer. --}}
 @if(!empty($promo))
 @php
   $bfUrl = trim((string) ($promo->button_url ?? ''));
@@ -38,7 +39,7 @@
           <span class="bf-coupon-code">{{ $promo->coupon_code }}</span><i class="fa fa-copy"></i>
         </button>
         @endif
-        @if($bfUrl !== '' && !empty($promo->button_text))
+        @if(empty($bfLanding) && $bfUrl !== '' && !empty($promo->button_text))
         <a class="bf-btn" href="{{ $bfUrl }}">{{ $promo->button_text }} <i class="fa fa-arrow-right"></i></a>
         @endif
       </div>
