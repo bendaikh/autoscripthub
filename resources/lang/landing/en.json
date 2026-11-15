@@ -314,5 +314,8 @@
     "Send USDT from any exchange or wallet": "Send USDT from any exchange or wallet",
     "We accept": "We accept",
     "Secure checkout with PayPal, card or crypto": "Secure checkout with PayPal, card or crypto",
-    "Send the equivalent of this amount in :asset.": "Send the equivalent of this amount in :asset."
+    "Send the equivalent of this amount in :asset.": "Send the equivalent of this amount in :asset.",
+    "Wisetag": "Wisetag",
+    "Pay from your Wise account": "Pay from your Wise account",
+    "Name on the account you paid from (optional)": "Name on the account you paid from (optional)"
 }

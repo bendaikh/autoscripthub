@@ -17,7 +17,7 @@
     $pbShow = [];
     if (in_array('paypal', $pbMethods, true)) { $pbShow[] = 'paypal'; }
     if (array_intersect(['stripe', 'dodopayments', 'whop', 'twocheckout'], $pbMethods)) { $pbShow[] = 'visa'; $pbShow[] = 'mastercard'; }
-    foreach (['binance', 'kast', 'usdt'] as $pbCrypto) {
+    foreach (['binance', 'kast', 'usdt', 'wise'] as $pbCrypto) {
         if (in_array($pbCrypto, $pbMethods, true)) { $pbShow[] = $pbCrypto; }
     }
 @endphp
@@ -36,6 +36,8 @@
         <span class="pay-badge" title="Binance Pay"><span class="pb-binance" aria-hidden="true"></span><b>Binance Pay</b></span>
         @elseif($pb === 'kast')
         <span class="pay-badge" title="KAST"><span class="pb-dot" style="background:#111827" aria-hidden="true">K</span><b>KAST</b></span>
+        @elseif($pb === 'wise')
+        <span class="pay-badge" title="Wise"><span class="pb-dot" style="background:#9fe870;color:#163300" aria-hidden="true">W</span><b>Wise</b></span>
         @elseif($pb === 'usdt')
         <span class="pay-badge" title="USDT"><span class="pb-dot" style="background:#26a17b" aria-hidden="true">₮</span><b>USDT</b></span>
         @endif

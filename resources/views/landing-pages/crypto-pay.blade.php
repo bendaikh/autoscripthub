@@ -7,7 +7,11 @@
     $amount = rtrim(rtrim(number_format((float) $cp['amount'], 2, '.', ''), '0'), '.');
     $m = $method ?: ['key' => $cp['method'], 'name' => 'Crypto', 'qr' => null, 'id' => '', 'link' => '', 'note' => '', 'enabled' => false];
     $isWallet = $m['key'] === 'usdt';
-    $asset = $isWallet ? ($m['asset'] ?? 'USDT') : 'USDT';
+    $isFiat = in_array($m['key'], \Fickrr\Models\CryptoPay::FIAT, true);
+    // Wise is a normal money transfer: the buyer pays the order currency, not USDT
+    $asset = $isFiat ? strtoupper($cp['currency'] ?: 'USD') : ($isWallet ? ($m['asset'] ?? 'USDT') : 'USDT');
+    $appName = ['kast' => 'KAST', 'wise' => 'Wise'][$m['key']] ?? 'Binance';
+    $idLabel = ['kast' => $lpT('KAST tag'), 'wise' => $lpT('Wisetag')][$m['key']] ?? $lpT('Binance Pay ID');
     // Prices in another currency are shown as-is with a note to send the USDT equivalent
     $unit = !empty($cp['currency']) && strtoupper($cp['currency']) !== 'USD' ? strtoupper($cp['currency']) : $asset;
 @endphp
@@ -138,16 +142,16 @@
             @else
                 @if($m['qr'])
                 <img src="{{ $m['qr'] }}" alt="{{ $m['name'] }} QR" class="cp-qr">
-                <p style="text-align:center;margin:-4px 0 14px;font-size:.88rem;color:var(--muted)">{{ $lpT('Scan with the :app app to pay', ['app' => $m['key'] === 'kast' ? 'KAST' : 'Binance']) }}</p>
+                <p style="text-align:center;margin:-4px 0 14px;font-size:.88rem;color:var(--muted)">{{ $lpT('Scan with the :app app to pay', ['app' => $appName]) }}</p>
                 @endif
                 @if($m['id'] !== '')
                 <div class="cp-field">
-                    <label>{{ $m['key'] === 'kast' ? $lpT('KAST tag') : $lpT('Binance Pay ID') }}</label>
+                    <label>{{ $idLabel }}</label>
                     <div class="cp-copy"><code>{{ $m['id'] }}</code><button type="button" class="cp-btn-copy" data-copy="{{ $m['id'] }}">{{ $lpT('Copy') }}</button></div>
                 </div>
                 @endif
                 @if($m['link'] !== '')
-                <a href="{{ $m['link'] }}" class="cp-app" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> {{ $lpT('Open in the :app app', ['app' => $m['key'] === 'kast' ? 'KAST' : 'Binance']) }}</a>
+                <a href="{{ $m['link'] }}" class="cp-app" target="_blank" rel="noopener"><i class="fas fa-external-link-alt"></i> {{ $lpT('Open in the :app app', ['app' => $appName]) }}</a>
                 @endif
             @endif
             @if(!empty($m['note']))
@@ -190,7 +194,7 @@
                     <input type="text" name="reference" id="cpRef" class="cp-input" maxlength="150" value="{{ old('reference', $details['reference'] ?? '') }}" placeholder="{{ $lpT('Paste it from your app') }}">
                 </div>
                 <div class="cp-field">
-                    <label for="cpPayer">{{ $lpT('Your Binance / KAST name or wallet (optional)') }}</label>
+                    <label for="cpPayer">{{ $isFiat ? $lpT('Name on the account you paid from (optional)') : $lpT('Your Binance / KAST name or wallet (optional)') }}</label>
                     <input type="text" name="payer" id="cpPayer" class="cp-input" maxlength="100" value="{{ old('payer', $details['payer'] ?? '') }}">
                 </div>
                 <button type="submit" class="cp-submit" id="cpSubmit"><i class="fas fa-check-circle"></i> {{ $lpT('I have paid — send receipt') }}</button>

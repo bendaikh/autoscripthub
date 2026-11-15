@@ -301,5 +301,8 @@
     "Send USDT from any exchange or wallet": "Envoyez des USDT depuis n’importe quel exchange ou portefeuille",
     "We accept": "Nous acceptons",
     "Secure checkout with PayPal, card or crypto": "Paiement sécurisé par PayPal, carte ou crypto",
-    "Send the equivalent of this amount in :asset.": "Envoyez l’équivalent de ce montant en :asset."
+    "Send the equivalent of this amount in :asset.": "Envoyez l’équivalent de ce montant en :asset.",
+    "Wisetag": "Wisetag",
+    "Pay from your Wise account": "Payez depuis votre compte Wise",
+    "Name on the account you paid from (optional)": "Nom du compte utilisé pour payer (facultatif)"
 }

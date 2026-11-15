@@ -314,5 +314,8 @@
     "Send USDT from any exchange or wallet": "أرسل USDT من أي منصة أو محفظة",
     "We accept": "نقبل الدفع عبر",
     "Secure checkout with PayPal, card or crypto": "دفع آمن عبر PayPal أو البطاقة أو العملات الرقمية",
-    "Send the equivalent of this amount in :asset.": "أرسل ما يعادل هذا المبلغ بعملة :asset."
+    "Send the equivalent of this amount in :asset.": "أرسل ما يعادل هذا المبلغ بعملة :asset.",
+    "Wisetag": "معرّف Wise",
+    "Pay from your Wise account": "ادفع من حسابك في Wise",
+    "Name on the account you paid from (optional)": "اسم الحساب الذي دفعت منه (اختياري)"
 }

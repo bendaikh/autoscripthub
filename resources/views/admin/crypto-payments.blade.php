@@ -41,9 +41,9 @@
 
             @php
                 $cpaStatus = [];
-                foreach (['binance' => $binance, 'kast' => $kast, 'usdt' => $usdt] as $cpaKey => $cpaM) {
+                foreach (['binance' => $binance, 'kast' => $kast, 'usdt' => $usdt, 'wise' => $wise] as $cpaKey => $cpaM) {
                     $cpaFlag = $cpaKey === 'usdt' ? 'wallet_enabled' : $cpaKey . '_enabled';
-                    $cpaQrCol = ['binance' => 'binance_qr', 'kast' => 'kast_qr', 'usdt' => null][$cpaKey];
+                    $cpaQrCol = ['binance' => 'binance_qr', 'kast' => 'kast_qr', 'usdt' => null, 'wise' => 'wise_qr'][$cpaKey];
                     if ($cpaM && $cpaM['enabled']) {
                         $cpaStatus[$cpaKey] = [true, __('Live: shown at checkout, on landing pages and in "We accept"')];
                     } elseif (!$crypto || (int) ($crypto->$cpaFlag ?? 0) !== 1) {
@@ -59,7 +59,7 @@
                 <div class="card-body py-3">
                     <strong class="d-block mb-2">{{ __('What buyers see right now') }}</strong>
                     <div class="d-flex flex-wrap" style="gap:10px">
-                        @foreach(['binance' => 'Binance Pay', 'kast' => 'KAST', 'usdt' => __('USDT (any wallet)')] as $cpaKey => $cpaName)
+                        @foreach(['binance' => 'Binance Pay', 'kast' => 'KAST', 'usdt' => __('USDT (any wallet)'), 'wise' => 'Wise'] as $cpaKey => $cpaName)
                         <div style="flex:1 1 260px;border:1px solid {{ $cpaStatus[$cpaKey][0] ? '#bbf7d0' : '#fecaca' }};background:{{ $cpaStatus[$cpaKey][0] ? '#f0fdf4' : '#fef2f2' }};border-radius:10px;padding:10px 12px">
                             <strong>{!! $cpaStatus[$cpaKey][0] ? '&#9989;' : '&#9888;&#65039;' !!} {{ $cpaName }}</strong><br>
                             <small style="color:{{ $cpaStatus[$cpaKey][0] ? '#166534' : '#991b1b' }}">{{ $cpaStatus[$cpaKey][1] }}</small>
@@ -72,15 +72,15 @@
             <div class="cpa-help mb-3">
                 <strong>{{ __('How it works') }}</strong>
                 <ol>
-                    <li>{{ __('The buyer picks Binance Pay, KAST or USDT on a landing page or at the site checkout, then sees your QR code / address and the amount to pay.') }}</li>
+                    <li>{{ __('The buyer picks Binance Pay, KAST, USDT or Wise on a landing page or at the site checkout, then sees your QR code / address and the amount to pay.') }}</li>
                     <li>{{ __('After paying, they upload a screenshot of the payment receipt (and can add the transaction ID). The order appears below under "Waiting for you".') }}</li>
-                    <li>{{ __('Look at the receipt and check that the money arrived in your Binance, KAST or wallet app, then click Approve. The buyer gets the download immediately (on the page and by email).') }}</li>
+                    <li>{{ __('Look at the receipt and check that the money arrived in your Binance, KAST, Wise or wallet app, then click Approve. The buyer gets the download immediately (on the page and by email).') }}</li>
                 </ol>
             </div>
 
             <div class="card">
                 <div class="card-header d-flex align-items-center justify-content-between flex-wrap" style="gap:8px">
-                    <strong class="card-title mb-0">{{ __('Crypto orders') }}</strong>
+                    <strong class="card-title mb-0">{{ __('Crypto & Wise orders') }}</strong>
                     <div class="btn-group btn-group-sm">
                         <a href="{{ url('/admin/crypto-payments?type=landing') }}" class="btn {{ $type === 'landing' ? 'btn-dark' : 'btn-outline-dark' }}">{{ __('Landing pages') }} @if($landingWaiting > 0)<span class="badge badge-danger">{{ $landingWaiting }}</span>@endif</a>
                         <a href="{{ url('/admin/crypto-payments?type=shop') }}" class="btn {{ $type === 'shop' ? 'btn-dark' : 'btn-outline-dark' }}">{{ __('Site checkout') }} @if($shopWaiting > 0)<span class="badge badge-danger">{{ $shopWaiting }}</span>@endif</a>
@@ -112,7 +112,7 @@
                                 <td>#{{ $o->purchase_token }}</td>
                                 <td>{{ $o->email }}</td>
                                 <td style="white-space:nowrap"><strong>{{ rtrim(rtrim(number_format((float) $o->amount, 2, '.', ''), '0'), '.') }} {{ $o->currency }}</strong></td>
-                                <td><span class="cpa-method"><span class="dot" style="background:{{ ['binance' => '#f0b90b', 'kast' => '#111827', 'usdt' => '#26a17b'][$o->method] ?? '#999' }}"></span>{{ \Fickrr\Models\CryptoPay::NAMES[$o->method] ?? $o->method }}</span></td>
+                                <td><span class="cpa-method"><span class="dot" style="background:{{ ['binance' => '#f0b90b', 'kast' => '#111827', 'usdt' => '#26a17b', 'wise' => '#163300'][$o->method] ?? '#999' }}"></span>{{ \Fickrr\Models\CryptoPay::NAMES[$o->method] ?? $o->method }}</span></td>
                                 <td>
                                     @if(!empty($o->receipt))
                                         @php $rUrl = url('/admin/crypto-payments/shop/' . $o->id . '/receipt'); @endphp
@@ -162,9 +162,9 @@
                                 <td style="white-space:nowrap">{{ \Carbon\Carbon::parse($d['submitted_at'] ?? $o->created_at)->format('M d, H:i') }}</td>
                                 <td>{{ $o->lp_title ?: '#' . $o->lp_id }}<br><small class="text-muted">{{ $o->order_token }}</small></td>
                                 <td>{{ $o->customer_email }}</td>
-                                <td style="white-space:nowrap"><strong>{{ rtrim(rtrim(number_format((float) $o->amount, 2, '.', ''), '0'), '.') }} USDT</strong></td>
+                                <td style="white-space:nowrap"><strong>{{ rtrim(rtrim(number_format((float) $o->amount, 2, '.', ''), '0'), '.') }} {{ in_array($o->payment_method, \Fickrr\Models\CryptoPay::FIAT, true) ? 'USD' : 'USDT' }}</strong></td>
                                 <td>
-                                    <span class="cpa-method"><span class="dot" style="background:{{ ['binance' => '#f0b90b', 'kast' => '#111827', 'usdt' => '#26a17b'][$o->payment_method] ?? '#999' }}"></span>{{ \Fickrr\Models\CryptoPay::NAMES[$o->payment_method] ?? $o->payment_method }}</span>
+                                    <span class="cpa-method"><span class="dot" style="background:{{ ['binance' => '#f0b90b', 'kast' => '#111827', 'usdt' => '#26a17b', 'wise' => '#163300'][$o->payment_method] ?? '#999' }}"></span>{{ \Fickrr\Models\CryptoPay::NAMES[$o->payment_method] ?? $o->payment_method }}</span>
                                 </td>
                                 <td>
                                     @if(!empty($d['receipt']))
@@ -219,8 +219,9 @@
                             @foreach([
                                 ['binance', 'Binance Pay', '#f0b90b', 'binance_pay_id', __('Binance Pay ID or name'), __('e.g. 123456789'), 'binance_link', __('Binance Pay link (optional)'), 'https://...'],
                                 ['kast', 'KAST', '#111827', 'kast_tag', __('KAST tag'), '@yourtag', 'kast_link', __('KAST pay link'), 'https://app.kast.xyz/kasttag/yourtag'],
+                                ['wise', 'Wise', '#163300', 'wise_tag', __('Wisetag'), '@yourname', 'wise_link', __('Wise payment link (optional)'), 'https://wise.com/pay/me/yourname'],
                             ] as [$key, $label, $color, $idField, $idLabel, $idPh, $linkField, $linkLabel, $linkPh])
-                            @php $m = $key === 'binance' ? $binance : $kast; @endphp
+                            @php $m = ['binance' => $binance, 'kast' => $kast, 'wise' => $wise][$key]; @endphp
                             <div class="col-lg-6 mb-3">
                                 <div class="cpa-box">
                                     <h5><span style="width:12px;height:12px;border-radius:50%;background:{{ $color }};display:inline-block"></span> {{ $label }}</h5>

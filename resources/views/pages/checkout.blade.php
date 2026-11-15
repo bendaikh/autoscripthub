@@ -332,7 +332,7 @@
                   <strong>{{ $hvPayLabel }}</strong>
                   <span class="hv-co-brands"><i>Visa</i><i>MC</i><i>Amex</i></span>
                   @elseif($hvPayKind == 'crypto')
-                  @php $hvCrypto = ['binance' => ['#f0b90b', 'B', __('Pay from the Binance app')], 'kast' => ['#111827', 'K', __('Pay from the KAST app')], 'usdt' => ['#26a17b', '₮', __('Send USDT from any exchange or wallet')]][$payment]; @endphp
+                  @php $hvCrypto = ['binance' => ['#f0b90b', 'B', __('Pay from the Binance app')], 'kast' => ['#111827', 'K', __('Pay from the KAST app')], 'usdt' => ['#26a17b', '₮', __('Send USDT from any exchange or wallet')], 'wise' => ['#163300', 'W', __('Pay from your Wise account')]][$payment]; @endphp
                   <strong><span class="hv-co-crypto" style="background:{{ $hvCrypto[0] }}">{{ $hvCrypto[1] }}</span> {{ $hvPayLabel }}</strong>
                   <small>{{ $hvCrypto[2] }}</small>
                   @else
