@@ -32,13 +32,14 @@ class LiveChatController extends Controller
             if ($slug !== '') {
                 $lpId = DB::table('landing_pages')->where('lp_slug', $slug)->value('lp_id');
             }
-            if (!$lpId) {
+            $fromHome = !$lpId && $slug === '' && $request->input('page') === 'home';
+            if (!$lpId && !$fromHome) {
                 return $this->json(['ok' => false, 'error' => 'unknown_page'], 422);
             }
             $email = trim((string) $request->input('email', ''));
             $conversation = LiveChat::createConversation([
-                'lp_id' => $lpId,
-                'page_path' => mb_substr('/landing/'.$slug, 0, 191),
+                'lp_id' => $lpId ?: null,
+                'page_path' => $fromHome ? '/' : mb_substr('/landing/'.$slug, 0, 191),
                 'visitor_name' => mb_substr(trim(strip_tags((string) $request->input('name', ''))), 0, 100) ?: null,
                 'visitor_email' => filter_var($email, FILTER_VALIDATE_EMAIL) ? mb_substr($email, 0, 150) : null,
                 'country_code' => $this->country($request),
