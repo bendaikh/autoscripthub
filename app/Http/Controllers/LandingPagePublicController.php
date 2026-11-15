@@ -212,7 +212,7 @@ class LandingPagePublicController extends Controller
         // Validate email
         $request->validate([
             'customer_email' => 'required|email',
-            'payment_method' => 'required|in:paypal,dodopayments,whop,binance,kast,usdt',
+            'payment_method' => 'required|in:paypal,dodopayments,whop,binance,kast,usdt,wise',
         ]);
 
         $payment_method = $request->payment_method;
@@ -682,7 +682,7 @@ class LandingPagePublicController extends Controller
             $title = \DB::table('landing_pages')->where('lp_id', $order->lp_id)->value('lp_title') ?: 'Landing page order';
             $method = \Fickrr\Models\CryptoPay::NAMES[$order->payment_method] ?? $order->payment_method;
             $text = "New crypto payment to check\n\n"
-                . "Product: {$title}\nAmount: {$order->amount} USDT\nMethod: {$method}\n"
+                . "Product: {$title}\nAmount: {$order->amount} " . (in_array($order->payment_method, \Fickrr\Models\CryptoPay::FIAT, true) ? 'USD' : 'USDT') . "\nMethod: {$method}\n"
                 . "Buyer: {$order->customer_email}\nTransaction ID: " . ($details['reference'] ?: '-') . "\nReceipt: uploaded (open it in the admin)\n"
                 . (!empty($details['payer']) ? "Paid from: {$details['payer']}\n" : '')
                 . "\nApprove it here: " . url('/admin/crypto-payments');

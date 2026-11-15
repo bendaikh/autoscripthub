@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Manual crypto payments for landing pages. The buyer pays with Binance Pay
- * or KAST (QR code, ID/tag or pay link) or sends USDT to a wallet address, submits the transaction ID, and the
+ * KAST or Wise (QR code, ID/tag or pay link) or sends USDT to a wallet address, submits the transaction ID, and the
  * admin approves the order in Admin > Crypto Payments.
  *
  * Order statuses used in landing_page_orders.payment_status:
@@ -18,9 +18,19 @@ use Illuminate\Support\Facades\Schema;
  */
 class CryptoPay
 {
-    public const METHODS = ['binance', 'kast', 'usdt'];
+    public const METHODS = ['binance', 'kast', 'usdt', 'wise'];
 
-    public const NAMES = ['binance' => 'Binance Pay', 'kast' => 'KAST', 'usdt' => 'USDT'];
+    public const NAMES = ['binance' => 'Binance Pay', 'kast' => 'KAST', 'usdt' => 'USDT', 'wise' => 'Wise'];
+
+    /** Methods paid in normal money (the order currency) instead of USDT. */
+    public const FIAT = ['wise'];
+
+    /** Settings columns of the QR / ID / link methods: [id, link, qr, enabled]. */
+    private const COLUMNS = [
+        'binance' => ['binance_pay_id', 'binance_link', 'binance_qr', 'binance_enabled'],
+        'kast' => ['kast_tag', 'kast_link', 'kast_qr', 'kast_enabled'],
+        'wise' => ['wise_tag', 'wise_link', 'wise_qr', 'wise_enabled'],
+    ];
 
     public static function ready(): bool
     {
@@ -75,20 +85,21 @@ class CryptoPay
                 'enabled' => (int) ($s->wallet_enabled ?? 0) === 1 && $address !== '',
             ];
         }
-        $id = $method === 'binance' ? ($s->binance_pay_id ?? '') : ($s->kast_tag ?? '');
-        $link = trim((string) ($method === 'binance' ? ($s->binance_link ?? '') : ($s->kast_link ?? '')));
+        [$idCol, $linkCol, $qrCol, $onCol] = self::COLUMNS[$method];
+        $id = $s->$idCol ?? '';
+        $link = trim((string) ($s->$linkCol ?? ''));
         if ($link !== '' && !preg_match('#^https://#i', $link)) {
             $link = '';
         }
         $m = [
             'key' => $method,
             'name' => self::NAMES[$method],
-            'qr' => self::fileUrl($method === 'binance' ? ($s->binance_qr ?? '') : ($s->kast_qr ?? '')),
+            'qr' => self::fileUrl($s->$qrCol ?? ''),
             'id' => trim((string) $id),
             'link' => $link,
             'note' => trim((string) ($s->note ?? '')),
         ];
-        $on = (int) ($method === 'binance' ? $s->binance_enabled : $s->kast_enabled) === 1;
+        $on = (int) ($s->$onCol ?? 0) === 1;
         $m['enabled'] = $on && ($m['qr'] || $m['id'] !== '' || $m['link'] !== '');
         return $m;
     }

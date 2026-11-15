@@ -301,5 +301,8 @@
     "Send USDT from any exchange or wallet": "ส่ง USDT จากกระดานเทรดหรือกระเป๋าใดก็ได้",
     "We accept": "เรารับชำระด้วย",
     "Secure checkout with PayPal, card or crypto": "ชำระเงินอย่างปลอดภัยด้วย PayPal บัตร หรือคริปโต",
-    "Send the equivalent of this amount in :asset.": "ส่งมูลค่าเทียบเท่าจำนวนนี้เป็น :asset"
+    "Send the equivalent of this amount in :asset.": "ส่งมูลค่าเทียบเท่าจำนวนนี้เป็น :asset",
+    "Wisetag": "Wisetag",
+    "Pay from your Wise account": "ชำระจากบัญชี Wise ของคุณ",
+    "Name on the account you paid from (optional)": "ชื่อบัญชีที่ใช้ชำระเงิน (ไม่บังคับ)"
 }

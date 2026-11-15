@@ -184,7 +184,7 @@
             'faqHeading' => $lpT('Questions before you buy'),
             'finalHeading' => $lpT('Ready to get started?'),
             'featuresIncluded' => $lpT('features included'),
-            'secureNote' => array_intersect(\Fickrr\Models\CryptoPay::METHODS, $landing_payment_methods ?? [])
+            'secureNote' => array_intersect(['binance', 'kast', 'usdt'], $landing_payment_methods ?? [])
                 ? $lpT('Secure checkout with PayPal, card or crypto')
                 : $lpT('Secure checkout with PayPal or card'),
             'prev' => $lpT('Previous'),
@@ -852,6 +852,7 @@
                             'binance' => ['Binance Pay', $lpT('Pay with USDT, BTC or BNB from the Binance app'), '#f0b90b', 'B'],
                             'kast' => ['KAST', $lpT('Pay from your KAST app'), '#111827', 'K'],
                             'usdt' => [$lpT('USDT (any wallet)'), $lpT('Send USDT from any exchange or wallet'), '#26a17b', '₮'],
+                            'wise' => ['Wise', $lpT('Pay from your Wise account'), '#163300', 'W'],
                         ];
                     @endphp
                     @foreach($lpCryptoOptions as $cryptoKey => [$cryptoName, $cryptoSub, $cryptoColor, $cryptoLetter])

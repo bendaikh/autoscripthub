@@ -63,6 +63,7 @@ class CryptoPaymentController extends Controller
             'crypto' => $s,
             'binance' => $s ? CryptoPay::method('binance', $s) : null,
             'kast' => $s ? CryptoPay::method('kast', $s) : null,
+            'wise' => $s ? CryptoPay::method('wise', $s) : null,
             'usdt' => $s ? CryptoPay::method('usdt', $s) : null,
             'orders' => $orders,
             'filter' => $filter,
@@ -87,6 +88,10 @@ class CryptoPaymentController extends Controller
             'kast_qr' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
             'kast_tag' => 'nullable|string|max:64',
             'kast_link' => 'nullable|url|starts_with:https://|max:255',
+            'wise_enabled' => 'required|in:0,1',
+            'wise_qr' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+            'wise_tag' => 'nullable|string|max:64',
+            'wise_link' => 'nullable|url|starts_with:https://|max:255',
             'wallet_enabled' => 'required|in:0,1',
             'wallet_asset' => 'nullable|string|max:20',
             'wallet_network' => 'nullable|string|max:40',
@@ -102,6 +107,9 @@ class CryptoPaymentController extends Controller
             'kast_enabled' => (int) $request->input('kast_enabled'),
             'kast_tag' => $clean('kast_tag'),
             'kast_link' => $clean('kast_link'),
+            'wise_enabled' => (int) $request->input('wise_enabled'),
+            'wise_tag' => $clean('wise_tag'),
+            'wise_link' => $clean('wise_link'),
             'wallet_enabled' => (int) $request->input('wallet_enabled'),
             'wallet_asset' => $clean('wallet_asset'),
             'wallet_network' => $clean('wallet_network'),
@@ -110,7 +118,7 @@ class CryptoPaymentController extends Controller
         ];
 
         $old = CryptoPay::settings();
-        foreach (['binance_qr', 'kast_qr'] as $field) {
+        foreach (['binance_qr', 'kast_qr', 'wise_qr'] as $field) {
             if ($request->hasFile($field) && $request->file($field)->isValid()) {
                 $dir = public_path('storage/crypto');
                 if (!is_dir($dir)) {
