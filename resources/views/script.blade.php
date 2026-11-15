@@ -672,6 +672,8 @@ $("#coupon_start_date").datepicker({
 </script>
 {{-- Built-in live chat on every page (answered in Admin > Live Chat); replaces tawk.to. --}}
 @include('landing-pages.partials.live-chat')
+{{-- Bottom-right trending product card; stays until the visitor closes it. --}}
+@include('partials.trending-popup')
 @if(request()->is('upload-item','upload-item/*','edit-item','edit-item/*'))
 <script src="{{ asset('admin/dropzone/min/dropzone.min.js')}}" type="text/javascript"></script>
 @endif

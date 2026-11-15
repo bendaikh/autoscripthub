@@ -6469,61 +6469,13 @@ class CommonController extends Controller
 	  // the visitor's own keyword (was a site-wide cache shared by every visitor)
 	  $search_keyword = trim((string) $product_item);
 	  
-	  if(!empty($request->input('category_names')))
-	   {
-	      
-		  $category_no = "";
-		  $category_ids = "";
-		  
-		  foreach($request->input('category_names') as $category_value)
-		  {
-		     $category_no .= $category_value.',';
-			 if(!empty($category_value))
-			 {
-			 $pieces = explode("_", $category_value);
-			 $category_ids .= $pieces[1].',';
-			 }
-			 else
-			 {
-			 $category_ids .= "";
-			 }
-		  }
-		  $category_names = rtrim($category_no,",");
-		  $category_id = rtrim($category_ids,",");
-		  
-	   }
-	   else
-	   {
-	     $category_names = "";
-		 $category_id = "";
-	   }
-	  
-	  if(!empty($request->input('item_type')))
-	   {
-	      
-		  $itemtype = "";
-		  foreach($request->input('item_type') as $item_type)
-		  {
-		     $itemtype .= $item_type.',';
-		  }
-		  $item_types = rtrim($itemtype,",");
-		  
-	   }
-	   else
-	   {
-	     $item_types = "";
-	   } 
-	  if(!empty($request->input('orderby')))
-	  { 
-	  $orderby = $request->input('orderby');
-	  }
-	  else
-	  {
-	  $orderby = "desc";
-	  }
+	  // Validated filter values only; they reach the query as bound parameters (see ShopFilters).
+	  list($item_types, $item_types_submitted) = \Fickrr\Support\ShopFilters::itemTypes($request->input('item_type'));
+	  $category_filter = \Fickrr\Support\ShopFilters::categories($request->input('category_names'));
+	  $orderby = \Fickrr\Support\ShopFilters::direction($request->input('orderby'));
 	  $min_price = $request->input('min_price');
 	  $max_price = $request->input('max_price'); 
-	  if($search_keyword != "" ||  $orderby != "" || $min_price != "" || $max_price != "" || $item_types != "" || $category_names != "")
+	  if($search_keyword != "" ||  $orderby != "" || $min_price != "" || $max_price != "" || $item_types_submitted || $category_filter['submitted'])
 	  {
 	  
 	  
@@ -6536,30 +6488,14 @@ class CommonController extends Controller
 							  ->where('users.user_subscr_payment_status','=','completed')
 							  ->where('items.item_status','=',1)
 							  ->where('items.drop_status','=','no')
-							  ->where(function ($query) use ($search_keyword,$orderby,$min_price,$max_price,$item_types,$category_names,$category_id) { 
+							  ->where(function ($query) use ($search_keyword,$min_price,$max_price,$item_types,$item_types_submitted,$category_filter) { 
 							  \Fickrr\Support\ProductSearch::apply($query, $search_keyword);
 							  if ($min_price != "" || $max_price != "")
 							  {
 							  $query->where('items.regular_price', '>=', $min_price);
 							  $query->where('items.regular_price', '<=', $max_price);
 							  }
-							  if ($item_types != "")
-							  {
-							  $query->whereRaw('FIND_IN_SET(items.item_type,"'.$item_types.'")');
-							  }
-							  if ($category_names != "")
-							  {
-							      $pieces = explode("_", $category_names);
-								  if($pieces[0] == 'category')
-								  {
-							  		$query->whereRaw('FIND_IN_SET(items.item_category_parent,"'.$category_id.'")');
-								  }
-								  else
-								  {
-								    $query->whereRaw('FIND_IN_SET(items.item_type_cat_id,"'.$category_names.'")');
-								  }	
-							  
-							  }
+							  \Fickrr\Support\ShopFilters::apply($query, $item_types, $item_types_submitted, $category_filter);
 							  })->when($search_keyword !== '', function ($q) use ($search_keyword) { \Fickrr\Support\ProductSearch::orderByRelevance($q, $search_keyword); })->orderBy('items.regular_price', $orderby)->get();
 			}
 			else
@@ -6569,30 +6505,14 @@ class CommonController extends Controller
 							  ->leftjoin('users', 'users.id', '=', 'items.user_id')
 							  ->where('items.item_status','=',1)
 							  ->where('items.drop_status','=','no')
-							  ->where(function ($query) use ($search_keyword,$orderby,$min_price,$max_price,$item_types,$category_names,$category_id) { 
+							  ->where(function ($query) use ($search_keyword,$min_price,$max_price,$item_types,$item_types_submitted,$category_filter) { 
 							  \Fickrr\Support\ProductSearch::apply($query, $search_keyword);
 							  if ($min_price != "" || $max_price != "")
 							  {
 							  $query->where('items.regular_price', '>=', $min_price);
 							  $query->where('items.regular_price', '<=', $max_price);
 							  }
-							  if ($item_types != "")
-							  {
-							  $query->whereRaw('FIND_IN_SET(items.item_type,"'.$item_types.'")');
-							  }
-							  if ($category_names != "")
-							  {
-							      $pieces = explode("_", $category_names);
-								  if($pieces[0] == 'category')
-								  {
-							  		$query->whereRaw('FIND_IN_SET(items.item_category_parent,"'.$category_id.'")');
-								  }
-								  else
-								  {
-								    $query->whereRaw('FIND_IN_SET(items.item_type_cat_id,"'.$category_names.'")');
-								  }	
-							  
-							  }
+							  \Fickrr\Support\ShopFilters::apply($query, $item_types, $item_types_submitted, $category_filter);
 							  })->when($search_keyword !== '', function ($q) use ($search_keyword) { \Fickrr\Support\ProductSearch::orderByRelevance($q, $search_keyword); })->orderBy('items.regular_price', $orderby)->get();
 			}				  
 							  

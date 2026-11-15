@@ -1793,7 +1793,7 @@ class Items extends Model
   public static function getuserCheckout()
   {
     $user_id = Auth::user()->id;
-    $value=DB::table('item_checkout')->whereRaw("find_in_set('".$user_id."',item_user_id)")->where('payment_status','=','completed')->orderBy('chout_id', 'desc')->get(); 
+    $value=DB::table('item_checkout')->whereRaw('FIND_IN_SET(?, item_user_id)', [(string) $user_id])->where('payment_status','=','completed')->orderBy('chout_id', 'desc')->get(); 
     return $value;
 	
   }
