@@ -103,6 +103,46 @@ class CryptoPay
         return array_values(array_filter(self::METHODS, fn ($k) => self::method($k, $s)['enabled']));
     }
 
+    /** Adds the switched-on crypto methods to a checkout's list of payment options. */
+    public static function withMethods(array $options): array
+    {
+        $options = array_values(array_filter(array_map('trim', $options), 'strlen'));
+        foreach (self::enabledMethods() as $m) {
+            if (!in_array($m, $options, true)) {
+                $options[] = $m;
+            }
+        }
+        return $options;
+    }
+
+    public static function shopReady(): bool
+    {
+        try {
+            return Schema::hasTable('shop_crypto_payments');
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /** Creates the crypto payment row for a site checkout and returns the buyer's payment page URL. */
+    public static function startShopPayment($purchaseToken, string $method, $amount, $currency, $email): string
+    {
+        $key = \Illuminate\Support\Str::random(40);
+        DB::table('shop_crypto_payments')->insert([
+            'purchase_token' => (string) $purchaseToken,
+            'token' => $key,
+            'method' => $method,
+            'amount' => (float) $amount,
+            'currency' => $currency ? strtoupper((string) $currency) : null,
+            'user_id' => \Illuminate\Support\Facades\Auth::id(),
+            'email' => $email,
+            'status' => 'pending',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        return url('/shop-crypto/' . $key);
+    }
+
     public static function fileUrl(?string $file): ?string
     {
         $file = (string) $file;
@@ -116,10 +156,14 @@ class CryptoPay
     public static function awaitingCount(): int
     {
         try {
-            return (int) DB::table('landing_page_orders')
+            $n = (int) DB::table('landing_page_orders')
                 ->whereIn('payment_method', self::METHODS)
                 ->where('payment_status', 'awaiting')
                 ->count();
+            if (self::shopReady()) {
+                $n += (int) DB::table('shop_crypto_payments')->where('status', 'awaiting')->count();
+            }
+            return $n;
         } catch (\Throwable $e) {
             return 0;
         }

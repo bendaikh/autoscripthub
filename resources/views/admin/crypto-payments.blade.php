@@ -42,27 +42,81 @@
             <div class="cpa-help mb-3">
                 <strong>{{ __('How it works') }}</strong>
                 <ol>
-                    <li>{{ __('The buyer picks Binance Pay, KAST or USDT on a landing page, then sees your QR code / address and the amount in USDT.') }}</li>
+                    <li>{{ __('The buyer picks Binance Pay, KAST or USDT on a landing page or at the site checkout, then sees your QR code / address and the amount to pay.') }}</li>
                     <li>{{ __('After paying, they upload a screenshot of the payment receipt (and can add the transaction ID). The order appears below under "Waiting for you".') }}</li>
                     <li>{{ __('Look at the receipt and check that the money arrived in your Binance, KAST or wallet app, then click Approve. The buyer gets the download immediately (on the page and by email).') }}</li>
                 </ol>
             </div>
 
             <div class="card">
-                <div class="card-header"><strong class="card-title">{{ __('Crypto orders') }}</strong></div>
+                <div class="card-header d-flex align-items-center justify-content-between flex-wrap" style="gap:8px">
+                    <strong class="card-title mb-0">{{ __('Crypto orders') }}</strong>
+                    <div class="btn-group btn-group-sm">
+                        <a href="{{ url('/admin/crypto-payments?type=landing') }}" class="btn {{ $type === 'landing' ? 'btn-dark' : 'btn-outline-dark' }}">{{ __('Landing pages') }} @if($landingWaiting > 0)<span class="badge badge-danger">{{ $landingWaiting }}</span>@endif</a>
+                        <a href="{{ url('/admin/crypto-payments?type=shop') }}" class="btn {{ $type === 'shop' ? 'btn-dark' : 'btn-outline-dark' }}">{{ __('Site checkout') }} @if($shopWaiting > 0)<span class="badge badge-danger">{{ $shopWaiting }}</span>@endif</a>
+                    </div>
+                </div>
                 <div class="card-body">
                     @php
                         $tabs = ['awaiting' => __('Waiting for you'), 'pending' => __('Not paid yet'), 'completed' => __('Approved'), 'rejected' => __('Not received')];
                     @endphp
                     <div class="cpa-tabs">
                         @foreach($tabs as $key => $label)
-                        <a href="{{ url('/admin/crypto-payments?show=' . $key) }}" class="{{ $filter === $key ? 'active' : '' }}">
+                        <a href="{{ url('/admin/crypto-payments?type=' . $type . '&show=' . $key) }}" class="{{ $filter === $key ? 'active' : '' }}">
                             {{ $label }}
                             @if(!empty($counts[$key]))<span class="badge {{ $key === 'awaiting' ? 'badge-danger' : 'badge-light' }}">{{ $counts[$key] }}</span>@endif
                         </a>
                         @endforeach
                     </div>
-                    @if($orders->isEmpty())
+                    @if($type === 'shop' && $orders->isNotEmpty())
+                    <div class="table-responsive">
+                    <table class="table table-striped mb-0">
+                        <thead><tr>
+                            <th>{{ __('Date') }}</th><th>{{ __('Order') }}</th><th>{{ __('Buyer') }}</th><th>{{ __('Amount') }}</th>
+                            <th>{{ __('Method') }}</th><th>{{ __('Receipt') }}</th><th>{{ __('Transaction ID') }}</th><th></th>
+                        </tr></thead>
+                        <tbody>
+                        @foreach($orders as $o)
+                            <tr>
+                                <td style="white-space:nowrap">{{ \Carbon\Carbon::parse($o->submitted_at ?: $o->created_at)->format('M d, H:i') }}</td>
+                                <td>#{{ $o->purchase_token }}</td>
+                                <td>{{ $o->email }}</td>
+                                <td style="white-space:nowrap"><strong>{{ rtrim(rtrim(number_format((float) $o->amount, 2, '.', ''), '0'), '.') }} {{ $o->currency }}</strong></td>
+                                <td><span class="cpa-method"><span class="dot" style="background:{{ ['binance' => '#f0b90b', 'kast' => '#111827', 'usdt' => '#26a17b'][$o->method] ?? '#999' }}"></span>{{ \Fickrr\Models\CryptoPay::NAMES[$o->method] ?? $o->method }}</span></td>
+                                <td>
+                                    @if(!empty($o->receipt))
+                                        @php $rUrl = url('/admin/crypto-payments/shop/' . $o->id . '/receipt'); @endphp
+                                        @if(\Illuminate\Support\Str::endsWith(strtolower($o->receipt), '.pdf'))
+                                        <a href="{{ $rUrl }}" target="_blank" class="btn btn-light btn-sm"><i class="fa fa-file-pdf-o"></i> {{ __('Open PDF') }}</a>
+                                        @else
+                                        <a href="{{ $rUrl }}" target="_blank" title="{{ __('Open full size') }}"><img src="{{ $rUrl }}" alt="{{ __('Receipt') }}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #e5e7eb"></a>
+                                        @endif
+                                    @else<span class="text-muted">—</span>@endif
+                                </td>
+                                <td>
+                                    @if(!empty($o->reference))<span class="cpa-ref">{{ $o->reference }}</span>@else<span class="text-muted">—</span>@endif
+                                    @if(!empty($o->payer))<br><small class="text-muted">{{ __('Paid from') }}: {{ $o->payer }}</small>@endif
+                                </td>
+                                <td style="white-space:nowrap">
+                                    @if($o->status !== 'completed')
+                                    <form action="{{ url('/admin/crypto-payments/shop/' . $o->id . '/approve') }}" method="post" class="d-inline" onsubmit="return confirm('{{ __('Did you check that the payment arrived? The buyer will get the download.') }}')">
+                                        {{ csrf_field() }}
+                                        <button class="btn btn-success btn-sm"><i class="fa fa-check"></i> {{ __('Approve') }}</button>
+                                    </form>
+                                    @endif
+                                    @if(!in_array($o->status, ['completed', 'rejected'], true))
+                                    <form action="{{ url('/admin/crypto-payments/shop/' . $o->id . '/reject') }}" method="post" class="d-inline" onsubmit="return confirm('{{ __('Mark this payment as not received?') }}')">
+                                        {{ csrf_field() }}
+                                        <button class="btn btn-outline-danger btn-sm"><i class="fa fa-times"></i> {{ __('Not received') }}</button>
+                                    </form>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                    </table>
+                    </div>
+                    @elseif($orders->isEmpty())
                     <p class="text-muted mb-0">{{ __('No orders here.') }}</p>
                     @else
                     <div class="table-responsive">
@@ -141,7 +195,7 @@
                                 <div class="cpa-box">
                                     <h5><span style="width:12px;height:12px;border-radius:50%;background:{{ $color }};display:inline-block"></span> {{ $label }}</h5>
                                     <div class="form-group">
-                                        <label class="control-label mb-1">{{ __('Show on landing pages') }}</label>
+                                        <label class="control-label mb-1">{{ __('Show to buyers') }}</label>
                                         <select name="{{ $key }}_enabled" class="form-control">
                                             <option value="1" @if(($crypto->{$key . '_enabled'} ?? 0) == 1) selected @endif>{{ __('Yes') }}</option>
                                             <option value="0" @if(($crypto->{$key . '_enabled'} ?? 0) == 0) selected @endif>{{ __('No') }}</option>
@@ -182,7 +236,7 @@
                                     <h5><span style="width:12px;height:12px;border-radius:50%;background:#26a17b;display:inline-block"></span> {{ __('USDT from any wallet or exchange') }}</h5>
                                     <div class="row">
                                         <div class="col-md-3 form-group">
-                                            <label class="control-label mb-1">{{ __('Show on landing pages') }}</label>
+                                            <label class="control-label mb-1">{{ __('Show to buyers') }}</label>
                                             <select name="wallet_enabled" class="form-control">
                                                 <option value="1" @if(($crypto->wallet_enabled ?? 0) == 1) selected @endif>{{ __('Yes') }}</option>
                                                 <option value="0" @if(($crypto->wallet_enabled ?? 0) == 0) selected @endif>{{ __('No') }}</option>

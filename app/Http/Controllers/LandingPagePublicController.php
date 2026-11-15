@@ -586,12 +586,25 @@ class LandingPagePublicController extends Controller
         $content = \Fickrr\Helpers\LandingPageContent::build($landing_page, [], collect(), 0);
 
         return view('landing-pages.crypto-pay', [
-            'order' => $order,
             'landing_page' => $landing_page,
             'method' => \Fickrr\Models\CryptoPay::method($order->payment_method),
-            'details' => \Fickrr\Models\CryptoPay::details($order),
-            'content' => $content,
-            'setting' => Settings::editGeneral(1),
+            'cp' => [
+                'method' => $order->payment_method,
+                'status' => $order->payment_status,
+                'details' => \Fickrr\Models\CryptoPay::details($order),
+                'amount' => $order->amount,
+                'currency' => 'USD',
+                'title' => $landing_page->lp_title,
+                'backUrl' => url('/landing/' . $landing_page->lp_slug),
+                'email' => $order->customer_email,
+                'orderLabel' => $order->order_token,
+                'confirmUrl' => url('/landing/crypto/' . $order->order_token . '/confirm'),
+                'statusUrl' => url('/landing/crypto/' . $order->order_token . '/status'),
+                'successUrl' => url('/landing/success/' . $order->order_token),
+                'accent' => $content['accent'],
+                'accentDark' => $content['accentDark'],
+                'accentRgb' => $content['accentRgb'],
+            ],
         ]);
     }
 
