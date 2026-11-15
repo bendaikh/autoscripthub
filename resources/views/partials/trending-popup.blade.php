@@ -1,6 +1,6 @@
 {{--
   Bottom-right "Trending now" card on storefront pages.
-  Shows one trending product and stays open until the visitor clicks the close button;
+  Shows the product pinned as "#1 Trending" (the GTA 6 listing; see TrendingPopup) and stays open until the visitor clicks the close button;
   once closed it stays hidden for the rest of the visit (sessionStorage).
   The same product is kept while the visitor moves between pages.
 --}}

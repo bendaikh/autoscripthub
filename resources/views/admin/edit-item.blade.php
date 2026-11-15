@@ -549,7 +549,7 @@
                                                 <input type="hidden" name="item_hero_pin" value="0">
                                                 <label class="d-block mb-0" style="font-weight:normal;cursor:pointer">
                                                     <input type="checkbox" name="item_hero_pin" value="1" @if((int) ($edit['item']->item_hero_pin ?? 0) === 1) checked @endif>
-                                                    {{ __('Pin to the home page hero as "#1 Trending" (shown first)') }}
+                                                    {{ __('Pin to the home page hero as "#1 Trending" (shown first)') }}<br><small class="text-muted">{{ __('The pinned product is also the one shown in the "Trending now" popup at the bottom-right of the site.') }}</small>
                                                 </label>
                                             </div>
                                             @endif
