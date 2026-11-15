@@ -424,3 +424,28 @@ body.lp-body .lp-about-prose th { color: var(--dl-ink); background: var(--dl-sof
     body.lp-body .lp-about-prose { font-size: .98rem; }
     body.lp-body .lp-about-prose > p:first-child { font-size: 1.06rem; }
 }
+
+/* ------------------------------------------- compact feature cards */
+body.lp-body .lp-feature-grid { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+body.lp-body .lp-feature-card {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    column-gap: .95rem;
+    align-items: start;
+    align-content: start;
+    padding: 1.15rem 1.25rem;
+    border-radius: 16px;
+}
+body.lp-body .lp-feature-card:hover { transform: translateY(-2px); box-shadow: var(--dl-shadow); }
+body.lp-body .lp-feature-icon {
+    grid-row: 1 / span 2;
+    width: 42px; height: 42px; margin: 0;
+    font-size: 1rem; border-radius: 12px !important;
+}
+body.lp-body .lp-feature-card h3 { grid-column: 2; margin: 0; padding-top: .55rem; font-size: 1.02rem; line-height: 1.35; }
+body.lp-body .lp-feature-card h3:only-of-type { align-self: center; }
+body.lp-body .lp-feature-card p { grid-column: 2; margin-top: .3rem; font-size: .9rem; line-height: 1.55; }
+@media (max-width: 768px) {
+    body.lp-body .lp-feature-grid { grid-template-columns: 1fr; gap: .75rem; }
+    body.lp-body .lp-feature-card { padding: 1rem 1.05rem; }
+}
