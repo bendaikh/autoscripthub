@@ -123,9 +123,9 @@ body.lp-body .lp-hero-actions { gap: .7rem; }
 .lp-hero-rating .lp-stars { color: #fbbf24; letter-spacing: 1px; }
 .lp-hero-rating b { color: #fff; }
 
-/* the screenshot column sits in the middle of the hero, not stuck at the top */
+/* the screenshot column starts level with the badge, beside the title */
 @media (min-width: 1025px) {
-    body.lp-body .lp-hero-media { align-self: center; }
+    body.lp-body .lp-hero-media { align-self: start; margin-top: .4rem; }
 }
 body.lp-body .lp-topbar-price { margin-left: .15rem; opacity: .9; }
 
