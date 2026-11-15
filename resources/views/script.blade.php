@@ -670,7 +670,8 @@ $("#coupon_start_date").datepicker({
   });
 });
 </script>
-@if($addition_settings->site_tawk_chat != "")
+{{-- The home page uses the built-in live chat instead of tawk.to. --}}
+@if($addition_settings->site_tawk_chat != "" && !request()->is('/'))
 <script type="text/javascript">
 var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
 (function(){
