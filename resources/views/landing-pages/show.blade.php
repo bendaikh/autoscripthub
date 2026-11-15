@@ -203,6 +203,11 @@
 <body class="lp-body @if($lpLang === 'ar') is-rtl @endif"
       style="--lp-accent: {{ $content['accent'] }}; --lp-accent-dark: {{ $content['accentDark'] }}; --lp-accent-rgb: {{ $content['accentRgb'] }};">
 
+@php
+    try { $lpPromo = \Fickrr\Models\Settings::activePromoBanner(); } catch (\Throwable $e) { $lpPromo = null; }
+@endphp
+@include('partials.black-friday-banner', ['promo' => $lpPromo, 'bfLanding' => true])
+
 <header class="lp-topbar">
     <div class="lp-container lp-topbar-inner">
         <a href="{{ url('/') }}" class="lp-logo" aria-label="AutoScriptHub">
