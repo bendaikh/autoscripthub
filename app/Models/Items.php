@@ -78,7 +78,7 @@ class Items extends Model
   public static function autoSearch($query)
   {
     
-    $value=DB::table('items')->where('item_name', 'LIKE', '%'. $query. '%')->where('drop_status','=','no')->where('item_status','=',1)->orderBy('item_name', 'asc')->get(); 
+    $value=DB::table('items')->where(function ($q) use ($query) { \Fickrr\Support\ProductSearch::apply($q, $query); })->where('drop_status','=','no')->where('item_status','=',1)->tap(function ($q) use ($query) { \Fickrr\Support\ProductSearch::orderByRelevance($q, $query); })->orderBy('item_name', 'asc')->limit(20)->get(); 
     return $value;
 	
   }

@@ -132,11 +132,12 @@
                   'url' => URL::to('/item').'/'.$it['slug'],
                   'img' => Helper::Image_Path($it['image'], 'no-image.png'),
                   'price' => ((int) $it['free_download'] === 1) ? __('Free') : Helper::price_format($allsettings->site_currency_position, Helper::catalog_price($obj), $currency_symbol, $multicurrency ?? '', $exact),
+                  'badge' => !empty($it['badge']) ? __($it['badge']) : null,
               ];
           })->values();
           return [
-              'label' => $set['name'],
-              'url' => URL::to('/shop/category/').'/'.$set['slug'],
+              'label' => !empty($set['trending']) ? '🔥 '.__($set['name']) : $set['name'],
+              'url' => !empty($set['url']) ? URL::to($set['url']) : URL::to('/shop/category/').'/'.$set['slug'],
               'count' => (int) ($hvCatCounts[$set['id']] ?? 0),
               'cards' => $cards,
           ];
@@ -214,6 +215,7 @@
              set) get their image only when needed, see the script at the bottom --}}
         @php $hvxEager = $hvxSetIndex === 0 && $hvxIndex < 3; @endphp
         <a class="hvx-tile {{ $hvxIndex < 3 ? 'hvx-tile--'.($hvxIndex + 1) : 'hvx-tile--spare' }}" href="{{ $hvxCard['url'] }}" @if($hvxSetIndex > 0 || $hvxIndex >= 3) tabindex="-1" @endif>
+          @if(!empty($hvxCard['badge']))<span class="hvx-tile-badge">🔥 {{ $hvxCard['badge'] }}</span>@endif
           <span class="hvx-tile-img"><img @if($hvxEager) src="{{ $hvxCard['img'] }}" @else data-src="{{ $hvxCard['img'] }}" @endif alt="{{ $hvxCard['name'] }}" decoding="async"></span>
           <span class="hvx-tile-meta"><strong>{{ \Illuminate\Support\Str::limit($hvxCard['name'], 34) }}</strong><em>{{ $hvxCard['price'] }}</em></span>
         </a>
