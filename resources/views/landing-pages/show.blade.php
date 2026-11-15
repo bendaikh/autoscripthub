@@ -30,6 +30,8 @@
     @endif
     @php $lpCssFile = base_path('public/css/landing-vue.css'); @endphp
     <link rel="stylesheet" href="{{ url('/public/css/landing-vue.css') }}?v={{ file_exists($lpCssFile) ? filemtime($lpCssFile) : 1 }}">
+    @php $lpDarkCss = base_path('public/css/landing-dark.css'); @endphp
+    <link rel="stylesheet" href="{{ url('/public/css/landing-dark.css') }}?v={{ file_exists($lpDarkCss) ? filemtime($lpDarkCss) : 1 }}">
     <style>
     @include('partials.hv-card-loader-styles')
     #lpCardStage { min-height: 0; }
@@ -196,6 +198,15 @@
         <a href="{{ url('/') }}" class="lp-logo" aria-label="AutoScriptHub">
             @include('partials.brand', ['brandCompact' => false, 'brandLight' => true])
         </a>
+        @php
+            $lpTopPrice = (float) ($price_data['price'] ?? 0);
+            $lpTopDecimals = abs($lpTopPrice - round($lpTopPrice)) < 0.00001 ? 0 : 2;
+        @endphp
+        <span class="lp-topbar-trust"><i class="fas fa-lock"></i> {{ $lpT('Secure checkout') }}</span>
+        <button type="button" class="lp-btn lp-topbar-buy"
+                onclick="if (window.trackBuyNowClick) window.trackBuyNowClick(); if (window.showPaymentModal) window.showPaymentModal();">
+            <i class="fas fa-bolt"></i> {{ $lpT('Buy now') }}<span class="lp-topbar-price"> — {{ $lpPricePrefix }}{{ number_format($lpTopPrice, $lpTopDecimals) }}{{ $lpPriceSuffix }}</span>
+        </button>
     </div>
 </header>
 
@@ -259,6 +270,11 @@
                     </button>
                 </div>
 
+                <p v-if="page.reviews && page.reviews.count && page.reviews.rating" class="lp-hero-rating">
+                    <span class="lp-stars">@{{ starString(Math.round(page.reviews.rating)) }}</span>
+                    <b>@{{ page.reviews.rating }}/5</b>
+                    <span>· @{{ page.reviews.count }} @{{ page.i18n.reviewsCountLabel }}</span>
+                </p>
                 <p class="lp-hero-assurance lp-mobile-hide">
                     <i class="fas fa-lock"></i> @{{ page.i18n.instantAccess }}
                 </p>
@@ -707,6 +723,18 @@
             </p>
         </div>
     </section>
+
+    {{-- Phone buy bar: price + button, shown after the hero scrolls away --}}
+    <div class="lp-sticky-buy" :class="{ 'is-visible': showSticky }" :aria-hidden="showSticky ? 'false' : 'true'">
+        <div class="lp-sticky-price">
+            <strong>@{{ page.price.symbol }}@{{ formatMoney(page.price.amount) }}@{{ page.price.suffix }}</strong>
+            <small v-if="page.reviews && page.reviews.count && page.reviews.rating"><span class="lp-stars">★</span> @{{ page.reviews.rating }} · @{{ page.reviews.count }} @{{ page.i18n.reviewsCountLabel }}</small>
+            <small v-else>@{{ page.i18n.paymentNote }}</small>
+        </div>
+        <button type="button" class="lp-btn" @click="openBuy" :tabindex="showSticky ? 0 : -1">
+            <i class="fas fa-bolt"></i> @{{ page.cta }}
+        </button>
+    </div>
 
     <div v-if="lightbox !== null && galleryMedia[lightbox]" class="lp-lightbox" @click.self="lightbox = null">
         <button type="button" class="lp-lightbox-close" :aria-label="page.i18n.close" @click="lightbox = null">&times;</button>
