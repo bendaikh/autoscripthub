@@ -24,7 +24,9 @@
         openFaq: 0,
         touchStartX: null,
         reviewFilter: '',
-        showSticky: false
+        showSticky: false,
+        aboutCollapsible: false,
+        aboutOpen: false
       };
     },
     computed: {
@@ -92,6 +94,19 @@
       }
     },
     methods: {
+      // Long descriptions start folded with a "Read more" button.
+      measureAbout: function () {
+        var body = this.$refs.aboutBody;
+        if (!body) return;
+        this.aboutCollapsible = body.scrollHeight > (window.innerWidth <= 576 ? 560 : 640);
+      },
+      toggleAbout: function () {
+        this.aboutOpen = !this.aboutOpen;
+        if (!this.aboutOpen && this.$refs.aboutBody) {
+          var top = this.$refs.aboutBody.getBoundingClientRect().top + window.scrollY - 120;
+          if (window.scrollY > top) window.scrollTo({ top: top, behavior: 'smooth' });
+        }
+      },
       formatMoney: function (value) {
         var n = Number(value || 0);
         var whole = Math.abs(n - Math.round(n)) < 0.00001;
@@ -175,7 +190,8 @@
     },
     mounted: function () {
       var self = this;
-      this.$nextTick(function () { self.observeReveals(); });
+      this.$nextTick(function () { self.observeReveals(); self.measureAbout(); });
+      window.addEventListener('load', function () { self.measureAbout(); });
       document.addEventListener('keydown', this.onKeydown);
       // Phone buy bar: show once the hero offer has scrolled out of view.
       this.onScroll = function () {
