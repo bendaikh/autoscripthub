@@ -23,7 +23,8 @@
         lightbox: null,
         openFaq: 0,
         touchStartX: null,
-        reviewFilter: ''
+        reviewFilter: '',
+        showSticky: false
       };
     },
     computed: {
@@ -176,9 +177,20 @@
       var self = this;
       this.$nextTick(function () { self.observeReveals(); });
       document.addEventListener('keydown', this.onKeydown);
+      // Phone buy bar: show once the hero offer has scrolled out of view.
+      this.onScroll = function () {
+        var hero = document.querySelector('.lp-hero');
+        var limit = hero ? hero.offsetTop + hero.offsetHeight - 80 : 600;
+        var nearEnd = (window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 40;
+        self.showSticky = window.scrollY > limit && !nearEnd;
+        document.body.classList.toggle('lp-sticky-on', self.showSticky);
+      };
+      window.addEventListener('scroll', this.onScroll, { passive: true });
+      this.onScroll();
     },
     beforeUnmount: function () {
       document.removeEventListener('keydown', this.onKeydown);
+      window.removeEventListener('scroll', this.onScroll);
     }
   }).mount('#lp-vue-app');
 })();

@@ -1,0 +1,299 @@
+/*
+ * Landing pages: "Dark Launch" look. Loaded after landing-vue.css.
+ * Every colour that varies per product comes from the page accent
+ * (--lp-accent / --lp-accent-dark / --lp-accent-rgb), so each landing page
+ * keeps its own colour; the dark base and layout are shared.
+ */
+
+body.lp-body {
+    --dl-ink: #0b1020;
+    --dl-ink-2: #121a30;
+    --dl-line: rgba(255, 255, 255, .08);
+    --dl-soft: #f6f7fb;
+    --dl-card: #ffffff;
+    --dl-muted: #64748b;
+    --dl-glow: 0 18px 40px rgba(var(--lp-accent-rgb), .35);
+    --dl-btn: linear-gradient(135deg, var(--lp-accent), var(--lp-accent-dark));
+    --dl-radius: 20px;
+    --dl-shadow: 0 18px 44px rgba(15, 23, 42, .08);
+    --dl-shadow-lg: 0 30px 70px rgba(15, 23, 42, .16);
+}
+
+/* ---------------------------------------------------------- buttons ---- */
+
+body.lp-body .lp-btn {
+    background: var(--dl-btn);
+    border-radius: 14px;
+    box-shadow: var(--dl-glow);
+    font-weight: 800;
+}
+body.lp-body .lp-btn:hover {
+    background: var(--dl-btn);
+    box-shadow: 0 22px 48px rgba(var(--lp-accent-rgb), .45);
+    filter: brightness(1.06);
+}
+body.lp-body .lp-btn-light { background: #fff; color: var(--dl-ink); box-shadow: 0 18px 40px rgba(0, 0, 0, .3); }
+body.lp-body .lp-btn-light:hover { background: #fff; color: var(--dl-ink); }
+body.lp-body .lp-btn-ghost { border-radius: 14px; }
+
+/* ------------------------------------------- header: logo + buy only ---- */
+
+body.lp-body .lp-topbar {
+    background: rgba(11, 16, 32, .92);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 60;
+}
+body.lp-body .lp-topbar-inner { gap: 18px; }
+.lp-topbar-trust {
+    align-items: center;
+    color: rgba(255, 255, 255, .7);
+    display: inline-flex;
+    font-size: .86rem;
+    font-weight: 600;
+    gap: .45rem;
+    margin-left: auto;
+}
+.lp-topbar-trust i { color: #22c55e; }
+body.lp-body .lp-topbar-buy { font-size: .9rem; padding: .62rem 1.15rem; white-space: nowrap; }
+body.lp-body.is-rtl .lp-topbar-trust { margin-left: 0; margin-right: auto; }
+
+/* ------------------------------------------------------------- hero ---- */
+
+body.lp-body .lp-hero {
+    background:
+        radial-gradient(900px 520px at 85% -5%, rgba(var(--lp-accent-rgb), .32), transparent 62%),
+        radial-gradient(760px 560px at -5% 105%, rgba(99, 102, 241, .26), transparent 60%),
+        var(--dl-ink);
+    padding: 3.2rem 0 4.5rem;
+}
+body.lp-body .lp-hero-glow { opacity: .3; }
+body.lp-body .lp-badge {
+    background: rgba(var(--lp-accent-rgb), .14);
+    border-color: rgba(var(--lp-accent-rgb), .4);
+    color: #fff;
+}
+body.lp-body .lp-hero-title {
+    font-size: clamp(1.7rem, 3vw, 2.7rem);
+    letter-spacing: -.02em;
+    line-height: 1.12;
+}
+body.lp-body .lp-hero-title .lp-accent-text {
+    background: linear-gradient(90deg, #fff 0%, var(--lp-accent) 70%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+body.lp-body .lp-hero-tagline { color: #cbd5e1; }
+body.lp-body .lp-hero-benefits i {
+    background: rgba(255, 255, 255, .07);
+    border: 1px solid rgba(255, 255, 255, .12);
+}
+
+/* the price + buttons become one offer card */
+body.lp-body .lp-hero-offer {
+    background: linear-gradient(180deg, rgba(255, 255, 255, .07), rgba(255, 255, 255, .03));
+    border: 1px solid rgba(255, 255, 255, .12);
+    border-radius: 22px;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, .35);
+    padding: 1.4rem 1.5rem;
+    position: relative;
+}
+body.lp-body .lp-hero-offer::before {
+    background: linear-gradient(90deg, transparent, rgba(var(--lp-accent-rgb), .9), transparent);
+    content: "";
+    height: 2px;
+    left: 18%;
+    position: absolute;
+    right: 18%;
+    top: -1px;
+}
+body.lp-body .lp-hero-price-value { color: #fff; }
+body.lp-body .lp-hero-actions { gap: .7rem; }
+.lp-hero-rating {
+    align-items: center;
+    color: rgba(255, 255, 255, .78);
+    display: flex;
+    flex-wrap: wrap;
+    font-size: .9rem;
+    gap: .4rem;
+    margin: .9rem 0 0;
+}
+.lp-hero-rating .lp-stars { color: #fbbf24; letter-spacing: 1px; }
+.lp-hero-rating b { color: #fff; }
+
+/* the screenshot column sits in the middle of the hero, not stuck at the top */
+@media (min-width: 1025px) {
+    body.lp-body .lp-hero-media { align-self: center; }
+}
+body.lp-body .lp-topbar-price { margin-left: .15rem; opacity: .9; }
+
+/* screenshot: framed, tilted, glowing */
+body.lp-body .lp-hero-media .lp-shot-lg {
+    border: 1px solid rgba(255, 255, 255, .14);
+    border-radius: 18px;
+    box-shadow: 0 50px 90px rgba(0, 0, 0, .55), 0 0 0 1px rgba(var(--lp-accent-rgb), .15), 0 30px 80px rgba(var(--lp-accent-rgb), .18);
+    transform: perspective(1500px) rotateY(-7deg) rotateX(3deg);
+    transform-origin: left center;
+    transition: transform .4s ease;
+}
+body.lp-body .lp-hero-media .lp-shot-lg:hover { transform: perspective(1500px) rotateY(-2deg) rotateX(1deg); }
+body.lp-body.is-rtl .lp-hero-media .lp-shot-lg { transform: perspective(1500px) rotateY(7deg) rotateX(3deg); transform-origin: right center; }
+
+/* ------------------------------------------------------- trust strip ---- */
+
+body.lp-body .lp-trust { background: var(--dl-ink); padding: 0 0 3.5rem; }
+body.lp-body .lp-trust-strip {
+    background: #fff;
+    border: 0;
+    border-radius: var(--dl-radius);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, .35);
+}
+body.lp-body .lp-trust-icon {
+    background: rgba(var(--lp-accent-rgb), .12) !important;
+    border-radius: 12px !important;
+    color: var(--lp-accent) !important;
+}
+body.lp-body .lp-trust-stat { color: var(--lp-accent); font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; }
+
+/* ---------------------------------------------------------- sections ---- */
+
+body.lp-body .lp-section { padding: 5rem 0; }
+body.lp-body .lp-section-tint { background: var(--dl-soft); }
+body.lp-body .lp-section-title { letter-spacing: -.02em; }
+body.lp-body .lp-section-head { margin-bottom: 2.6rem; }
+
+/* before / after */
+body.lp-body .lp-switch-card { border-radius: var(--dl-radius); box-shadow: var(--dl-shadow); }
+body.lp-body .lp-switch-problem { background: #fff; border: 1px solid #fee2e2; }
+body.lp-body .lp-switch-solution { background: #f0fdf4; border: 1px solid #bbf7d0; }
+body.lp-body .lp-switch-problem li i { background: #fee2e2; border-radius: 50%; color: #dc2626; height: 22px; line-height: 22px; text-align: center; width: 22px; }
+body.lp-body .lp-switch-solution li i { background: #dcfce7; border-radius: 50%; color: #16a34a; height: 22px; line-height: 22px; text-align: center; width: 22px; }
+body.lp-body .lp-switch-arrow { color: var(--lp-accent); }
+
+/* features + outcomes */
+body.lp-body .lp-feature-card,
+body.lp-body .lp-outcome {
+    background: #fff;
+    border: 1px solid #e8ecf3;
+    border-radius: var(--dl-radius);
+    box-shadow: none;
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+body.lp-body .lp-feature-card:hover,
+body.lp-body .lp-outcome:hover {
+    border-color: rgba(var(--lp-accent-rgb), .45);
+    box-shadow: var(--dl-shadow-lg);
+    transform: translateY(-4px);
+}
+body.lp-body .lp-feature-icon,
+body.lp-body .lp-outcome-icon {
+    background: rgba(var(--lp-accent-rgb), .12) !important;
+    border-radius: 14px !important;
+    color: var(--lp-accent) !important;
+}
+
+/* showcase */
+body.lp-body .lp-shot-stage { border-radius: 18px; box-shadow: var(--dl-shadow-lg); }
+body.lp-body .lp-thumb.active { border-color: var(--lp-accent) !important; }
+
+/* what you get: dark band */
+body.lp-body .lp-section-dark {
+    background:
+        radial-gradient(700px 380px at 90% 10%, rgba(var(--lp-accent-rgb), .25), transparent 65%),
+        var(--dl-ink);
+}
+body.lp-body .lp-delivery-card {
+    background: rgba(255, 255, 255, .05);
+    border: 1px solid rgba(255, 255, 255, .12);
+    border-radius: var(--dl-radius);
+}
+body.lp-body .lp-section-dark .lp-check-list i { color: #22c55e; }
+
+/* pricing card: the hero of the page */
+body.lp-body .lp-price-card {
+    border: 2px solid rgba(var(--lp-accent-rgb), .55);
+    border-radius: 24px;
+    box-shadow: 0 30px 70px rgba(var(--lp-accent-rgb), .18), var(--dl-shadow-lg);
+    position: relative;
+}
+body.lp-body .lp-price-tag {
+    background: var(--dl-ink);
+    border-radius: 999px;
+    color: #fff;
+    letter-spacing: .08em;
+}
+body.lp-body .lp-price-value { color: var(--dl-ink); }
+body.lp-body .lp-price-card .lp-check-list i { color: #16a34a; }
+body.lp-body .lp-price-secure { color: var(--dl-muted); }
+body.lp-body .lp-price-secure i { color: #16a34a; }
+
+/* reviews */
+body.lp-body .lp-reviews-score-card { background: var(--dl-ink); border-radius: var(--dl-radius); }
+body.lp-body .lp-review-card { border: 1px solid #e8ecf3; border-radius: var(--dl-radius); box-shadow: none; }
+body.lp-body .lp-review-card:hover { box-shadow: var(--dl-shadow); }
+body.lp-body .lp-metric-fill { background: var(--dl-btn) !important; }
+body.lp-body .lp-filter-pill.active { background: var(--dl-ink) !important; border-color: var(--dl-ink) !important; color: #fff !important; }
+
+/* faq */
+body.lp-body .lp-faq-item { border: 1px solid #e8ecf3; border-radius: 16px; box-shadow: none; }
+body.lp-body .lp-faq-item.open { border-color: rgba(var(--lp-accent-rgb), .45); box-shadow: var(--dl-shadow); }
+body.lp-body .lp-faq-q i { color: var(--lp-accent); }
+
+/* contact */
+body.lp-body .lp-contact-card { border-radius: 22px; box-shadow: var(--dl-shadow-lg); }
+
+/* final call to action */
+body.lp-body .lp-final {
+    background:
+        radial-gradient(800px 420px at 50% 0%, rgba(var(--lp-accent-rgb), .38), transparent 70%),
+        var(--dl-ink);
+    padding: 5.5rem 0;
+}
+
+/* -------------------------------------------- phone buy bar (sticky) ---- */
+
+.lp-sticky-buy { display: none; }
+@media (max-width: 768px) {
+    .lp-topbar-trust, body.lp-body .lp-topbar-price { display: none; }
+    body.lp-body .lp-topbar-buy { margin-left: auto; padding: .55rem 1rem; }
+    body.lp-body.is-rtl .lp-topbar-buy { margin-left: 0; margin-right: auto; }
+    body.lp-body .lp-hero { padding: 2rem 0 3rem; }
+    body.lp-body .lp-hero-offer { padding: 1.1rem; }
+    body.lp-body .lp-hero-media .lp-shot-lg,
+    body.lp-body.is-rtl .lp-hero-media .lp-shot-lg { transform: none; }
+    body.lp-body .lp-section { padding: 3.5rem 0; }
+
+    .lp-sticky-buy {
+        align-items: center;
+        background: #fff;
+        border-top: 1px solid #e8ecf3;
+        bottom: 0;
+        box-shadow: 0 -12px 30px rgba(15, 23, 42, .14);
+        display: flex;
+        gap: 12px;
+        justify-content: space-between;
+        left: 0;
+        padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+        position: fixed;
+        right: 0;
+        transform: translateY(110%);
+        transition: transform .25s ease;
+        z-index: 1035;
+    }
+    .lp-sticky-buy.is-visible { transform: none; }
+    .lp-sticky-price { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+    .lp-sticky-price strong { color: var(--dl-ink); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.35rem; font-weight: 800; }
+    .lp-sticky-price small { color: var(--dl-muted); font-size: .76rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .lp-sticky-price .lp-stars { color: #f59e0b; }
+    .lp-sticky-buy .lp-btn { flex: 0 0 auto; padding: .8rem 1.2rem; }
+    /* lift the chat bubble only while the buy bar is showing */
+    body.lp-body .lc-root { transition: bottom .25s ease; }
+    body.lp-body.lp-sticky-on .lc-root { bottom: 84px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.lp-body .lp-hero-media .lp-shot-lg { transform: none !important; transition: none; }
+    .lp-sticky-buy { transition: none; }
+}
