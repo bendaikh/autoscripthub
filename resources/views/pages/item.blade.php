@@ -216,9 +216,19 @@ $extend_item_price = 0;
                       @endif
                       @endif
               @if($getcount != 0)
-                <div class="row">
+                {{-- Extra screenshots: small thumbnails. On phones they are one row you swipe sideways
+                     (col-sm-2 alone made each screenshot full width, stacked down the page). --}}
+                <style>
+                @media (max-width:575.98px){
+                  .item-thumbs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;margin-left:-6px;margin-right:-6px;padding-bottom:6px}
+                  .item-thumbs>.item-thumb{flex:0 0 30%;max-width:30%;padding-left:6px;padding-right:6px;scroll-snap-align:start}
+                  .item-thumbs .gallery-item{display:block;margin-bottom:0!important;aspect-ratio:4/3;overflow:hidden;border:1px solid #e3e9ef}
+                  .item-thumbs .gallery-item img{width:100%;height:100%;object-fit:cover;object-position:top center}
+                }
+                </style>
+                <div class="row item-thumbs">
                   @foreach($item_allimage as $image)
-                  <div class="col-sm-2"><a class="gallery-item rounded-lg mb-grid-gutter thumber" href="{{ Helper::Image_Path($image->item_image,'no-image.png') }}" data-sub-html="{{ $item['item']->item_name }}"><img class="lazy product-photo" src="{{ Helper::Image_Path($image->item_image,'no-image.png') }}"  alt="{{ $image->item_image }}"/><span class="gallery-item-caption">{{ $item['item']->item_name }}</span></a></div>
+                  <div class="col-sm-2 item-thumb"><a class="gallery-item rounded-lg mb-grid-gutter thumber" href="{{ Helper::Image_Path($image->item_image,'no-image.png') }}" data-sub-html="{{ $item['item']->item_name }}"><img class="lazy product-photo" src="{{ Helper::Image_Path($image->item_image,'no-image.png') }}"  alt="{{ $image->item_image }}"/><span class="gallery-item-caption">{{ $item['item']->item_name }}</span></a></div>
                   @endforeach 
                 </div>
                 @endif
