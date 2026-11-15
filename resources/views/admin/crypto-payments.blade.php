@@ -39,6 +39,36 @@
             <div class="alert alert-warning">{{ __('The crypto payment table does not exist yet. Run the database migration (php artisan migrate), then reload this page.') }}</div>
             @else
 
+            @php
+                $cpaStatus = [];
+                foreach (['binance' => $binance, 'kast' => $kast, 'usdt' => $usdt] as $cpaKey => $cpaM) {
+                    $cpaFlag = $cpaKey === 'usdt' ? 'wallet_enabled' : $cpaKey . '_enabled';
+                    $cpaQrCol = ['binance' => 'binance_qr', 'kast' => 'kast_qr', 'usdt' => null][$cpaKey];
+                    if ($cpaM && $cpaM['enabled']) {
+                        $cpaStatus[$cpaKey] = [true, __('Live: shown at checkout, on landing pages and in "We accept"')];
+                    } elseif (!$crypto || (int) ($crypto->$cpaFlag ?? 0) !== 1) {
+                        $cpaStatus[$cpaKey] = [false, __('Hidden: "Show to buyers" is set to No')];
+                    } elseif ($cpaQrCol && !empty($crypto->$cpaQrCol) && empty($cpaM['qr'])) {
+                        $cpaStatus[$cpaKey] = [false, __('Hidden: the QR image file is missing, please upload it again')];
+                    } else {
+                        $cpaStatus[$cpaKey] = [false, $cpaKey === 'usdt' ? __('Hidden: add the wallet address') : __('Hidden: add a QR code, ID or link')];
+                    }
+                }
+            @endphp
+            <div class="card mb-3">
+                <div class="card-body py-3">
+                    <strong class="d-block mb-2">{{ __('What buyers see right now') }}</strong>
+                    <div class="d-flex flex-wrap" style="gap:10px">
+                        @foreach(['binance' => 'Binance Pay', 'kast' => 'KAST', 'usdt' => __('USDT (any wallet)')] as $cpaKey => $cpaName)
+                        <div style="flex:1 1 260px;border:1px solid {{ $cpaStatus[$cpaKey][0] ? '#bbf7d0' : '#fecaca' }};background:{{ $cpaStatus[$cpaKey][0] ? '#f0fdf4' : '#fef2f2' }};border-radius:10px;padding:10px 12px">
+                            <strong>{!! $cpaStatus[$cpaKey][0] ? '&#9989;' : '&#9888;&#65039;' !!} {{ $cpaName }}</strong><br>
+                            <small style="color:{{ $cpaStatus[$cpaKey][0] ? '#166534' : '#991b1b' }}">{{ $cpaStatus[$cpaKey][1] }}</small>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
             <div class="cpa-help mb-3">
                 <strong>{{ __('How it works') }}</strong>
                 <ol>
@@ -197,8 +227,8 @@
                                     <div class="form-group">
                                         <label class="control-label mb-1">{{ __('Show to buyers') }}</label>
                                         <select name="{{ $key }}_enabled" class="form-control">
-                                            <option value="1" @if(($crypto->{$key . '_enabled'} ?? 0) == 1) selected @endif>{{ __('Yes') }}</option>
-                                            <option value="0" @if(($crypto->{$key . '_enabled'} ?? 0) == 0) selected @endif>{{ __('No') }}</option>
+                                            <option value="1" @if(($crypto->{$key . '_enabled'} ?? 1) == 1) selected @endif>{{ __('Yes') }}</option>
+                                            <option value="0" @if(($crypto->{$key . '_enabled'} ?? 1) == 0) selected @endif>{{ __('No') }}</option>
                                         </select>
                                     </div>
                                     <div class="form-group">
@@ -225,7 +255,7 @@
                                         <input type="url" name="{{ $linkField }}" class="form-control" maxlength="255" placeholder="{{ $linkPh }}" value="{{ old($linkField, $crypto->$linkField ?? '') }}">
                                         <small class="form-text text-muted">{{ __('Buyers on a phone can tap it to open the app.') }}</small>
                                     </div>
-                                    @if($m && !$m['enabled'] && ($crypto->{$key . '_enabled'} ?? 0) == 1)
+                                    @if($m && !$m['enabled'] && ($crypto->{$key . '_enabled'} ?? 1) == 1)
                                     <div class="alert alert-warning mt-3 mb-0 py-2">{{ __('Add a QR code, ID or link so buyers can pay.') }}</div>
                                     @endif
                                 </div>
@@ -238,8 +268,8 @@
                                         <div class="col-md-3 form-group">
                                             <label class="control-label mb-1">{{ __('Show to buyers') }}</label>
                                             <select name="wallet_enabled" class="form-control">
-                                                <option value="1" @if(($crypto->wallet_enabled ?? 0) == 1) selected @endif>{{ __('Yes') }}</option>
-                                                <option value="0" @if(($crypto->wallet_enabled ?? 0) == 0) selected @endif>{{ __('No') }}</option>
+                                                <option value="1" @if(($crypto->wallet_enabled ?? 1) == 1) selected @endif>{{ __('Yes') }}</option>
+                                                <option value="0" @if(($crypto->wallet_enabled ?? 1) == 0) selected @endif>{{ __('No') }}</option>
                                             </select>
                                         </div>
                                         <div class="col-md-2 form-group">
