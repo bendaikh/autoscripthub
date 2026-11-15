@@ -82,6 +82,13 @@
     if ($aboutHtml === '' && mb_strlen(\Fickrr\Helpers\LandingPageContent::plainText($landing_page->lp_description ?? '')) > \Fickrr\Helpers\LandingPageContent::DESCRIPTION_MAX_CHARS) {
         $aboutHtml = $landing_page->lp_description;
     }
+    // Plain-text descriptions (e.g. from the AI generator) become paragraphs,
+    // and empty editor paragraphs such as <p><br></p> are dropped.
+    if ($aboutHtml !== '' && strip_tags($aboutHtml) === $aboutHtml) {
+        $aboutParas = preg_split('/\R{2,}/', trim($aboutHtml));
+        $aboutHtml = implode('', array_map(fn ($para) => '<p>' . nl2br(e(trim($para))) . '</p>', $aboutParas));
+    }
+    $aboutHtml = preg_replace('#<p>(\s|&nbsp;|<br\s*/?>)*</p>#i', '', (string) $aboutHtml);
 
     // Arabic-script currency symbols (e.g. "د.م.") read badly on FR/EN pages:
     // there we show the ISO currency code after the amount instead (e.g. "290 MAD").
@@ -158,6 +165,9 @@
             'problemLead' => $lpT('Before'),
             'solutionLead' => $lpT('After'),
             'aboutHeading' => $lpT('About this product'),
+            'aboutEyebrow' => $lpT('Product overview'),
+            'readMore' => $lpT('Read more'),
+            'showLess' => $lpT('Show less'),
             'showcaseHeading' => $lpT('See it up close'),
             'showcaseSub' => $lpT('Real screens from the product you are buying'),
             'demoHeading' => $lpT('See it in action'),
@@ -381,8 +391,25 @@
             </div>
 
             <div v-if="page.descriptionHtml" class="lp-about" data-reveal>
-                <h2 class="lp-section-title">@{{ page.i18n.aboutHeading }}</h2>
-                <div class="lp-prose" v-html="page.descriptionHtml"></div>
+                <aside class="lp-about-side">
+                    <span class="lp-about-eyebrow"><i class="fas fa-info-circle"></i> @{{ page.i18n.aboutEyebrow }}</span>
+                    <h2 class="lp-section-title">@{{ page.i18n.aboutHeading }}</h2>
+                    <p class="lp-about-name">@{{ page.titleName || page.title }}</p>
+                    <ul class="lp-about-facts">
+                        <li><i class="fas fa-bolt"></i> @{{ page.i18n.paymentNote }}</li>
+                        <li><i class="fas fa-lock"></i> @{{ page.i18n.secureNote }}</li>
+                    </ul>
+                    <a href="#pricing" class="lp-about-link">@{{ page.i18n.seePricing }} <i class="fas fa-arrow-right"></i></a>
+                </aside>
+                <div class="lp-about-card" :class="{ 'is-collapsible': aboutCollapsible, 'is-open': aboutOpen }">
+                    <div class="lp-about-body" ref="aboutBody">
+                        <div class="lp-prose lp-about-prose" v-html="page.descriptionHtml"></div>
+                    </div>
+                    <button v-if="aboutCollapsible" type="button" class="lp-about-more" @click="toggleAbout">
+                        @{{ aboutOpen ? page.i18n.showLess : page.i18n.readMore }}
+                        <i class="fas" :class="aboutOpen ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </section>
