@@ -678,26 +678,7 @@ $("#coupon_start_date").datepicker({
 <!-- version links manager -->
 <script src="{{ asset('theme/js/version-links.js') }}" type="text/javascript"></script>
 <!-- google analytics -->
-@if($allsettings->google_analytics!= "")
-<!-- Google Analytics -->
-<script>
-window.addEventListener('load',function(){
-  (window.requestIdleCallback||function(cb){setTimeout(cb,1);})(function(){
-    var gs=document.createElement('script'); gs.async=true;
-    gs.src='https://www.googletagmanager.com/gtag/js?id={{ $allsettings->google_analytics }}';
-    document.head.appendChild(gs);
-  },{timeout:3000});
-});
-</script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', '{{ $allsettings->google_analytics }}');
-</script>
-<!-- End Google Analytics -->
-@endif
+@include('partials.google-analytics')
 <!-- google analytics -->
 <script type="text/javascript">
 	$(document).ready(function(){
