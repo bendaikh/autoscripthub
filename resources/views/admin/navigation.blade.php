@@ -161,6 +161,13 @@
                             <span class="badge badge-danger ml-1" id="lc-nav-badge" @if($lcUnread < 1) style="display:none" @endif>{{ $lcUnread }}</span>
                         </a>
                     </li>
+                    @php $cpNavWaiting = \Fickrr\Models\CryptoPay::awaitingCount(); @endphp
+                    <li>
+                        <a href="{{ url('/admin/crypto-payments') }}">
+                            <i class="menu-icon fa fa-bitcoin"></i>{{ __('Crypto Payments') }}
+                            @if($cpNavWaiting > 0)<span class="badge badge-danger ml-1">{{ $cpNavWaiting }}</span>@endif
+                        </a>
+                    </li>
                     @if(in_array('settings',$avilable))
                     <li>
                         <a href="{{ url('/admin/promo-banner') }}">
