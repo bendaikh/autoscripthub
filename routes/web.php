@@ -456,6 +456,7 @@ Route::group(['middleware' => ['is_admin', 'HtmlMinifier', 'cache', 'XSS']], fun
 
 	/* crypto payments (Binance Pay / KAST / USDT) for landing pages */
 	Route::get('/admin/crypto-payments', 'Admin\CryptoPaymentController@index');
+	Route::get('/admin/crypto-payments/waiting', 'Admin\CryptoPaymentController@waiting');
 	Route::post('/admin/crypto-payments/settings', 'Admin\CryptoPaymentController@updateSettings');
 	Route::get('/admin/crypto-payments/{id}/receipt', 'Admin\CryptoPaymentController@receipt')->where('id', '[0-9]+');
 	Route::get('/admin/crypto-payments/shop/{id}/receipt', 'Admin\CryptoPaymentController@shopReceipt')->where('id', '[0-9]+');

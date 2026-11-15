@@ -197,6 +197,49 @@ class CryptoPaymentController extends Controller
         return response()->file($path, ['Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff']);
     }
 
+    /** Top-bar bell: payments with a receipt waiting for approval (newest first). */
+    public function waiting()
+    {
+        $items = [];
+        try {
+            $rows = DB::table('landing_page_orders as o')
+                ->leftJoin('landing_pages as lp', 'lp.lp_id', '=', 'o.lp_id')
+                ->whereIn('o.payment_method', CryptoPay::METHODS)
+                ->where('o.payment_status', 'awaiting')
+                ->orderByDesc('o.updated_at')->limit(15)
+                ->get(['o.id', 'o.payment_method', 'o.amount', 'o.customer_email', 'o.updated_at', 'lp.lp_title']);
+            foreach ($rows as $r) {
+                $items[] = [
+                    'key' => 'l' . $r->id, 'type' => 'landing', 'method' => CryptoPay::NAMES[$r->payment_method] ?? $r->payment_method,
+                    'amount' => rtrim(rtrim(number_format((float) $r->amount, 2, '.', ''), '0'), '.') . ' ' . (in_array($r->payment_method, CryptoPay::FIAT, true) ? 'USD' : 'USDT'),
+                    'email' => $r->customer_email, 'title' => $r->lp_title ?: __('Landing page'), 'at' => $this->iso($r->updated_at),
+                ];
+            }
+            if (CryptoPay::shopReady()) {
+                $rows = DB::table('shop_crypto_payments')->where('status', 'awaiting')
+                    ->orderByDesc('submitted_at')->limit(15)
+                    ->get(['id', 'method', 'amount', 'currency', 'email', 'purchase_token', 'submitted_at']);
+                foreach ($rows as $r) {
+                    $items[] = [
+                        'key' => 's' . $r->id, 'type' => 'shop', 'method' => CryptoPay::NAMES[$r->method] ?? $r->method,
+                        'amount' => rtrim(rtrim(number_format((float) $r->amount, 2, '.', ''), '0'), '.') . ' ' . ($r->currency ?: ''),
+                        'email' => $r->email, 'title' => __('Site order') . ' #' . $r->purchase_token, 'at' => $this->iso($r->submitted_at),
+                    ];
+                }
+            }
+        } catch (\Throwable $e) {
+            $items = [];
+        }
+        usort($items, fn ($a, $b) => strcmp((string) $b['at'], (string) $a['at']));
+        return response()->json(['ok' => true, 'count' => count($items), 'items' => array_slice($items, 0, 15)])
+            ->header('Cache-Control', 'no-store');
+    }
+
+    private function iso($value): ?string
+    {
+        return $value ? \Carbon\Carbon::parse($value)->toIso8601String() : null;
+    }
+
     /* ---------------- site checkout (shop) crypto payments ---------------- */
 
     public function shopReceipt($id)

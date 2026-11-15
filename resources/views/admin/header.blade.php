@@ -76,6 +76,34 @@
                             <a class="lch-all" href="{{ url('/admin/live-chat') }}">{{ __('Open Live Chat') }} <i class="fa fa-arrow-right"></i></a>
                         </div>
                     </div>
+                    @php
+                      $cphCount = \Fickrr\Models\CryptoPay::awaitingCount();
+                      $cphText = [
+                        'none' => __('Nothing to approve'),
+                        'waiting' => __('waiting'),
+                        'empty' => __('No payments are waiting for approval.'),
+                        'now' => __('now'),
+                        'newPay' => __('New payment to approve'),
+                        'shop' => __('Site checkout'),
+                        'landing' => __('Landing page'),
+                      ];
+                    @endphp
+                    <div class="lch cph float-right" id="cph">
+                        <button type="button" class="lch-btn cph-btn @if($cphCount > 0) has-unread @endif" id="cph-btn" aria-haspopup="true" aria-expanded="false" aria-controls="cph-panel" title="{{ __('Crypto & Wise payments to approve') }}">
+                            <i class="fa fa-bitcoin"></i>
+                            <span class="lch-count" id="cph-count" @if($cphCount < 1) style="display:none" @endif>{{ $cphCount }}</span>
+                        </button>
+                        <div class="lch-menu" id="cph-panel" role="dialog" aria-label="{{ __('Payments to approve') }}" hidden>
+                            <div class="lch-menu-head">
+                                <strong>{{ __('Payments to approve') }}</strong>
+                                <span id="cph-summary">@if($cphCount > 0){{ $cphCount }} {{ __('waiting') }}@else{{ __('Nothing to approve') }}@endif</span>
+                            </div>
+                            <div class="lch-list" id="cph-list">
+                                <div class="lch-empty">{{ __('No payments are waiting for approval.') }}</div>
+                            </div>
+                            <a class="lch-all" href="{{ url('/admin/crypto-payments') }}">{{ __('Open Crypto Payments') }} <i class="fa fa-arrow-right"></i></a>
+                        </div>
+                    </div>
                         @if($allsettings->multi_language == 1)
                        <div class="language-select dropdown" id="language-select">
                         <a class="dropdown-toggle" href="#" data-toggle="dropdown"  id="language" aria-haspopup="true" aria-expanded="true">
@@ -99,6 +127,8 @@
         </header>
 <style>
 .lch{margin-right:14px;margin-top:2px}
+.cph-btn.has-unread{background:#f59e0b;border-color:#f59e0b;animation:cph-pulse 1.8s ease-out infinite}
+@keyframes cph-pulse{0%{box-shadow:0 0 0 0 rgba(245,158,11,.55)}70%{box-shadow:0 0 0 10px rgba(245,158,11,0)}100%{box-shadow:0 0 0 0 rgba(245,158,11,0)}}
 .lch-btn{position:relative;width:38px;height:38px;border-radius:50%;border:1px solid #e5e7eb;background:#fff;color:#4b5563;font-size:17px;cursor:pointer;transition:background .15s,color .15s}
 .lch-btn:hover{background:#f3f4f6;color:#111827}
 .lch-btn:focus{outline:none;box-shadow:0 0 0 3px var(--ash-primary-soft,rgba(79,70,229,.2))}
@@ -244,6 +274,97 @@
   updateAlertsButton();
   check();
   setInterval(check, 15000);
+})();
+</script>
+<script>
+(function () {
+  if (!window.fetch || window.__cpHead) return;
+  window.__cpHead = 1;
+  var btn = document.getElementById('cph-btn');
+  if (!btn) return;
+  var countEl = document.getElementById('cph-count');
+  var list = document.getElementById('cph-list');
+  var summary = document.getElementById('cph-summary');
+  var panel = document.getElementById('cph-panel');
+  var pageUrl = @json(url('/admin/crypto-payments'));
+  var dataUrl = @json(url('/admin/crypto-payments/waiting'));
+  var L = @json($cphText);
+  var onPage = location.pathname.indexOf('/admin/crypto-payments') !== -1;
+  var lastCount = null, seen = {};
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function ago(iso) {
+    if (!iso) return '';
+    var s = Math.floor((Date.now() - new Date(iso)) / 1000);
+    if (s < 60) return L.now;
+    if (s < 3600) return Math.floor(s / 60) + ' min';
+    if (s < 86400) return Math.floor(s / 3600) + ' h';
+    return new Date(iso).toLocaleDateString();
+  }
+  function beep() {
+    try {
+      var A = window.AudioContext || window.webkitAudioContext, ctx = new A(), o = ctx.createOscillator(), g = ctx.createGain();
+      o.frequency.value = 660; g.gain.value = 0.08; o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.25);
+    } catch (e) {}
+  }
+  function alertDesktop(p) {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    try {
+      var n = new Notification(L.newPay + ': ' + p.amount + ' (' + p.method + ')', { body: p.email + ' · ' + p.title, tag: 'cp-' + p.key });
+      n.onclick = function () { window.focus(); location.href = pageUrl + '?type=' + p.type; };
+    } catch (e) {}
+  }
+  function render(d) {
+    var n = d.count || 0, items = d.items || [];
+    countEl.textContent = n > 99 ? '99+' : String(n);
+    countEl.style.display = n > 0 ? '' : 'none';
+    btn.classList.toggle('has-unread', n > 0);
+    summary.textContent = n > 0 ? n + ' ' + L.waiting : L.none;
+    list.innerHTML = '';
+    if (!items.length) list.appendChild(el('div', 'lch-empty', L.empty));
+    items.forEach(function (p) {
+      var a = el('a', 'lch-item');
+      a.href = pageUrl + '?type=' + p.type;
+      var top = el('div', 'lch-item-top');
+      top.appendChild(el('span', 'lch-item-name', p.amount + ' · ' + p.method));
+      top.appendChild(el('span', 'lch-item-meta', ago(p.at)));
+      a.appendChild(top);
+      a.appendChild(el('div', 'lch-item-page', (p.type === 'shop' ? L.shop : L.landing) + ' · ' + p.title));
+      a.appendChild(el('div', 'lch-item-last', p.email || ''));
+      list.appendChild(a);
+    });
+    var fresh = items.filter(function (p) { return !seen[p.key]; });
+    if (lastCount !== null && n > lastCount && fresh.length) {
+      if (!onPage) beep();
+      alertDesktop(fresh[0]);
+    }
+    items.forEach(function (p) { seen[p.key] = 1; });
+    lastCount = n;
+  }
+  function check() {
+    fetch(dataUrl, { credentials: 'same-origin', cache: 'no-store', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && d.ok) render(d); })
+      .catch(function () {});
+  }
+  document.body.appendChild(panel);
+  function place() {
+    var r = btn.getBoundingClientRect(), w = Math.min(340, window.innerWidth - 20);
+    var left = Math.min(Math.max(10, r.right - w), window.innerWidth - w - 10);
+    panel.style.width = w + 'px';
+    panel.style.left = left + 'px';
+    panel.style.top = (r.bottom + 8) + 'px';
+  }
+  function setOpen(open) {
+    if (open) { place(); panel.hidden = false; check(); } else { panel.hidden = true; }
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  btn.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); setOpen(panel.hidden); });
+  document.addEventListener('click', function (e) { if (!panel.hidden && !panel.contains(e.target) && !btn.contains(e.target)) setOpen(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panel.hidden) { setOpen(false); btn.focus(); } });
+  window.addEventListener('resize', function () { if (!panel.hidden) place(); });
+  window.addEventListener('scroll', function () { if (!panel.hidden) place(); }, true);
+  check();
+  setInterval(check, 20000);
 })();
 </script>
         
