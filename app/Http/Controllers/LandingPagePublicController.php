@@ -212,7 +212,7 @@ class LandingPagePublicController extends Controller
         // Validate email
         $request->validate([
             'customer_email' => 'required|email',
-            'payment_method' => 'required|in:paypal,dodopayments,whop',
+            'payment_method' => 'required|in:paypal,dodopayments,whop,binance,kast,usdt',
         ]);
 
         $payment_method = $request->payment_method;
@@ -264,6 +264,11 @@ class LandingPagePublicController extends Controller
         Session::put('landing_order_token', $order_token);
 
         // Process based on payment method
+        if (in_array($payment_method, \Fickrr\Models\CryptoPay::METHODS, true)) {
+            $cryptoUrl = url('/landing/crypto/' . $order_token);
+            return $embedInPopup ? response()->json(['success' => true, 'redirect' => $cryptoUrl]) : redirect($cryptoUrl);
+        }
+
         if ($payment_method == 'paypal') {
             return $this->processPayPal($landing_page, $order_token);
         } elseif ($payment_method == 'dodopayments') {
@@ -553,7 +558,128 @@ class LandingPagePublicController extends Controller
             }
         }
 
+        // Manual crypto: Binance Pay, KAST, USDT address (Admin > Crypto Payments)
+        foreach (\Fickrr\Models\CryptoPay::enabledMethods() as $crypto) {
+            $methods[] = $crypto;
+        }
+
         return $methods;
+    }
+
+    /**
+     * Crypto payment page: QR code / address, amount and transaction ID form.
+     */
+    public function cryptoPay($order_token)
+    {
+        $order = $this->cryptoOrder($order_token);
+        if (!$order) {
+            abort(404);
+        }
+        if ($order->payment_status === 'completed') {
+            return redirect('/landing/success/' . $order_token);
+        }
+        $landing_page = LandingPage::getById($order->lp_id);
+        if (!$landing_page) {
+            abort(404);
+        }
+        \Fickrr\Helpers\LandingPageI18n::usePage($landing_page);
+        $content = \Fickrr\Helpers\LandingPageContent::build($landing_page, [], collect(), 0);
+
+        return view('landing-pages.crypto-pay', [
+            'order' => $order,
+            'landing_page' => $landing_page,
+            'method' => \Fickrr\Models\CryptoPay::method($order->payment_method),
+            'details' => \Fickrr\Models\CryptoPay::details($order),
+            'content' => $content,
+            'setting' => Settings::editGeneral(1),
+        ]);
+    }
+
+    /**
+     * Buyer submits the transaction / order ID after paying.
+     */
+    public function cryptoConfirm(Request $request, $order_token)
+    {
+        $order = $this->cryptoOrder($order_token);
+        if (!$order) {
+            abort(404);
+        }
+        if (in_array($order->payment_status, ['completed'], true)) {
+            return redirect('/landing/success/' . $order_token);
+        }
+        $request->validate([
+            'receipt' => 'required|file|mimes:jpg,jpeg,png,webp,gif,pdf|max:8192',
+            'reference' => 'nullable|string|max:150',
+            'payer' => 'nullable|string|max:100',
+        ]);
+        $details = \Fickrr\Models\CryptoPay::details($order);
+        // Receipts are kept outside the public folder; the admin opens them through Admin > Crypto Payments.
+        $file = $request->file('receipt');
+        $ext = strtolower($file->guessExtension() ?: $file->getClientOriginalExtension());
+        $ext = in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'pdf'], true) ? $ext : 'bin';
+        $name = $order->id . '-' . \Illuminate\Support\Str::random(24) . '.' . $ext;
+        $file->move(\Fickrr\Models\CryptoPay::receiptDir(), $name);
+        if (!empty($details['receipt'])) {
+            @unlink(\Fickrr\Models\CryptoPay::receiptDir() . '/' . basename($details['receipt']));
+        }
+        $details['receipt'] = $name;
+        $details['reference'] = trim(strip_tags((string) $request->input('reference'))) ?: null;
+        $details['payer'] = trim(strip_tags((string) $request->input('payer'))) ?: null;
+        $details['submitted_at'] = now()->toDateTimeString();
+        \DB::table('landing_page_orders')->where('id', $order->id)->update([
+            'payment_status' => 'awaiting',
+            'payment_details' => json_encode($details),
+            'updated_at' => now(),
+        ]);
+        $this->notifyAdminCrypto($order, $details);
+
+        return redirect('/landing/crypto/' . $order_token);
+    }
+
+    /**
+     * Polled by the crypto page while the buyer waits for approval.
+     */
+    public function cryptoStatus($order_token)
+    {
+        $order = $this->cryptoOrder($order_token);
+        return response()->json(['status' => $order->payment_status ?? 'missing'])
+            ->header('Cache-Control', 'no-store');
+    }
+
+    private function cryptoOrder($order_token)
+    {
+        if (!is_string($order_token) || !preg_match('/^LP-[0-9]+-[0-9]+$/', $order_token)) {
+            return null;
+        }
+        return \DB::table('landing_page_orders')
+            ->where('order_token', $order_token)
+            ->whereIn('payment_method', \Fickrr\Models\CryptoPay::METHODS)
+            ->first();
+    }
+
+    /** Email the site owner that a crypto payment is waiting for approval. */
+    private function notifyAdminCrypto($order, array $details): void
+    {
+        try {
+            $setting = Settings::editGeneral(1);
+            $to = $setting->sender_email ?? '';
+            if ($to === '') {
+                return;
+            }
+            $title = \DB::table('landing_pages')->where('lp_id', $order->lp_id)->value('lp_title') ?: 'Landing page order';
+            $method = \Fickrr\Models\CryptoPay::NAMES[$order->payment_method] ?? $order->payment_method;
+            $text = "New crypto payment to check\n\n"
+                . "Product: {$title}\nAmount: {$order->amount} USDT\nMethod: {$method}\n"
+                . "Buyer: {$order->customer_email}\nTransaction ID: " . ($details['reference'] ?: '-') . "\nReceipt: uploaded (open it in the admin)\n"
+                . (!empty($details['payer']) ? "Paid from: {$details['payer']}\n" : '')
+                . "\nApprove it here: " . url('/admin/crypto-payments');
+            \Illuminate\Support\Facades\Mail::raw($text, function ($m) use ($to, $setting, $title) {
+                $m->to($to)->subject('Crypto payment waiting: ' . $title);
+                $m->from($to, $setting->sender_name ?? 'Website');
+            });
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     /**
@@ -569,6 +695,11 @@ class LandingPagePublicController extends Controller
         if (!$order) {
             Session::flash('error', __('Order not found'));
             return redirect('/');
+        }
+
+        // Crypto orders are only completed when the admin approves the payment.
+        if (in_array($order->payment_method ?? '', \Fickrr\Models\CryptoPay::METHODS, true) && $order->payment_status !== 'completed') {
+            return redirect('/landing/crypto/' . $order_token);
         }
 
         if (($order->payment_method ?? '') === 'whop' && $order->payment_status == 'pending') {
@@ -590,7 +721,9 @@ class LandingPagePublicController extends Controller
         }
 
         // Update order status to completed if still pending
+        $justCompleted = false;
         if ($order->payment_status == 'pending') {
+            $justCompleted = true;
             \DB::table('landing_page_orders')
                 ->where('order_token', $order_token)
                 ->update([
@@ -605,8 +738,8 @@ class LandingPagePublicController extends Controller
                 ->first();
         }
         
-        // Update customer purchase stats (works whether order was just completed or already completed)
-        if ($order->payment_status == 'completed') {
+        // Count the purchase once, when the order is completed (not on every page refresh)
+        if ($justCompleted && $order->payment_status == 'completed') {
             LandingCustomer::createOrUpdateCustomer($order->customer_email, $order->amount);
         }
 
