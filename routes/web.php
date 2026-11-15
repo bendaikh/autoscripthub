@@ -458,6 +458,9 @@ Route::group(['middleware' => ['is_admin', 'HtmlMinifier', 'cache', 'XSS']], fun
 	Route::get('/admin/crypto-payments', 'Admin\CryptoPaymentController@index');
 	Route::post('/admin/crypto-payments/settings', 'Admin\CryptoPaymentController@updateSettings');
 	Route::get('/admin/crypto-payments/{id}/receipt', 'Admin\CryptoPaymentController@receipt')->where('id', '[0-9]+');
+	Route::get('/admin/crypto-payments/shop/{id}/receipt', 'Admin\CryptoPaymentController@shopReceipt')->where('id', '[0-9]+');
+	Route::post('/admin/crypto-payments/shop/{id}/approve', 'Admin\CryptoPaymentController@shopApprove')->where('id', '[0-9]+');
+	Route::post('/admin/crypto-payments/shop/{id}/reject', 'Admin\CryptoPaymentController@shopReject')->where('id', '[0-9]+');
 	Route::post('/admin/crypto-payments/{id}/approve', 'Admin\CryptoPaymentController@approve')->where('id', '[0-9]+');
 	Route::post('/admin/crypto-payments/{id}/reject', 'Admin\CryptoPaymentController@reject')->where('id', '[0-9]+');
 
@@ -1006,6 +1009,9 @@ Route::get('/landing/{slug}/add-to-cart', 'LandingPagePublicController@addToCart
 Route::get('/landing/{slug}/buy-now', 'LandingPagePublicController@buyNow')->name('landing-page.buy-now');
 Route::post('/landing/{slug}/process-payment', 'LandingPagePublicController@processPayment')->name('landing-page.process-payment');
 Route::post('/landing/{slug}/send-message', 'LandingPagePublicController@sendMessage')->name('landing-page.send-message');
+Route::get('/shop-crypto/{token}', 'ShopCryptoController@show');
+Route::post('/shop-crypto/{token}/confirm', 'ShopCryptoController@confirm')->middleware('throttle:10,1');
+Route::get('/shop-crypto/{token}/status', 'ShopCryptoController@status')->middleware('throttle:60,1');
 Route::get('/landing/crypto/{order_token}', 'LandingPagePublicController@cryptoPay')->name('landing-page.crypto');
 Route::post('/landing/crypto/{order_token}/confirm', 'LandingPagePublicController@cryptoConfirm')->middleware('throttle:10,1')->name('landing-page.crypto.confirm');
 Route::get('/landing/crypto/{order_token}/status', 'LandingPagePublicController@cryptoStatus')->middleware('throttle:60,1')->name('landing-page.crypto.status');

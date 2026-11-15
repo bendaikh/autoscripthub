@@ -298,5 +298,8 @@
     "Pay with USDT, BTC or BNB from the Binance app": "ชำระด้วย USDT, BTC หรือ BNB จากแอป Binance",
     "Pay from your KAST app": "ชำระจากแอป KAST ของคุณ",
     "USDT (any wallet)": "USDT (กระเป๋าใดก็ได้)",
-    "Send USDT from any exchange or wallet": "ส่ง USDT จากกระดานเทรดหรือกระเป๋าใดก็ได้"
+    "Send USDT from any exchange or wallet": "ส่ง USDT จากกระดานเทรดหรือกระเป๋าใดก็ได้",
+    "We accept": "เรารับชำระด้วย",
+    "Secure checkout with PayPal, card or crypto": "ชำระเงินอย่างปลอดภัยด้วย PayPal บัตร หรือคริปโต",
+    "Send the equivalent of this amount in :asset.": "ส่งมูลค่าเทียบเท่าจำนวนนี้เป็น :asset"
 }

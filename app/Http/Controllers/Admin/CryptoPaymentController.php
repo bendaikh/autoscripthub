@@ -23,9 +23,21 @@ class CryptoPaymentController extends Controller
         $filter = in_array($request->input('show'), ['awaiting', 'pending', 'completed', 'rejected'], true)
             ? $request->input('show') : 'awaiting';
 
+        $type = $request->input('type') === 'shop' ? 'shop' : 'landing';
         $orders = collect();
         $counts = [];
-        try {
+        $shopCounts = [];
+        if (CryptoPay::shopReady()) {
+            $shopCounts = DB::table('shop_crypto_payments')->selectRaw('status, COUNT(*) as c')
+                ->groupBy('status')->pluck('c', 'status')->all();
+        }
+        if ($type === 'shop') {
+            if (CryptoPay::shopReady()) {
+                $orders = DB::table('shop_crypto_payments')->where('status', $filter)
+                    ->orderByDesc('id')->limit(200)->get();
+            }
+            $counts = $shopCounts;
+        } else try {
             $orders = DB::table('landing_page_orders as o')
                 ->leftJoin('landing_pages as lp', 'lp.lp_id', '=', 'o.lp_id')
                 ->whereIn('o.payment_method', CryptoPay::METHODS)
@@ -55,6 +67,9 @@ class CryptoPaymentController extends Controller
             'orders' => $orders,
             'filter' => $filter,
             'counts' => $counts,
+            'type' => $type,
+            'shopWaiting' => (int) ($shopCounts['awaiting'] ?? 0),
+            'landingWaiting' => CryptoPay::awaitingCount() - (int) ($shopCounts['awaiting'] ?? 0),
         ]);
     }
 
@@ -172,6 +187,70 @@ class CryptoPaymentController extends Controller
             abort(404);
         }
         return response()->file($path, ['Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff']);
+    }
+
+    /* ---------------- site checkout (shop) crypto payments ---------------- */
+
+    public function shopReceipt($id)
+    {
+        $pay = $this->shopPayment($id);
+        $file = $pay ? basename((string) $pay->receipt) : '';
+        $path = CryptoPay::receiptDir() . '/' . $file;
+        if ($file === '' || !is_file($path)) {
+            abort(404);
+        }
+        return response()->file($path, ['Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff']);
+    }
+
+    public function shopApprove($id)
+    {
+        $pay = $this->shopPayment($id);
+        if (!$pay) {
+            return redirect()->back()->with('error', 'Order not found.');
+        }
+        if ($pay->status === 'completed') {
+            return redirect()->back()->with('success', 'This order was already approved.');
+        }
+        DB::table('shop_crypto_payments')->where('id', $pay->id)->update([
+            'status' => 'completed', 'reviewed_at' => now(), 'updated_at' => now(),
+        ]);
+        // Complete the store order the same way as Admin > Orders > "Click to Complete Payment"
+        // (marks it paid, emails the buyer, updates sales and vendor earnings).
+        $checkout = DB::table('item_checkout')->where('purchase_token', $pay->purchase_token)->first();
+        if ($checkout && $checkout->payment_status !== 'completed') {
+            try {
+                app(\Fickrr\Http\Controllers\Admin\ItemController::class)->complete_orders(base64_encode($pay->purchase_token));
+            } catch (\Throwable $e) {
+                report($e);
+                $done = DB::table('item_checkout')->where('purchase_token', $pay->purchase_token)->value('payment_status') === 'completed';
+                if (!$done) {
+                    DB::table('shop_crypto_payments')->where('id', $pay->id)->update(['status' => 'awaiting', 'updated_at' => now()]);
+                    return redirect()->back()->with('error', 'Could not complete the order: ' . $e->getMessage());
+                }
+                return redirect()->back()->with('success', 'Payment approved. The order is completed, but the confirmation email could not be sent.');
+            }
+        }
+        return redirect()->back()->with('success', 'Payment approved. The buyer can now download their files from their Purchases page and was emailed.');
+    }
+
+    public function shopReject($id)
+    {
+        $pay = $this->shopPayment($id);
+        if (!$pay) {
+            return redirect()->back()->with('error', 'Order not found.');
+        }
+        if ($pay->status === 'completed') {
+            return redirect()->back()->with('error', 'This order is already approved.');
+        }
+        DB::table('shop_crypto_payments')->where('id', $pay->id)->update([
+            'status' => 'rejected', 'reviewed_at' => now(), 'updated_at' => now(),
+        ]);
+        return redirect()->back()->with('success', 'Order marked as payment not received.');
+    }
+
+    private function shopPayment($id)
+    {
+        return CryptoPay::shopReady() ? DB::table('shop_crypto_payments')->where('id', (int) $id)->first() : null;
     }
 
     private function order($id)

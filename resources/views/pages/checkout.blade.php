@@ -41,6 +41,8 @@
 .hv-co-brands { display:flex; gap:.3rem; }
 .hv-co-brands i { font-style:normal; font-size:.62rem; font-weight:800; letter-spacing:.03em; padding:.15rem .35rem; border-radius:4px; background:#fff; border:1px solid #e6e9f0; color:#334155; }
 .hv-co-panels { margin-top:.85rem; }
+.hv-co-crypto { display:inline-grid; place-items:center; width:20px; height:20px; border-radius:50%; color:#fff; font-size:.68rem; font-weight:800; vertical-align:-3px; margin-right:.2rem; }
+.hv-co-crypto-note p { color:#475569; }
 .hv-co-panel[hidden] { display:none !important; }
 .hv-co-native-btn { position:absolute !important; width:1px !important; height:1px !important; padding:0 !important; margin:-1px !important; overflow:hidden !important; clip:rect(0,0,0,0) !important; border:0 !important; }
 .hv-co-pay { display:block; width:100%; border:0; border-radius:12px; padding:.9rem 1rem; font-size:1rem; font-weight:800; background:#7c3aed; color:#fff; }
@@ -315,8 +317,10 @@
                   if ($payment == 'twocheckout') { $hvPayLabel = __('2Checkout'); }
                   elseif ($payment == 'dodopayments' || $payment == 'whop' || $payment == 'stripe') { $hvPayLabel = __('Credit/Debit card'); }
                   elseif ($payment == 'paypal') { $hvPayLabel = 'PayPal'; }
+                  elseif ($payment == 'usdt') { $hvPayLabel = __('USDT (any wallet)'); }
+                  elseif (isset(\Fickrr\Models\CryptoPay::NAMES[$payment])) { $hvPayLabel = \Fickrr\Models\CryptoPay::NAMES[$payment]; }
                   else { $hvPayLabel = ucfirst($payment); }
-                  $hvPayKind = ($payment == 'paypal') ? 'paypal' : (in_array($payment, ['stripe','whop','dodopayments','twocheckout'], true) ? 'card' : 'other');
+                  $hvPayKind = ($payment == 'paypal') ? 'paypal' : (in_array($payment, ['stripe','whop','dodopayments','twocheckout'], true) ? 'card' : (in_array($payment, \Fickrr\Models\CryptoPay::METHODS, true) ? 'crypto' : 'other'));
                 @endphp
                 <label class="hv-co-tile{{ $no == 1 ? ' is-selected' : '' }}" id="{{ $payment }}" data-method="{{ $payment }}" data-kind="{{ $hvPayKind }}" data-label="{{ $hvPayLabel }}">
                   <input id="opt1-{{ $payment }}" name="payment_method" type="radio" class="custom_radio hv-co-radio" value="{{ $payment }}" @if($no == 1) checked @endif data-bvalidator="required">
@@ -327,6 +331,10 @@
                   @elseif($hvPayKind == 'card')
                   <strong>{{ $hvPayLabel }}</strong>
                   <span class="hv-co-brands"><i>Visa</i><i>MC</i><i>Amex</i></span>
+                  @elseif($hvPayKind == 'crypto')
+                  @php $hvCrypto = ['binance' => ['#f0b90b', 'B', __('Pay from the Binance app')], 'kast' => ['#111827', 'K', __('Pay from the KAST app')], 'usdt' => ['#26a17b', '₮', __('Send USDT from any exchange or wallet')]][$payment]; @endphp
+                  <strong><span class="hv-co-crypto" style="background:{{ $hvCrypto[0] }}">{{ $hvCrypto[1] }}</span> {{ $hvPayLabel }}</strong>
+                  <small>{{ $hvCrypto[2] }}</small>
                   @else
                   <strong>{{ $hvPayLabel }}</strong>
                   <small>{{ __('Secure checkout') }}</small>
@@ -378,6 +386,12 @@
                     @if($payment == 'paystack')
                     <div class="card-body font-size-sm custom-control custom-radio">
                       <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Checkout with PayStack') }}</button>
+                    </div>
+                    @endif
+                    @if(in_array($payment, \Fickrr\Models\CryptoPay::METHODS, true))
+                    <div class="card-body font-size-sm hv-co-crypto-note">
+                      <p class="mb-2">{{ __('On the next page you will see our QR code / address and the exact amount. After paying, upload a screenshot of your receipt. We confirm it and your files appear in Purchases.') }}</p>
+                      <button class="btn btn-primary hv-co-native-btn" type="submit">{{ __('Continue with') }} {{ $payment === 'usdt' ? __('USDT (any wallet)') : \Fickrr\Models\CryptoPay::NAMES[$payment] }}</button>
                     </div>
                     @endif
                     @if($payment == 'localbank')

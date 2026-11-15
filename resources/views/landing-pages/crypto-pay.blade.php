@@ -1,12 +1,15 @@
 @php
     $lpT = [\Fickrr\Helpers\LandingPageI18n::class, 't'];
     $lpLang = \Fickrr\Helpers\LandingPageI18n::locale();
-    $status = $order->payment_status;
-    $amount = rtrim(rtrim(number_format((float) $order->amount, 2, '.', ''), '0'), '.');
-    $m = $method ?: ['key' => $order->payment_method, 'name' => 'Crypto', 'qr' => null, 'id' => '', 'link' => '', 'note' => '', 'enabled' => false];
+    // $cp: page data built by the landing page or shop checkout controller
+    $status = $cp['status'];
+    $details = $cp['details'] ?? [];
+    $amount = rtrim(rtrim(number_format((float) $cp['amount'], 2, '.', ''), '0'), '.');
+    $m = $method ?: ['key' => $cp['method'], 'name' => 'Crypto', 'qr' => null, 'id' => '', 'link' => '', 'note' => '', 'enabled' => false];
     $isWallet = $m['key'] === 'usdt';
     $asset = $isWallet ? ($m['asset'] ?? 'USDT') : 'USDT';
-    $productUrl = url('/landing/' . $landing_page->lp_slug);
+    // Prices in another currency are shown as-is with a note to send the USDT equivalent
+    $unit = !empty($cp['currency']) && strtoupper($cp['currency']) !== 'USD' ? strtoupper($cp['currency']) : $asset;
 @endphp
 <!DOCTYPE html>
 <html lang="{{ $lpLang }}" dir="{{ $lpLang === 'ar' ? 'rtl' : 'ltr' }}">
@@ -14,12 +17,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <title>{{ $lpT('Complete your payment') }} — {{ $landing_page->lp_title }}</title>
+    <title>{{ $lpT('Complete your payment') }} — {{ $cp['title'] }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
-        :root { --lp-accent: {{ $content['accent'] }}; --lp-accent-dark: {{ $content['accentDark'] }}; --lp-accent-rgb: {{ $content['accentRgb'] }};
+        :root { --lp-accent: {{ $cp['accent'] }}; --lp-accent-dark: {{ $cp['accentDark'] }}; --lp-accent-rgb: {{ $cp['accentRgb'] }};
                 --ink: #0b1020; --muted: #64748b; --line: #e8ecf3; --soft: #f6f7fb; }
         * { box-sizing: border-box; }
         body { margin: 0; background: var(--soft); color: #334155; font-family: Inter, 'Noto Sans Arabic', system-ui, sans-serif; line-height: 1.55; }
@@ -89,7 +92,7 @@
 <body class="{{ $lpLang === 'ar' ? 'is-rtl' : '' }}">
 <header class="cp-top">
     <div class="cp-top-in">
-        <a href="{{ $productUrl }}"><i class="fas fa-arrow-{{ $lpLang === 'ar' ? 'right' : 'left' }}"></i> {{ $landing_page->lp_title }}</a>
+        <a href="{{ $cp['backUrl'] }}"><i class="fas fa-arrow-{{ $lpLang === 'ar' ? 'right' : 'left' }}"></i> {{ $cp['title'] }}</a>
         <span class="cp-secure"><i class="fas fa-lock"></i> {{ $lpT('Secure checkout') }}</span>
     </div>
 </header>
@@ -111,10 +114,13 @@
             <div class="cp-amount">
                 <div>
                     <small>{{ $lpT('Amount to send') }}</small>
-                    <strong>{{ $amount }} {{ $asset }}</strong>
+                    <strong>{{ $amount }} {{ $unit }}</strong>
                 </div>
                 <button type="button" class="cp-btn-copy" data-copy="{{ $amount }}">{{ $lpT('Copy') }}</button>
             </div>
+            @if($unit !== $asset)
+            <div class="cp-note" style="margin:-6px 0 14px"><i class="fas fa-exchange-alt"></i> {{ $lpT('Send the equivalent of this amount in :asset.', ['asset' => $asset]) }}</div>
+            @endif
 
             @if($isWallet)
                 <div id="cpQr" aria-label="QR"></div>
@@ -156,12 +162,12 @@
                 <div class="cp-spin"></div>
                 <h2>{{ $lpT('We are checking your payment') }}</h2>
                 <p>{{ $lpT('Thank you! Your receipt was received. This page will open your download automatically once the payment is confirmed.') }}</p>
-                <p style="color:var(--muted);font-size:.9rem">{{ $lpT('We will also email the download link to :email.', ['email' => $order->customer_email]) }}</p>
+                <p style="color:var(--muted);font-size:.9rem">{{ $lpT('We will also email the download link to :email.', ['email' => $cp['email']]) }}</p>
                 <button type="button" class="cp-link" id="cpReupload">{{ $lpT('Upload a different receipt') }}</button>
             </div>
             @endif
 
-            <form id="cpForm" action="{{ url('/landing/crypto/' . $order->order_token . '/confirm') }}" method="POST" enctype="multipart/form-data" @if($status === 'awaiting') style="display:none" @endif>
+            <form id="cpForm" action="{{ $cp['confirmUrl'] }}" method="POST" enctype="multipart/form-data" @if($status === 'awaiting') style="display:none" @endif>
                 @csrf
                 <h2><span class="cp-num">2</span> {{ $lpT('Upload your payment receipt') }}</h2>
                 @if($status === 'rejected')
@@ -192,7 +198,7 @@
         </section>
     </div>
 
-    <p class="cp-foot"><i class="fas fa-shield-alt"></i> {{ $lpT('Order :id • :email', ['id' => $order->order_token, 'email' => $order->customer_email]) }}</p>
+    <p class="cp-foot"><i class="fas fa-shield-alt"></i> {{ $lpT('Order :id • :email', ['id' => $cp['orderLabel'], 'email' => $cp['email']]) }}</p>
 </main>
 
 @if($isWallet && $m['address'] !== '')
@@ -239,8 +245,8 @@
     if (re) re.addEventListener('click', function () { document.getElementById('cpWaiting').style.display = 'none'; form.style.display = ''; });
 
     @if($status === 'awaiting')
-    var statusUrl = @json(url('/landing/crypto/' . $order->order_token . '/status'));
-    var successUrl = @json(url('/landing/success/' . $order->order_token));
+    var statusUrl = @json($cp['statusUrl']);
+    var successUrl = @json($cp['successUrl']);
     var poll = function () {
         fetch(statusUrl, { cache: 'no-store', credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (d) {
             if (d.status === 'completed') { window.location.href = successUrl; return; }
@@ -252,6 +258,8 @@
     @endif
 })();
 </script>
+@if(isset($landing_page))
 @include('landing-pages.partials.live-chat')
+@endif
 </body>
 </html>

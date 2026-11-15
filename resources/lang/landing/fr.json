@@ -298,5 +298,8 @@
     "Pay with USDT, BTC or BNB from the Binance app": "Payez en USDT, BTC ou BNB depuis l’application Binance",
     "Pay from your KAST app": "Payez depuis votre application KAST",
     "USDT (any wallet)": "USDT (tout portefeuille)",
-    "Send USDT from any exchange or wallet": "Envoyez des USDT depuis n’importe quel exchange ou portefeuille"
+    "Send USDT from any exchange or wallet": "Envoyez des USDT depuis n’importe quel exchange ou portefeuille",
+    "We accept": "Nous acceptons",
+    "Secure checkout with PayPal, card or crypto": "Paiement sécurisé par PayPal, carte ou crypto",
+    "Send the equivalent of this amount in :asset.": "Envoyez l’équivalent de ce montant en :asset."
 }

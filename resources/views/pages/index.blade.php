@@ -46,6 +46,8 @@
 @php $hvxCss = base_path('public/assets/home-vibrant.css'); @endphp
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ asset('assets/home-vibrant.css') }}?v={{ is_file($hvxCss) ? filemtime($hvxCss) : 1 }}">
+@php $pbCss = base_path('public/assets/payment-badges.css'); @endphp
+<link rel="stylesheet" href="{{ asset('assets/payment-badges.css') }}?v={{ is_file($pbCss) ? filemtime($pbCss) : 1 }}">
 </head>
 <body class="home-v2 home-vibrant">
 @include('header')
@@ -262,6 +264,9 @@
         <i class="fa fa-life-ring"></i>
         <span><strong>{{ __('24/7 Support') }}</strong><span>{{ __('We are here') }}</span></span>
       </div>
+    </div>
+    <div class="hv-paybar">
+      @include('partials.payment-badges', ['pbLabel' => __('We accept')])
     </div>
   </div>
 </div>

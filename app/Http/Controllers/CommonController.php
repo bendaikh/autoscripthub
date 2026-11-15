@@ -1311,7 +1311,7 @@ class CommonController extends Controller
 			   $dodopayments_success = $website_url.'/checkout-dodopayments/'.$encrypter->encrypt($purchase_token);
 			   /* dodopayments */
 				
-			   $get_payment = explode(',', $setting['setting']->payment_option);
+			   $get_payment = \Fickrr\Models\CryptoPay::withMethods(explode(',', $setting['setting']->payment_option));
 	           
 		  }
 		  else
@@ -1735,7 +1735,7 @@ class CommonController extends Controller
 				    $nowpayments_success = $website_url.'/nowpayments/'.$encrypter->encrypt($purchase_token);
 				    /* nowpayments */
 					
-				   $get_payment = explode(',', $setting['setting']->payment_option);
+				   $get_payment = \Fickrr\Models\CryptoPay::withMethods(explode(',', $setting['setting']->payment_option));
 			 }
 		  }
 	  }
@@ -3158,6 +3158,11 @@ class CommonController extends Controller
 					
 					
 		  }
+		  else if(in_array($payment_method, \Fickrr\Models\CryptoPay::METHODS, true) && \Fickrr\Models\CryptoPay::shopReady())
+		  {
+		    /* crypto: Binance Pay / KAST / USDT, approved in Admin > Crypto Payments */
+		    return redirect(\Fickrr\Models\CryptoPay::startShopPayment($purchase_token, $payment_method, $final_amount, $site_currency, $order_email));
+		  }
 		  else if($payment_method == 'localbank')
 		  {
 		    $bank_details = $setting['setting']->local_bank_details;
@@ -4033,6 +4038,11 @@ class CommonController extends Controller
 					
 					
 		  }
+		  else if(in_array($payment_method, \Fickrr\Models\CryptoPay::METHODS, true) && \Fickrr\Models\CryptoPay::shopReady())
+		  {
+		    /* crypto: Binance Pay / KAST / USDT, approved in Admin > Crypto Payments */
+		    return redirect(\Fickrr\Models\CryptoPay::startShopPayment($purchase_token, $payment_method, $final_amount, $site_currency, $order_email));
+		  }
 		  else if($payment_method == 'localbank')
 		  {
 		    $bank_details = $setting['setting']->local_bank_details;
@@ -4322,7 +4332,7 @@ class CommonController extends Controller
 		  $vendor_details = Members::singlevendorData($item_user_id);
 		  if($additional['setting']->subscription_mode == 0)
 		  {
-			$get_payment = explode(',', $setting['setting']->payment_option);
+			$get_payment = \Fickrr\Models\CryptoPay::withMethods(explode(',', $setting['setting']->payment_option));
 			 $stripe_type = $setting['setting']->stripe_type;
 			 $stripe_mode = $setting['setting']->stripe_mode;
 			   if($stripe_mode == 0)
@@ -4356,7 +4366,7 @@ class CommonController extends Controller
 			 }
 			 else
 			 {
-				$get_payment = explode(',', $setting['setting']->payment_option);
+				$get_payment = \Fickrr\Models\CryptoPay::withMethods(explode(',', $setting['setting']->payment_option));
 				   $stripe_type = $setting['setting']->stripe_type;
 				   $stripe_mode = $setting['setting']->stripe_mode;
 				   if($stripe_mode == 0)
@@ -4374,7 +4384,7 @@ class CommonController extends Controller
 	  }
 	  else
 	  {
-	     $get_payment = explode(',', $setting['setting']->payment_option);
+	     $get_payment = \Fickrr\Models\CryptoPay::withMethods(explode(',', $setting['setting']->payment_option));
 		 $stripe_mode = $setting['setting']->stripe_mode;
 		 $stripe_type = $setting['setting']->stripe_type;
 			   if($stripe_mode == 0)

@@ -32,6 +32,8 @@
     <link rel="stylesheet" href="{{ url('/public/css/landing-vue.css') }}?v={{ file_exists($lpCssFile) ? filemtime($lpCssFile) : 1 }}">
     @php $lpDarkCss = base_path('public/css/landing-dark.css'); @endphp
     <link rel="stylesheet" href="{{ url('/public/css/landing-dark.css') }}?v={{ file_exists($lpDarkCss) ? filemtime($lpDarkCss) : 1 }}">
+    @php $pbCss = base_path('public/assets/payment-badges.css'); @endphp
+    <link rel="stylesheet" href="{{ url('/public/assets/payment-badges.css') }}?v={{ file_exists($pbCss) ? filemtime($pbCss) : 1 }}">
     <style>
     @include('partials.hv-card-loader-styles')
     #lpCardStage { min-height: 0; }
@@ -182,7 +184,9 @@
             'faqHeading' => $lpT('Questions before you buy'),
             'finalHeading' => $lpT('Ready to get started?'),
             'featuresIncluded' => $lpT('features included'),
-            'secureNote' => $lpT('Secure checkout with PayPal or card'),
+            'secureNote' => array_intersect(\Fickrr\Models\CryptoPay::METHODS, $landing_payment_methods ?? [])
+                ? $lpT('Secure checkout with PayPal, card or crypto')
+                : $lpT('Secure checkout with PayPal or card'),
             'prev' => $lpT('Previous'),
             'next' => $lpT('Next'),
             'close' => $lpT('Close'),
@@ -293,6 +297,9 @@
                 <p class="lp-hero-assurance lp-mobile-hide">
                     <i class="fas fa-lock"></i> @{{ page.i18n.instantAccess }}
                 </p>
+                <div class="lp-hero-paybadges">
+                    @include('partials.payment-badges', ['pbMethods' => $landing_payment_methods ?? [], 'pbAlign' => 'start', 'pbLabel' => $lpT('We accept')])
+                </div>
             </div>
 
             <div class="lp-hero-media">
@@ -553,6 +560,9 @@
                 <p class="lp-price-secure">
                     <i class="fas fa-lock"></i> @{{ page.i18n.secureNote }}
                 </p>
+                <div class="lp-price-paybadges">
+                    @include('partials.payment-badges', ['pbMethods' => $landing_payment_methods ?? []])
+                </div>
                 <p v-if="page.extended" class="lp-price-extended">
                     @{{ page.i18n.extendedNote }}
                     <strong>@{{ page.extended.symbol }}@{{ formatMoney(page.extended.amount) }}@{{ page.extended.suffix }}</strong>
