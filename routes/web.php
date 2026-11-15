@@ -454,6 +454,13 @@ Route::group(['middleware' => ['is_admin', 'HtmlMinifier', 'cache', 'XSS']], fun
 	Route::get('/admin/backup/delete/{file_name}', 'Admin\BackupController@delete');
 	Route::post('/admin/backup', ['as' => 'admin.backup','uses'=>'Admin\BackupController@backup']);
 
+	/* crypto payments (Binance Pay / KAST / USDT) for landing pages */
+	Route::get('/admin/crypto-payments', 'Admin\CryptoPaymentController@index');
+	Route::post('/admin/crypto-payments/settings', 'Admin\CryptoPaymentController@updateSettings');
+	Route::get('/admin/crypto-payments/{id}/receipt', 'Admin\CryptoPaymentController@receipt')->where('id', '[0-9]+');
+	Route::post('/admin/crypto-payments/{id}/approve', 'Admin\CryptoPaymentController@approve')->where('id', '[0-9]+');
+	Route::post('/admin/crypto-payments/{id}/reject', 'Admin\CryptoPaymentController@reject')->where('id', '[0-9]+');
+
 	/* live chat with landing page visitors */
 	Route::get('/admin/live-chat', 'Admin\LiveChatController@index');
 	Route::post('/admin/live-chat/settings', ['as' => 'admin.live-chat.settings', 'uses' => 'Admin\LiveChatController@updateSettings']);
@@ -999,6 +1006,9 @@ Route::get('/landing/{slug}/add-to-cart', 'LandingPagePublicController@addToCart
 Route::get('/landing/{slug}/buy-now', 'LandingPagePublicController@buyNow')->name('landing-page.buy-now');
 Route::post('/landing/{slug}/process-payment', 'LandingPagePublicController@processPayment')->name('landing-page.process-payment');
 Route::post('/landing/{slug}/send-message', 'LandingPagePublicController@sendMessage')->name('landing-page.send-message');
+Route::get('/landing/crypto/{order_token}', 'LandingPagePublicController@cryptoPay')->name('landing-page.crypto');
+Route::post('/landing/crypto/{order_token}/confirm', 'LandingPagePublicController@cryptoConfirm')->middleware('throttle:10,1')->name('landing-page.crypto.confirm');
+Route::get('/landing/crypto/{order_token}/status', 'LandingPagePublicController@cryptoStatus')->middleware('throttle:60,1')->name('landing-page.crypto.status');
 Route::get('/landing/checkout-embed/{order_token}', 'LandingPagePublicController@embedCheckout')->name('landing-page.checkout-embed');
 Route::get('/landing/success/{order_token}', 'LandingPagePublicController@success')->name('landing-page.success');
 Route::get('/landing/download/{order_token}', 'LandingPagePublicController@download')->name('landing-page.download');

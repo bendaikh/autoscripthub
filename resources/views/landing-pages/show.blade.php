@@ -837,6 +837,26 @@
                         </div>
                     </div>
                     @endif
+                    @php
+                        $lpCryptoOptions = [
+                            'binance' => ['Binance Pay', $lpT('Pay with USDT, BTC or BNB from the Binance app'), '#f0b90b', 'B'],
+                            'kast' => ['KAST', $lpT('Pay from your KAST app'), '#111827', 'K'],
+                            'usdt' => [$lpT('USDT (any wallet)'), $lpT('Send USDT from any exchange or wallet'), '#26a17b', '₮'],
+                        ];
+                    @endphp
+                    @foreach($lpCryptoOptions as $cryptoKey => [$cryptoName, $cryptoSub, $cryptoColor, $cryptoLetter])
+                    @if(in_array($cryptoKey, $landingPaymentMethods, true))
+                    <div class="payment-option" onclick="selectPayment('{{ $cryptoKey }}')">
+                        <div class="d-flex align-items-center">
+                            <input type="radio" name="payment_method" id="{{ $cryptoKey }}_radio" value="{{ $cryptoKey }}">
+                            <div>
+                                <h5><span class="lp-crypto-mark" style="background:{{ $cryptoColor }}">{{ $cryptoLetter }}</span> {{ $cryptoName }}</h5>
+                                <p>{{ $cryptoSub }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+                    @endforeach
                     @if(empty($landingPaymentMethods))
                     <p class="text-danger mb-3">{{ $lpT('No payment methods are currently available.') }}</p>
                     @endif
@@ -984,6 +1004,10 @@ $('#paymentForm').on('submit', function (e) {
         data: $(this).serialize(),
         headers: { 'X-Requested-With': 'XMLHttpRequest' },
         success: function (response) {
+            if (response && response.redirect) {
+                window.location.href = response.redirect;
+                return;
+            }
             if (response && response.embed_url) {
                 showEmbeddedCheckout(response.embed_url);
                 submitBtn.prop('disabled', false).html(originalText);

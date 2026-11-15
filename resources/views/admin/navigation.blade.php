@@ -147,6 +147,8 @@
                         <ul class="sub-menu children dropdown-menu">
                             <li><i class="fa fa-file-text-o"></i><a href="{{ url('/admin/landing-pages') }}">{{ __('Pages') }}</a></li>
                             <li><i class="fa fa-users"></i><a href="{{ url('/admin/landing-customers') }}">{{ __('Customers') }}</a></li>
+                            @php $cpAwaiting = \Fickrr\Models\CryptoPay::awaitingCount(); @endphp
+                            <li><i class="fa fa-bitcoin"></i><a href="{{ url('/admin/crypto-payments') }}">{{ __('Crypto Payments') }}@if($cpAwaiting > 0) <span class="badge badge-danger ml-1">{{ $cpAwaiting }}</span>@endif</a></li>
                             <li><i class="fa fa-money"></i><a href="{{ url('/admin/landing-pages/ad-costs') }}">{{ __('Ads Costs') }}</a></li>
                             <li><i class="fa fa-line-chart"></i><a href="{{ url('/admin/landing-pages/revenue') }}">{{ __('Revenue') }}</a></li>
                             <li><i class="fa fa-bullseye"></i><a href="{{ url('/admin/landing-pages/pixels') }}">{{ __('Pixel Connect') }}</a></li>
