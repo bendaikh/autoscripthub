@@ -3538,6 +3538,9 @@ class ItemController extends Controller
 			if ($request->has('source_url')) {
 			    $data['source_url'] = $request->input('source_url');
 			}
+			if ($request->has('item_hero_pin') && \Illuminate\Support\Facades\Schema::hasColumn('items', 'item_hero_pin')) {
+			    $data['item_hero_pin'] = (int) $request->input('item_hero_pin') === 1 ? 1 : 0;
+			}
 			
 		    Items::updateitemData($item_token,$data);
 			

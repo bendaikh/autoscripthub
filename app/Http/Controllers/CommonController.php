@@ -4763,22 +4763,22 @@ class CommonController extends Controller
 	  {
 	      if($additional['settings']->shop_search_type == 'normal')
 		  {
-			  $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->when($productSearch !== '', function ($query) use ($productSearch) { $query->where('items.item_name', 'LIKE', '%'.$productSearch.'%'); })->orderBy('items.item_id', 'asc')->paginate($setting['setting']->site_item_per_page);
+			  $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->when($productSearch !== '', function ($query) use ($productSearch) { \Fickrr\Support\ProductSearch::apply($query, $productSearch); \Fickrr\Support\ProductSearch::orderByRelevance($query, $productSearch); })->orderBy('items.item_id', 'asc')->paginate($setting['setting']->site_item_per_page);
 		  }
 		  else
 		  {
-		      $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->when($productSearch !== '', function ($query) use ($productSearch) { $query->where('items.item_name', 'LIKE', '%'.$productSearch.'%'); })->orderBy('items.item_id', 'asc')->get();
+		      $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->when($productSearch !== '', function ($query) use ($productSearch) { \Fickrr\Support\ProductSearch::apply($query, $productSearch); \Fickrr\Support\ProductSearch::orderByRelevance($query, $productSearch); })->orderBy('items.item_id', 'asc')->get();
 		  } 
 	  }
 	  else
 	  {
 	      if($additional['settings']->shop_search_type == 'normal')
 		  {
-			  $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->when($productSearch !== '', function ($query) use ($productSearch) { $query->where('items.item_name', 'LIKE', '%'.$productSearch.'%'); })->orderBy('items.item_id', 'asc')->paginate($setting['setting']->site_item_per_page);
+			  $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->when($productSearch !== '', function ($query) use ($productSearch) { \Fickrr\Support\ProductSearch::apply($query, $productSearch); \Fickrr\Support\ProductSearch::orderByRelevance($query, $productSearch); })->orderBy('items.item_id', 'asc')->paginate($setting['setting']->site_item_per_page);
 		  }
 		  else
 		  {
-		     $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->when($productSearch !== '', function ($query) use ($productSearch) { $query->where('items.item_name', 'LIKE', '%'.$productSearch.'%'); })->orderBy('items.item_id', 'asc')->get();
+		     $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->when($productSearch !== '', function ($query) use ($productSearch) { \Fickrr\Support\ProductSearch::apply($query, $productSearch); \Fickrr\Support\ProductSearch::orderByRelevance($query, $productSearch); })->orderBy('items.item_id', 'asc')->get();
 		  }	  
 	  }
 	  $catData['item'] = Items::getitemcatData();
@@ -4912,7 +4912,7 @@ class CommonController extends Controller
 		   if($additional['settings']->subscription_mode == 1)
 		   {
 			
-			$products = Items::with('ratings')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_name', 'LIKE', '%'. $query. '%')->where('items.item_status','=',1)->where('items.drop_status','=','no')->orderBy('items.item_name', 'asc')->get();
+			$products = Items::with('ratings')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where(function ($q) use ($query) { \Fickrr\Support\ProductSearch::apply($q, $query); })->where('items.item_status','=',1)->where('items.drop_status','=','no')->orderBy('items.item_name', 'asc')->get();
 		   }
 		   else
 		   {
@@ -5184,7 +5184,7 @@ class CommonController extends Controller
 		   return [];
 	   }
 	   $local = (int) ($settings->site_s3_storage ?? 0) === 0;
-	   $key = 'home.hero.sets2.'.($subscriptionMode ? '1' : '0').'.'.$today.'.'.($local ? 'l' : 'r').'.'.md5(json_encode($cats));
+	   $key = 'home.hero.sets3.'.($subscriptionMode ? '1' : '0').'.'.$today.'.'.($local ? 'l' : 'r').'.'.md5(json_encode($cats));
 
 	   return Cache::remember($key, 180, function () use ($subscriptionMode, $today, $cats, $local) {
 		   $query = DB::table('items')
@@ -5203,6 +5203,54 @@ class CommonController extends Controller
 
 		   $sets = [];
 		   $used = [];
+
+		   // "Trending now" opens the hero when a product is pinned (Admin > Items >
+		   // edit > "Pin to the home page hero"): pinned first, then best sellers.
+		   $card = function ($row, $badge = null) use ($local) {
+			   foreach ([$row->item_preview, $row->item_thumbnail] as $candidate) {
+				   if (\Fickrr\Support\ProductImage::isUsable($candidate, $local)) {
+					   return [
+						   'name' => (string) $row->item_name, 'slug' => (string) $row->item_slug, 'image' => trim((string) $candidate),
+						   'regular_price' => $row->regular_price, 'extended_price' => $row->extended_price, 'item_flash' => $row->item_flash,
+						   'free_download' => $row->free_download, 'item_category' => $row->item_category,
+						   'item_category_parent' => $row->item_category_parent, 'item_category_type' => $row->item_category_type,
+						   'badge' => $badge,
+					   ];
+				   }
+			   }
+			   return null;
+		   };
+		   try {
+			   $pinRows = \Illuminate\Support\Facades\Schema::hasColumn('items', 'item_hero_pin')
+				   ? (clone $query)->where('items.item_hero_pin', '=', 1)->orderBy('items.item_id', 'desc')->limit(3)->get()
+				   : collect();
+		   } catch (\Throwable $e) {
+			   $pinRows = collect();
+		   }
+		   if ($pinRows->count()) {
+			   $trend = [];
+			   foreach ($pinRows as $row) {
+				   if ($c = $card($row, count($trend) === 0 ? '#1 Trending' : 'Trending')) {
+					   $trend[] = $c;
+					   $used[(int) $row->item_id] = true;
+				   }
+			   }
+			   if ($trend !== []) {
+				   $best = (clone $query)->orderBy('items.item_sold', 'desc')->orderBy('items.item_views', 'desc')->limit(20)->get();
+				   foreach ($best as $row) {
+					   if (count($trend) >= 5) {
+						   break;
+					   }
+					   if (isset($used[(int) $row->item_id]) || !($c = $card($row))) {
+						   continue;
+					   }
+					   $trend[] = $c;
+					   $used[(int) $row->item_id] = true;
+				   }
+				   $sets[] = ['name' => 'Trending now', 'slug' => '', 'id' => 0, 'url' => '/popular-items', 'trending' => true, 'items' => $trend];
+			   }
+		   }
+
 		   foreach ($cats as $cat) {
 			   $rows = (clone $query)
 				   ->where('items.item_category_parent', '=', $cat['id'])
@@ -6418,8 +6466,8 @@ class CommonController extends Controller
 	  $sid = 1;
 	  $setting['setting'] = Settings::editGeneral($sid);
 	  
-	  Cache::put('search_keyword', $product_item, now()->addDays(1));
-	  $search_keyword = Cache::get('search_keyword');
+	  // the visitor's own keyword (was a site-wide cache shared by every visitor)
+	  $search_keyword = trim((string) $product_item);
 	  
 	  if(!empty($request->input('category_names')))
 	   {
@@ -6489,7 +6537,7 @@ class CommonController extends Controller
 							  ->where('items.item_status','=',1)
 							  ->where('items.drop_status','=','no')
 							  ->where(function ($query) use ($search_keyword,$orderby,$min_price,$max_price,$item_types,$category_names,$category_id) { 
-							  $query->where('items.item_name', 'LIKE', "%$search_keyword%");
+							  \Fickrr\Support\ProductSearch::apply($query, $search_keyword);
 							  if ($min_price != "" || $max_price != "")
 							  {
 							  $query->where('items.regular_price', '>=', $min_price);
@@ -6512,7 +6560,7 @@ class CommonController extends Controller
 								  }	
 							  
 							  }
-							  })->orderBy('items.regular_price', $orderby)->get();
+							  })->when($search_keyword !== '', function ($q) use ($search_keyword) { \Fickrr\Support\ProductSearch::orderByRelevance($q, $search_keyword); })->orderBy('items.regular_price', $orderby)->get();
 			}
 			else
 			{
@@ -6522,7 +6570,7 @@ class CommonController extends Controller
 							  ->where('items.item_status','=',1)
 							  ->where('items.drop_status','=','no')
 							  ->where(function ($query) use ($search_keyword,$orderby,$min_price,$max_price,$item_types,$category_names,$category_id) { 
-							  $query->where('items.item_name', 'LIKE', "%$search_keyword%");
+							  \Fickrr\Support\ProductSearch::apply($query, $search_keyword);
 							  if ($min_price != "" || $max_price != "")
 							  {
 							  $query->where('items.regular_price', '>=', $min_price);
@@ -6545,7 +6593,7 @@ class CommonController extends Controller
 								  }	
 							  
 							  }
-							  })->orderBy('items.regular_price', $orderby)->get();
+							  })->when($search_keyword !== '', function ($q) use ($search_keyword) { \Fickrr\Support\ProductSearch::orderByRelevance($q, $search_keyword); })->orderBy('items.regular_price', $orderby)->get();
 			}				  
 							  
 						  

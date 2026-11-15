@@ -543,6 +543,16 @@
                                             @else
                                             <input type="hidden" name="item_flash" value="0">
                                             @endif
+                                            @if(\Illuminate\Support\Facades\Schema::hasColumn('items', 'item_hero_pin'))
+                                            <div class="form-group">
+                                                <label class="control-label mb-1">{{ __('Home page hero') }}</label>
+                                                <input type="hidden" name="item_hero_pin" value="0">
+                                                <label class="d-block mb-0" style="font-weight:normal;cursor:pointer">
+                                                    <input type="checkbox" name="item_hero_pin" value="1" @if((int) ($edit['item']->item_hero_pin ?? 0) === 1) checked @endif>
+                                                    {{ __('Pin to the home page hero as "#1 Trending" (shown first)') }}
+                                                </label>
+                                            </div>
+                                            @endif
                                             
                                                                                                                           
                                             

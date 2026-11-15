@@ -527,3 +527,13 @@ body.home-vibrant .hv-trend-title { font-size: .85rem; }
   .hvx-set .hvx-tile { transition: none; translate: none; }
   .hvx-tile, .hvx-btn, body.home-vibrant .hv-cat, body.home-vibrant .product-card-alt, body.home-vibrant .hv-trend-card { transition: none; }
 }
+
+/* "#1 Trending" ribbon on pinned hero products */
+.hvx-tile-badge {
+  position: absolute; top: -10px; left: 14px; z-index: 2;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 11px; border-radius: 999px;
+  background: linear-gradient(135deg, #f97316, #ec4899); color: #fff;
+  font-family: var(--hvx-font-h); font-size: 12px; font-weight: 800; letter-spacing: .02em;
+  box-shadow: 0 8px 18px rgba(236, 72, 153, .4); white-space: nowrap;
+}
