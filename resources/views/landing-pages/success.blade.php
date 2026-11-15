@@ -8,6 +8,7 @@
     <title>{{ __('Purchase Successful') }} - {{ $landing_page->lp_title }}</title>
     
     @include('landing-pages.partials.pixels')
+    @include('partials.google-analytics', ['gaLanding' => true])
     
     <!-- Favicon -->
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">

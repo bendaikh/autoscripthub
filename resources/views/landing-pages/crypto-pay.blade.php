@@ -92,6 +92,7 @@
         }
         @media (prefers-reduced-motion: reduce) { .cp-spin { animation: none; } }
     </style>
+    @include('partials.google-analytics', ['gaLanding' => isset($landing_page)])
 </head>
 <body class="{{ $lpLang === 'ar' ? 'is-rtl' : '' }}">
 <header class="cp-top">

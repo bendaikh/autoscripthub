@@ -19,6 +19,7 @@
     <meta property="og:image" content="{{ asset('storage/landing-pages/' . $landing_page->lp_banner_image) }}">
     @endif
     @include('landing-pages.partials.pixels')
+    @include('partials.google-analytics', ['gaLanding' => true])
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
