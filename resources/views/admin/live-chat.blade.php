@@ -95,7 +95,7 @@
                     <div class="lca-placeholder" id="lca-placeholder">
                         <i class="fa fa-comments-o"></i>
                         <div>{{ __('Choose a conversation to start chatting.') }}</div>
-                        <small>{{ __('New messages from landing page visitors appear on the left automatically.') }}</small>
+                        <small>{{ __('New messages from website and landing page visitors appear on the left automatically.') }}</small>
                     </div>
                     <div class="lca-head" id="lca-head" style="display:none">
                         <button type="button" class="btn btn-light btn-sm lca-back" id="lca-back"><i class="fa fa-arrow-left"></i></button>
@@ -126,7 +126,7 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-4 form-group">
-                                <label class="control-label mb-1">{{ __('Chat button on landing pages') }}</label>
+                                <label class="control-label mb-1">{{ __('Chat button on the website and landing pages') }}</label>
                                 <select name="enabled" class="form-control">
                                     <option value="1" @if(($chatSettings->enabled ?? 1) == 1) selected @endif>{{ __('Show') }}</option>
                                     <option value="0" @if(($chatSettings->enabled ?? 1) == 0) selected @endif>{{ __('Hide') }}</option>
