@@ -5,14 +5,14 @@
 @if($lcSettings && (int) $lcSettings->enabled === 1)
 @php
   $lcText = [
-    'title' => $lpT('Chat with us'),
+    'title' => $lpT('Live chat with us'),
     'subtitle' => $lpT('Ask anything before you buy. We usually reply within minutes.'),
     'placeholder' => $lpT('Type your message…'),
     'send' => $lpT('Send'),
     'name' => $lpT('Your name (optional)'),
     'email' => $lpT('Email (optional, in case you leave the page)'),
     'error' => $lpT('Could not send. Please try again.'),
-    'open' => $lpT('Chat with us'),
+    'open' => $lpT('Live chat with us'),
     'close' => $lpT('Close'),
     'you' => $lpT('You'),
     'team' => $lpT('Support'),
