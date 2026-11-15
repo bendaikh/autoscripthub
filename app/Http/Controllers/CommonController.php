@@ -1526,6 +1526,7 @@ class CommonController extends Controller
 				   /* nowpayments */
 					
 				   $get_payment = explode(',', $vendor_details->user_payment_option);
+				   if ((int) $item_user_id === 1 || ($vendor_details->user_type ?? '') === 'admin') { $get_payment = \Fickrr\Models\CryptoPay::withMethods($get_payment); } /* site owner's items: crypto too */
 			 }
 			 else
 			 {
@@ -4351,6 +4352,7 @@ class CommonController extends Controller
 			 if($count_mode == 1)
 			 {
 				$get_payment = explode(',', $vendor_details->user_payment_option);
+				   if ((int) $item_user_id === 1 || ($vendor_details->user_type ?? '') === 'admin') { $get_payment = \Fickrr\Models\CryptoPay::withMethods($get_payment); } /* site owner's items: crypto too */
 				   $stripe_type = $vendor_details->user_stripe_type;
 				   $stripe_mode = $vendor_details->user_stripe_mode;
 				   if($stripe_mode == 0)
