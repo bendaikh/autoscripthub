@@ -32,14 +32,16 @@ class LiveChatController extends Controller
             if ($slug !== '') {
                 $lpId = DB::table('landing_pages')->where('lp_slug', $slug)->value('lp_id');
             }
+            // 'home' = any page of the main site (not a landing page)
             $fromHome = !$lpId && $slug === '' && $request->input('page') === 'home';
+            $sitePath = '/' . ltrim(preg_replace('#[^A-Za-z0-9/_.\-]#', '', (string) $request->input('path', '/')), '/');
             if (!$lpId && !$fromHome) {
                 return $this->json(['ok' => false, 'error' => 'unknown_page'], 422);
             }
             $email = trim((string) $request->input('email', ''));
             $conversation = LiveChat::createConversation([
                 'lp_id' => $lpId ?: null,
-                'page_path' => $fromHome ? '/' : mb_substr('/landing/'.$slug, 0, 191),
+                'page_path' => $fromHome ? mb_substr($sitePath, 0, 191) : mb_substr('/landing/'.$slug, 0, 191),
                 'visitor_name' => mb_substr(trim(strip_tags((string) $request->input('name', ''))), 0, 100) ?: null,
                 'visitor_email' => filter_var($email, FILTER_VALIDATE_EMAIL) ? mb_substr($email, 0, 150) : null,
                 'country_code' => $this->country($request),

@@ -32,7 +32,7 @@
   $lcWelcome = trim((string) ($lcSettings->welcome_message ?? ''));
   if ($lcWelcome !== '') { $lcWelcome = $lpT($lcWelcome); }
 @endphp
-<div id="lc-root" class="lc-root lc-on-{{ $lcPage }}" data-slug="{{ $lcSlug }}" data-page="{{ $lcPage }}"
+<div id="lc-root" class="lc-root lc-on-{{ $lcPage }}" data-slug="{{ $lcSlug }}" data-page="{{ $lcPage }}" data-path="{{ '/' . ltrim(request()->path(), '/') }}"
      data-send="{{ url('/live-chat/send') }}" data-poll="{{ url('/live-chat/poll') }}">
   <div class="lc-panel" id="lc-panel" role="dialog" aria-label="{{ $lcText['title'] }}" hidden>
     <div class="lc-head">
@@ -241,6 +241,7 @@
     data.set('message', text);
     data.set('lp_slug', slug);
     data.set('page', page);
+    data.set('path', root.getAttribute('data-path') || '/');
     data.set('after', String(lastId));
     if (token) {
       data.set('token', token);

@@ -796,7 +796,6 @@
 
 @include('footer')
 @include('script')
-@include('landing-pages.partials.live-chat')
 @if(!empty($category['license_slides']) || count($popular['items'] ?? []) != 0)
 <script src="{{ asset('assets/js/vendor/owl.carousel.min.js') }}"></script>
 <script>

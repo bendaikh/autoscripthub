@@ -670,23 +670,8 @@ $("#coupon_start_date").datepicker({
   });
 });
 </script>
-{{-- The home page uses the built-in live chat instead of tawk.to. --}}
-@if($addition_settings->site_tawk_chat != "" && !request()->is('/'))
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='{{ $addition_settings->site_tawk_chat }}';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-var started=false;
-function startChat(){ if(started) return; started=true; s0.parentNode.insertBefore(s1,s0); }
-['scroll','mousemove','touchstart','keydown','click'].forEach(function(ev){ window.addEventListener(ev,startChat,{once:true,passive:true}); });
-window.addEventListener('load',function(){ setTimeout(startChat,6000); });
-})();
-</script>
-@endif
+{{-- Built-in live chat on every page (answered in Admin > Live Chat); replaces tawk.to. --}}
+@include('landing-pages.partials.live-chat')
 @if(request()->is('upload-item','upload-item/*','edit-item','edit-item/*'))
 <script src="{{ asset('admin/dropzone/min/dropzone.min.js')}}" type="text/javascript"></script>
 @endif
