@@ -42,6 +42,15 @@ class VisitRecorder
             'country_code' => CountryResolver::resolve($flat, $ip, (string) config('visits.geoip_path')),
             'referrer' => $referrer !== '' ? $referrer : null,
             'device' => VisitRules::device($request->userAgent()),
-        ]);
+        ] + ($ip !== '' && self::hasIpHash() ? ['ip_hash' => AnalyticsExclusion::ipHash($ip)] : []));
+    }
+
+    private static function hasIpHash(): bool
+    {
+        try {
+            return (bool) \Illuminate\Support\Facades\Cache::remember('site_visits.has_ip_hash', 3600, fn () => \Illuminate\Support\Facades\Schema::hasColumn('site_visits', 'ip_hash') ? 1 : 0);
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 }

@@ -288,8 +288,9 @@
   } catch (e) {}
   var sent = '';
   try { sent = localStorage.getItem('ash_ax_sent') || ''; } catch (e) {}
-  var key = ids.join('|');
-  if (!ids.length || sent === key) return;
+  var hour = String(Math.floor(Date.now() / 3600000));
+  var key = ids.join('|') + '#' + hour;
+  if (sent === key) return;
   var body = new URLSearchParams();
   ids.forEach(function (v) { body.append('ids[]', v); });
   body.append('_token', @json(csrf_token()));

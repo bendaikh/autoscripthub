@@ -51,6 +51,13 @@
                         <input type="text" name="label" class="form-control form-control-sm" maxlength="100" placeholder="{{ __('Note (optional), e.g. Home Wi-Fi') }}" style="width:240px">
                         <button class="btn btn-outline-primary btn-sm">{{ __('Add IP') }}</button>
                     </form>
+                    @if($autoIps->count())
+                    <div class="alert alert-success py-2">
+                        <strong>{{ __('Learned automatically') }}:</strong>
+                        @foreach($autoIps as $row)<code class="mr-2">{{ $row->value }}</code>@endforeach
+                        <br><small>{{ __('IPs you used the admin panel from in the last 3 days are excluded automatically — this also covers private / incognito windows on the same internet connection.') }}</small>
+                    </div>
+                    @endif
                     @if($ips->isEmpty())
                     <p class="text-muted mb-0">{{ __('No IP addresses excluded.') }}</p>
                     @else
