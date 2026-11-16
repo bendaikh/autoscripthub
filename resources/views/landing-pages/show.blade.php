@@ -9,15 +9,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $landing_page->lp_meta_title ?? $landing_page->lp_title }}</title>
-    <meta name="description" content="{{ $landing_page->lp_meta_description ?? strip_tags(substr($landing_page->lp_description, 0, 160)) }}">
-    <meta name="keywords" content="{{ $landing_page->lp_meta_keywords ?? $landing_page->lp_title }}">
+    @php
+        // SEO: one canonical address, a clean description and Product structured data
+        $lpSeoPlain = fn ($v) => trim(preg_replace('/\s+/u', ' ', strip_tags(html_entity_decode((string) $v))));
+        $lpSeoTitle = trim((string) ($landing_page->lp_meta_title ?? '')) ?: $landing_page->lp_title;
+        $lpSeoDesc = $lpSeoPlain($landing_page->lp_meta_description ?? '') ?: ($lpSeoPlain($landing_page->lp_tagline ?? '') ?: $lpSeoPlain($landing_page->lp_description ?? ''));
+        $lpSeoDesc = \Illuminate\Support\Str::limit($lpSeoDesc, 158, '…');
+        $lpSeoUrl = \Fickrr\Support\SiteUrl::to('/landing/' . $landing_page->lp_slug);
+        $lpSeoImage = null;
+        if (!empty($landing_page->lp_banner_image)) {
+            $lpSeoImage = \Fickrr\Support\SiteUrl::to('/public/storage/landing-pages/' . $landing_page->lp_banner_image);
+        } elseif (isset($gallery_images) && count($gallery_images)) {
+            $lpSeoImage = \Fickrr\Support\SiteUrl::to('/public/storage/landing-pages/' . collect($gallery_images)->first()->lpg_image);
+        }
+        $lpSeoLd = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Product',
+            'name' => $landing_page->lp_title,
+            'description' => $lpSeoDesc,
+            'url' => $lpSeoUrl,
+            'brand' => ['@type' => 'Brand', 'name' => $allsettings->site_title ?? 'AutoScriptHub'],
+            'offers' => [
+                '@type' => 'Offer',
+                'url' => $lpSeoUrl,
+                'price' => number_format((float) $landing_page->lp_price, 2, '.', ''),
+                'priceCurrency' => $landing_page->lp_currency ?: 'USD',
+                'availability' => 'https://schema.org/InStock',
+                'itemCondition' => 'https://schema.org/NewCondition',
+            ],
+        ];
+        if ($lpSeoImage) { $lpSeoLd['image'] = [$lpSeoImage]; }
+        $lpSeoCrumbs = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                ['@type' => 'ListItem', 'position' => 1, 'name' => $allsettings->site_title ?? 'Home', 'item' => \Fickrr\Support\SiteUrl::to('/')],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => $landing_page->lp_title, 'item' => $lpSeoUrl],
+            ],
+        ];
+    @endphp
+    <title>{{ $lpSeoTitle }}</title>
+    <meta name="description" content="{{ $lpSeoDesc }}">
+    @if(trim((string) ($landing_page->lp_meta_keywords ?? '')) !== '')<meta name="keywords" content="{{ $landing_page->lp_meta_keywords }}">@endif
+    <meta name="robots" content="index,follow,max-image-preview:large">
+    <link rel="canonical" href="{{ $lpSeoUrl }}">
+    <meta property="og:site_name" content="{{ $allsettings->site_title ?? '' }}">
     <meta property="og:type" content="product">
-    <meta property="og:title" content="{{ $landing_page->lp_title }}">
-    <meta property="og:description" content="{{ $landing_page->lp_tagline ?? strip_tags(substr($landing_page->lp_description, 0, 200)) }}">
-    @if($landing_page->lp_banner_image)
-    <meta property="og:image" content="{{ asset('storage/landing-pages/' . $landing_page->lp_banner_image) }}">
+    <meta property="og:title" content="{{ $lpSeoTitle }}">
+    <meta property="og:description" content="{{ $lpSeoDesc }}">
+    <meta property="og:url" content="{{ $lpSeoUrl }}">
+    <meta property="og:locale" content="{{ str_replace('-', '_', $lpLang) }}">
+    @if($lpSeoImage)
+    <meta property="og:image" content="{{ $lpSeoImage }}">
+    <meta name="twitter:image" content="{{ $lpSeoImage }}">
     @endif
+    <meta property="product:price:amount" content="{{ number_format((float) $landing_page->lp_price, 2, '.', '') }}">
+    <meta property="product:price:currency" content="{{ $landing_page->lp_currency ?: 'USD' }}">
+    <meta name="twitter:card" content="{{ $lpSeoImage ? 'summary_large_image' : 'summary' }}">
+    <meta name="twitter:title" content="{{ $lpSeoTitle }}">
+    <meta name="twitter:description" content="{{ $lpSeoDesc }}">
+    <script type="application/ld+json">{!! json_encode($lpSeoLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}</script>
+    <script type="application/ld+json">{!! json_encode($lpSeoCrumbs, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) !!}</script>
     @include('landing-pages.partials.pixels')
     @include('partials.google-analytics', ['gaLanding' => true])
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">

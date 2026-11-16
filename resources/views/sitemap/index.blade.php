@@ -4,6 +4,9 @@
         <loc>{{ \Fickrr\Support\SiteUrl::to('/sitemap.xml/items') }}</loc>
     </sitemap>
     <sitemap>
+        <loc>{{ \Fickrr\Support\SiteUrl::to('/sitemap.xml/landing') }}</loc>
+    </sitemap>
+    <sitemap>
         <loc>{{ \Fickrr\Support\SiteUrl::to('/sitemap.xml/category') }}</loc>
     </sitemap>
     <sitemap>

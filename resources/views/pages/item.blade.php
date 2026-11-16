@@ -97,38 +97,40 @@ $extend_item_price = 0;
 <script type="application/ld+json">{!! json_encode($breadcrumbLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 @endif
 @if($check_if_item != 0)
-<title>{{ $allsettings->site_title }} - {{ $item['item']->item_name }}</title>
-@if($item_slug != '')
-@if($item['item']->item_allow_seo == 1)
-@if($item['item']->free_download == 0)
-<meta name="description" content="{{ $item['item']->item_seo_desc }}" />
-<meta name="keywords" content="{{ $item['item']->item_seo_keyword }}" />
-<meta name="robots" content="index,follow" />
-<meta property="og:title" content="{{ $item['item']->item_name }}" />
+@php
+  // every product gets its own title / description / share tags (not only "Allow SEO" products)
+  $seoItem = $item['item'];
+  $seoPlain = function ($v) { return trim(preg_replace('/\s+/u', ' ', strip_tags(html_entity_decode(strip_tags(html_entity_decode((string) $v)))))); };
+  $seoDesc = $seoPlain($seoItem->item_seo_desc ?? '');
+  if ($seoDesc === '') { $seoDesc = $seoPlain($seoItem->item_shortdesc ?? ''); }
+  if ($seoDesc === '') { $seoDesc = $seoPlain($seoItem->item_desc ?? ''); }
+  if ($seoDesc === '') { $seoDesc = (string) $allsettings->site_desc; }
+  $seoDesc = \Illuminate\Support\Str::limit($seoDesc, 158, '…');
+  $seoTitle = \Illuminate\Support\Str::limit((string) $seoItem->item_name, 65, '…') . ' | ' . $allsettings->site_title;
+  $seoKeywords = trim((string) (($seoItem->item_seo_keyword ?? '') ?: ($seoItem->item_tags ?? '')));
+  $seoUrl = $schemaUrl ?? \Fickrr\Support\SiteUrl::to('/item/'.$seoItem->item_slug);
+  $seoImage = $schemaImage ?? \Fickrr\Support\SiteUrl::absolute(Helper::Image_Path($seoItem->item_preview ?: 'no-image.png', 'no-image.png'));
+@endphp
+<title>{{ $seoTitle }}</title>
+<meta name="description" content="{{ $seoDesc }}" />
+@if($seoKeywords !== '')<meta name="keywords" content="{{ $seoKeywords }}" />@endif
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<link rel="canonical" href="{{ $seoUrl }}" />
+<meta property="og:site_name" content="{{ $allsettings->site_title }}" />
+<meta property="og:title" content="{{ $seoItem->item_name }}" />
 <meta property="og:type" content="product" />
+<meta property="og:description" content="{{ $seoDesc }}" />
+<meta property="og:url" content="{{ $seoUrl }}" />
+<meta property="og:image" content="{{ $seoImage }}" />
 <meta property="product:price:amount" content="{{ $schemaItem->regular_price ?? $item_price }}" />
-<meta property="product:price:currency" content="{{ $multicurrency ?: 'USD' }}" /> 
-<meta property="og:description" content="{{ $item['item']->item_seo_desc }}" /> 
-<meta property="og:url" content="{{ url()->current() }}" /> 
-<meta property="og:image" content="{{ Helper::Image_Path(($item['item']->item_preview ?? $item['item']->item_thumbnail),'no-image.png') }}" />
+<meta property="product:price:currency" content="{{ $multicurrency ?: 'USD' }}" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:site" content="{{ $allsettings->site_title }}" />
-<meta name="twitter:title" content="{{ $item['item']->item_name }}" />
-<meta name="twitter:description" content="{{ $item['item']->item_seo_desc }}" />
-<meta name="twitter:image" content="{{ Helper::Image_Path(($item['item']->item_preview ?? $item['item']->item_thumbnail),'no-image.png') }}" />
-<link rel="canonical" href="{{ url()->current() }}" />
-<meta name="twitter:image:src" content="{{ Helper::Image_Path(($item['item']->item_preview ?? $item['item']->item_thumbnail),'no-image.png') }}">
-<meta name="twitter:image:width" content= "280" />
-<meta name="twitter:image:height" content= "480" />
-@else
-@include('meta')
-@endif
-@else
-@include('meta')
-@endif
+<meta name="twitter:title" content="{{ $seoItem->item_name }}" />
+<meta name="twitter:description" content="{{ $seoDesc }}" />
+<meta name="twitter:image" content="{{ $seoImage }}" />
 @else
 <title>{{ __('404 Not Found') }} - {{ $allsettings->site_title }}</title>
-@endif
+<meta name="robots" content="noindex,follow" />
 @endif
 @include('style')
 </head>

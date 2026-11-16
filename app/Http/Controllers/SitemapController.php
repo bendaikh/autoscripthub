@@ -33,6 +33,19 @@ class SitemapController extends Controller
       ])->header('Content-Type', 'text/xml');
     }
 	
+	/** Active landing pages (/landing/{slug}). */
+	public function landing()
+    {
+        try {
+            $pages = \DB::table('landing_pages')->where('lp_status', 1)
+                ->orderByDesc('updated_at')
+                ->get(['lp_slug', 'lp_title', 'lp_banner_image', 'updated_at', 'created_at']);
+        } catch (\Throwable $e) {
+            $pages = collect();
+        }
+        return response()->view('sitemap.landing', ['pages' => $pages])->header('Content-Type', 'text/xml');
+    }
+
 	public function items()
     {
         $items = Items::getallItems();
