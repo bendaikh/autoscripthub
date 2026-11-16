@@ -301,6 +301,37 @@
         </div>
         @endif
         
+        @if(!empty($bonus_downloads))
+        <!-- FREE bonuses -->
+        <div class="download-section bonus-downloads">
+            <div class="download-title">
+                <i class="fas fa-gift mr-2"></i>{{ \Fickrr\Helpers\LandingPageI18n::t('Your FREE bonuses') }}
+            </div>
+            @foreach($bonus_downloads as $bd)
+            <div class="bonus-row">
+                <div class="bonus-info">
+                    <span class="bonus-badge">{{ $bd['badge'] }}</span>
+                    <strong>{{ $bd['title'] }}</strong>
+                    @if(!$bd['external'] && $bd['name'])<small>{{ $bd['name'] }}@if($bd['size']) · {{ $bd['size'] }}@endif</small>@endif
+                </div>
+                <a href="{{ $bd['url'] }}" class="btn-download btn-bonus" @if($bd['external']) target="_blank" rel="noopener" @endif>
+                    <i class="fas {{ $bd['external'] ? 'fa-external-link-alt' : 'fa-download' }} mr-1"></i>{{ $bd['external'] ? \Fickrr\Helpers\LandingPageI18n::t('Open') : \Fickrr\Helpers\LandingPageI18n::t('Download') }}
+                </a>
+            </div>
+            @endforeach
+        </div>
+        <style>
+        .bonus-downloads .bonus-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid rgba(0,0,0,.06);text-align:left}
+        .bonus-downloads .bonus-row:first-of-type{border-top:0}
+        .bonus-downloads .bonus-info{display:flex;flex-direction:column;gap:2px;min-width:0}
+        .bonus-downloads .bonus-info strong{word-break:break-word}
+        .bonus-downloads .bonus-info small{color:#718096}
+        .bonus-downloads .bonus-badge{align-self:flex-start;font-size:.7rem;font-weight:800;letter-spacing:.04em;color:#fff;background:#f97316;border-radius:999px;padding:2px 8px}
+        .bonus-downloads .btn-bonus{flex:0 0 auto;padding:10px 16px;font-size:.9rem;margin:0}
+        @media (max-width:480px){.bonus-downloads .bonus-row{flex-direction:column;align-items:stretch}.bonus-downloads .btn-bonus{text-align:center}}
+        </style>
+        @endif
+
         <!-- Additional Info -->
         <p style="color: #718096; font-size: 0.9rem; margin-top: 20px;">
             <i class="fas fa-info-circle mr-1"></i>

@@ -304,5 +304,13 @@
     "Send the equivalent of this amount in :asset.": "ส่งมูลค่าเทียบเท่าจำนวนนี้เป็น :asset",
     "Wisetag": "Wisetag",
     "Pay from your Wise account": "ชำระจากบัญชี Wise ของคุณ",
-    "Name on the account you paid from (optional)": "ชื่อบัญชีที่ใช้ชำระเงิน (ไม่บังคับ)"
+    "Name on the account you paid from (optional)": "ชื่อบัญชีที่ใช้ชำระเงิน (ไม่บังคับ)",
+    "FREE Bonus: :title": "โบนัสฟรี: :title",
+    "+ 1 FREE bonus included": "+ โบนัสฟรี 1 รายการ",
+    "+ :count FREE bonuses included": "+ โบนัสฟรี :count รายการ",
+    "FREE Bonuses Included": "รวมโบนัสฟรี",
+    "All included for :price – instant download": "ทั้งหมดนี้ในราคา :price – ดาวน์โหลดทันที",
+    "Your FREE bonuses": "โบนัสฟรีของคุณ",
+    "Open": "เปิด",
+    "Download": "ดาวน์โหลด"
 }

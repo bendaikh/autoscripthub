@@ -81,6 +81,11 @@
         $included = collect($content['featureCards'])->pluck('title')->take(6)->all();
     }
 
+    // Bonuses (Admin > landing page > Bonuses): shown only when switched on with at least one active bonus
+    $lpBonuses = \Fickrr\Models\LandingBonus::shownFor($landing_page);
+    $lpBonusLines = $lpBonuses->map(fn ($b) => $lpT('FREE Bonus: :title', ['title' => $b->title]))->values()->all();
+    $included = array_merge($included, $lpBonusLines);
+
     $aboutHtml = $landing_page->lp_about_description ?? '';
     if ($aboutHtml === '' && mb_strlen(\Fickrr\Helpers\LandingPageContent::plainText($landing_page->lp_description ?? '')) > \Fickrr\Helpers\LandingPageContent::DESCRIPTION_MAX_CHARS) {
         $aboutHtml = $landing_page->lp_description;
@@ -121,6 +126,7 @@
         'descriptionHtml' => $aboutHtml,
         'whatYouGetHtml' => $landing_page->lp_what_you_get,
         'whatYouGetItems' => $content['whatYouGetItems'],
+        'bonusLines' => $lpBonusLines,
         'included' => array_values($included),
         'heroBenefits' => $content['heroBenefits'],
         'featuresHeading' => $content['featuresHeading'],
@@ -278,6 +284,9 @@
                     <span class="lp-hero-price-label">@{{ page.i18n.onlyPrice }}</span>
                     <span class="lp-hero-price-value">@{{ page.price.symbol }}@{{ formatMoney(page.price.amount) }}@{{ page.price.suffix }}</span>
                 </div>
+                @if($lpBonuses->count())
+                <a href="#bonuses" class="lp-bonus-pill" v-pre><i class="fas fa-gift"></i> {{ $lpBonuses->count() === 1 ? $lpT('+ 1 FREE bonus included') : $lpT('+ :count FREE bonuses included', ['count' => $lpBonuses->count()]) }}</a>
+                @endif
                 <p class="lp-hero-payment">@{{ page.i18n.paymentNote }}</p>
                 <p class="lp-hero-payment lp-mobile-hide">@{{ page.i18n.hostingText }}</p>
 
@@ -339,6 +348,8 @@
             </div>
         </div>
     </section>
+
+    @include('landing-pages.partials.bonuses', ['lpBonuses' => $lpBonuses])
 
     {{-- 2. TRUST / QUICK BENEFITS -------------------------------------------}}
     <section class="lp-trust">
@@ -509,7 +520,7 @@
     </section>
 
     {{-- 7. WHAT YOU GET AFTER PURCHASE ------------------------------------}}
-    <section v-if="page.whatYouGetItems.length || page.whatYouGetHtml" class="lp-section lp-section-dark" id="delivery">
+    <section v-if="page.whatYouGetItems.length || page.whatYouGetHtml || page.bonusLines.length" class="lp-section lp-section-dark" id="delivery">
         <div class="lp-container lp-delivery">
             <div class="lp-delivery-copy" data-reveal>
                 <span class="lp-badge lp-badge-solid"><i class="fas fa-box-open"></i> @{{ page.i18n.whatYouGetHeading }}</span>
@@ -526,7 +537,12 @@
                         <i class="fas fa-check-circle"></i> @{{ item }}
                     </li>
                 </ul>
-                <div v-else class="lp-prose lp-prose-light" v-html="page.whatYouGetHtml"></div>
+                <div v-else-if="page.whatYouGetHtml" class="lp-prose lp-prose-light" v-html="page.whatYouGetHtml"></div>
+                <ul v-if="page.bonusLines.length" class="lp-check-list lp-bonus-lines">
+                    <li v-for="(item, idx) in page.bonusLines" :key="'b' + idx">
+                        <i class="fas fa-gift"></i> @{{ item }}
+                    </li>
+                </ul>
             </div>
         </div>
     </section>
