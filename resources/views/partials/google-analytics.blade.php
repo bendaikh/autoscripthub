@@ -5,9 +5,11 @@
 @php $gaId = trim((string) ($allsettings->google_analytics ?? '')); @endphp
 @if($gaId !== '' && empty($GLOBALS['__gaLoaded']))
 @php $GLOBALS['__gaLoaded'] = true; $gaConfig = !empty($gaLanding) ? ['content_group' => 'Landing pages'] : new \stdClass(); @endphp
-<!-- Google Analytics -->
+<!-- Google Analytics (skipped on the site owner's devices: Admin > Analytics Exclusions) -->
+<script>window.__ashNoTrack = window.__ashNoTrack || document.cookie.indexOf('ash_noanalytics=1') !== -1;</script>
 <script>
-window.addEventListener('load',function(){
+if (window.__ashNoTrack) { window['ga-disable-' + @json($gaId)] = true; }
+if (!window.__ashNoTrack) window.addEventListener('load',function(){
   (window.requestIdleCallback||function(cb){setTimeout(cb,1);})(function(){
     var gs=document.createElement('script'); gs.async=true;
     gs.src='https://www.googletagmanager.com/gtag/js?id={{ urlencode($gaId) }}';

@@ -3,6 +3,7 @@
 (function () {
   if (window.__hvVisit) return;
   window.__hvVisit = 1;
+  if (document.cookie.indexOf('ash_noanalytics=1') !== -1) return;
   var path = location.pathname || '/';
   if (path.indexOf('/admin') === 0 || path.indexOf('/visit') === 0) return;
   var vid = '';

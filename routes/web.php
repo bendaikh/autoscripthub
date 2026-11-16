@@ -455,6 +455,13 @@ Route::group(['middleware' => ['is_admin', 'HtmlMinifier', 'cache', 'XSS']], fun
 	Route::post('/admin/backup', ['as' => 'admin.backup','uses'=>'Admin\BackupController@backup']);
 
 	/* crypto payments (Binance Pay / KAST / USDT) for landing pages */
+	/* analytics: keep the owner's own visits out of the stats */
+	Route::get('/admin/analytics-exclusions', 'Admin\AnalyticsExclusionController@index');
+	Route::post('/admin/analytics-exclusions/device', 'Admin\AnalyticsExclusionController@registerDevice');
+	Route::post('/admin/analytics-exclusions/ip', 'Admin\AnalyticsExclusionController@addIp');
+	Route::post('/admin/analytics-exclusions/devices/clear', 'Admin\AnalyticsExclusionController@clearDevices');
+	Route::post('/admin/analytics-exclusions/{id}/delete', 'Admin\AnalyticsExclusionController@remove')->where('id', '[0-9]+');
+
 	Route::get('/admin/crypto-payments', 'Admin\CryptoPaymentController@index');
 	Route::get('/admin/crypto-payments/waiting', 'Admin\CryptoPaymentController@waiting');
 	Route::post('/admin/crypto-payments/settings', 'Admin\CryptoPaymentController@updateSettings');

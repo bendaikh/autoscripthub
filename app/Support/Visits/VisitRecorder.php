@@ -15,14 +15,8 @@ class VisitRecorder
         if ($request->ajax() || $request->headers->has('X-Requested-With')) {
             return;
         }
-        $admin = false;
-        try {
-            $admin = auth()->check() && method_exists(auth()->user(), 'isAdmin') && auth()->user()->isAdmin();
-        } catch (\Throwable $e) {
-            $admin = false;
-        }
         $path = VisitRules::cleanPath((string) $request->input('path', '/'));
-        if ($admin || VisitRules::isBot($request->userAgent()) || VisitRules::skipPath($path)) {
+        if (VisitRules::isBot($request->userAgent()) || VisitRules::skipPath($path)) {
             return;
         }
         $headers = array_change_key_case($request->headers->all(), CASE_LOWER);
@@ -36,6 +30,10 @@ class VisitRecorder
             $visitor = $ip !== '' ? $ip : 'unknown';
         }
         $visitor = substr($visitor, 0, 80);
+        // the site owner (admin, owner's devices, excluded IPs) is not counted
+        if (AnalyticsExclusion::isExcluded($request, $visitor, $ip)) {
+            return;
+        }
         $referrer = substr(trim((string) $request->input('ref', '')), 0, 191);
         DB::table('site_visits')->insert([
             'visited_at' => date('Y-m-d H:i:s'),

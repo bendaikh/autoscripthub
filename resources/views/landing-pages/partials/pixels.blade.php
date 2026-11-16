@@ -4,6 +4,8 @@
     $ttPixels = $lpPixels['tiktok'];
 @endphp
 @if(count($fbPixels) || count($ttPixels))
+{{-- the site owner's devices (Admin > Analytics Exclusions) do not fire ad pixels --}}
+<script>window.__ashNoTrack = window.__ashNoTrack || document.cookie.indexOf('ash_noanalytics=1') !== -1;</script>
 <script>
 window.lpPixels = {
     facebook: @json($fbPixels),
@@ -64,6 +66,7 @@ window.lpTrackAds = function (eventName, params) {
 @endif
 @if(count($fbPixels))
 <script>
+if (!window.__ashNoTrack) {
 !function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -77,6 +80,7 @@ fbq('init', @json($pixelId));
 fbq('set', 'autoConfig', false, @json($pixelId));
 @endforeach
 fbq('track', 'PageView');
+}
 </script>
 <noscript>
 @foreach($fbPixels as $pixelId)
@@ -86,6 +90,7 @@ fbq('track', 'PageView');
 @endif
 @if(count($ttPixels))
 <script>
+if (!window.__ashNoTrack) {
 !function (w, d, t) {
   w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];
   ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"];
@@ -98,5 +103,6 @@ fbq('track', 'PageView');
   @endforeach
   ttq.page();
 }(window, document, 'ttq');
+}
 </script>
 @endif

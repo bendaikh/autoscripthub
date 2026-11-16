@@ -82,8 +82,11 @@
     ? window.performance.now()
     : Date.now();
 
+  var excludedDevice = false;
+  try { excludedDevice = document.cookie.indexOf('ash_noanalytics=1') !== -1; } catch (e) {}
+
   function track(eventName, props, opts) {
-    if (!lpId) return;
+    if (!lpId || excludedDevice) return;
     props = props || {};
     opts = opts || {};
     if (!props.content_name && cfg.contentName) {
