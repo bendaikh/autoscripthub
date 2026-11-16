@@ -515,6 +515,7 @@ Route::group(['middleware' => ['is_admin', 'HtmlMinifier', 'cache', 'XSS']], fun
 	/* landing page customers */
 	Route::get('/admin/landing-customers', 'Admin\LandingCustomerController@index')->name('admin.landing-customers');
 	Route::get('/admin/landing-customers/delete/{id}', 'Admin\LandingCustomerController@delete')->name('admin.delete-landing-customer');
+	Route::post('/admin/landing-customers/orders/{id}/resend', 'Admin\LandingCustomerController@resend')->where('id', '[0-9]+')->name('admin.landing-orders.resend');
 	/* landing page customers */
 
 	/* email marketing */
@@ -1019,6 +1020,7 @@ Route::get('/landing/crypto/{order_token}/status', 'LandingPagePublicController@
 Route::get('/landing/checkout-embed/{order_token}', 'LandingPagePublicController@embedCheckout')->name('landing-page.checkout-embed');
 Route::get('/landing/success/{order_token}', 'LandingPagePublicController@success')->name('landing-page.success');
 Route::get('/landing/download/{order_token}', 'LandingPagePublicController@download')->name('landing-page.download');
+Route::get('/landing/bonus/{order_token}/{bonus}', 'LandingPagePublicController@bonusDownload')->middleware('throttle:30,1')->where('bonus', '[0-9]+')->name('landing-page.bonus');
 
 /* landing pages */
 

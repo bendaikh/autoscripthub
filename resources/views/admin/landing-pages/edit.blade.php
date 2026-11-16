@@ -179,6 +179,8 @@
                                                 </button>
                                             </div>
 
+                                            @include('admin.landing-pages.partials.bonuses')
+
                                             @include('admin.landing-pages.partials.reviews')
 
                                             <!-- Banner Image -->

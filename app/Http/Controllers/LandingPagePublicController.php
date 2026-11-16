@@ -754,6 +754,8 @@ class LandingPagePublicController extends Controller
         // Count the purchase once, when the order is completed (not on every page refresh)
         if ($justCompleted && $order->payment_status == 'completed') {
             LandingCustomer::createOrUpdateCustomer($order->customer_email, $order->amount);
+            // purchase email with the product and bonus download links
+            \Fickrr\Support\LandingDelivery::completed($order);
         }
 
         // Get landing page details
@@ -769,8 +771,44 @@ class LandingPagePublicController extends Controller
         $data['setting'] = Settings::editGeneral($sid);
         $data['order'] = $order;
         $data['landing_page'] = $landing_page;
+        // fresh signed links each visit (valid 24 hours)
+        $data['bonus_downloads'] = \Fickrr\Models\LandingBonus::downloadsFor($order, 1);
 
         return view('landing-pages.success', $data);
+    }
+
+    /**
+     * Bonus download: signed, expiring link (thank-you page / purchase email) of a paid order.
+     */
+    public function bonusDownload($order_token, $bonus)
+    {
+        if (!\Fickrr\Models\LandingBonus::verifySignature((string) $order_token, (int) $bonus, request()->query('expires'), request()->query('sig'))) {
+            abort(403, 'This download link is invalid or has expired. Open your download page for a fresh link.');
+        }
+        $order = \DB::table('landing_page_orders')->where('order_token', (string) $order_token)->first();
+        if (!$order || $order->payment_status !== 'completed') {
+            abort(403, 'This bonus is available after payment.');
+        }
+        $item = \Fickrr\Models\LandingBonus::ready()
+            ? \DB::table('landing_page_bonuses')->where('id', (int) $bonus)->where('landing_page_id', $order->lp_id)->where('is_active', 1)->first()
+            : null;
+        if (!$item) {
+            abort(404);
+        }
+        if ($item->delivery_method === 'link') {
+            if (!preg_match('#^https?://#i', (string) $item->external_link)) {
+                abort(404);
+            }
+            return redirect()->away($item->external_link);
+        }
+        $path = \Fickrr\Models\LandingBonus::fileDir() . '/' . basename((string) $item->file_path);
+        if (empty($item->file_path) || !is_file($path)) {
+            abort(404);
+        }
+        return response()->download($path, $item->file_original_name ?: basename($path), [
+            'Cache-Control' => 'private, no-store',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 
     /**

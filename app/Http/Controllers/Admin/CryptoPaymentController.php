@@ -160,7 +160,8 @@ class CryptoPaymentController extends Controller
         ]);
         LandingCustomer::createOrUpdateCustomer($order->customer_email, $order->amount);
 
-        $mailed = $this->mailBuyer($order);
+        // purchase email with the product and bonus download links (also records the bonuses delivered)
+        $mailed = \Fickrr\Support\LandingDelivery::completed($order);
 
         return redirect()->back()->with('success', 'Payment approved. The buyer can now download the product'
             . ($mailed ? ' and was sent the download link by email.' : '. (The email could not be sent; you can send them this link: ' . url('/landing/success/' . $order->order_token) . ')'));
@@ -316,32 +317,6 @@ class CryptoPaymentController extends Controller
     {
         if ($file && preg_match('/^[A-Za-z0-9._-]+$/', $file)) {
             @unlink(public_path('storage/crypto/' . $file));
-        }
-    }
-
-    private function mailBuyer($order): bool
-    {
-        try {
-            $setting = Settings::editGeneral(1);
-            $fromEmail = $setting->sender_email ?? '';
-            $fromName = $setting->sender_name ?? ($setting->site_title ?? '');
-            if ($fromEmail === '') {
-                return false;
-            }
-            $title = DB::table('landing_pages')->where('lp_id', $order->lp_id)->value('lp_title') ?: 'your order';
-            $data = [
-                'title' => $title,
-                'link' => url('/landing/success/' . $order->order_token),
-                'site' => $setting->site_title ?? '',
-            ];
-            Mail::send('landing-pages.crypto-approved-mail', $data, function ($m) use ($order, $fromEmail, $fromName, $title) {
-                $m->to($order->customer_email)->subject('Payment confirmed: ' . $title);
-                $m->from($fromEmail, $fromName);
-            });
-            return true;
-        } catch (\Throwable $e) {
-            report($e);
-            return false;
         }
     }
 }

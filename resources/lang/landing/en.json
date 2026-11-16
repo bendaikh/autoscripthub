@@ -317,5 +317,13 @@
     "Send the equivalent of this amount in :asset.": "Send the equivalent of this amount in :asset.",
     "Wisetag": "Wisetag",
     "Pay from your Wise account": "Pay from your Wise account",
-    "Name on the account you paid from (optional)": "Name on the account you paid from (optional)"
+    "Name on the account you paid from (optional)": "Name on the account you paid from (optional)",
+    "FREE Bonus: :title": "FREE Bonus: :title",
+    "+ 1 FREE bonus included": "+ 1 FREE bonus included",
+    "+ :count FREE bonuses included": "+ :count FREE bonuses included",
+    "FREE Bonuses Included": "FREE Bonuses Included",
+    "All included for :price – instant download": "All included for :price – instant download",
+    "Your FREE bonuses": "Your FREE bonuses",
+    "Open": "Open",
+    "Download": "Download"
 }

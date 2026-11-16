@@ -75,6 +75,52 @@
         <div class="content mt-3">
             <div id="landing-admin-app" v-cloak></div>
             <script id="landing-admin-data" type="application/json">{!! $landing_admin_json !!}</script>
+
+            <div class="card mt-4">
+                <div class="card-header"><strong class="card-title">{{ __('Recent orders') }}</strong></div>
+                <div class="card-body">
+                    @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
+                    @if(session('error'))<div class="alert alert-danger">{{ session('error') }}</div>@endif
+                    @if(empty($orders) || $orders->isEmpty())
+                    <p class="text-muted mb-0">{{ __('No orders yet.') }}</p>
+                    @else
+                    <div class="table-responsive">
+                    <table class="table table-striped mb-0">
+                        <thead><tr>
+                            <th>{{ __('Date') }}</th><th>{{ __('Customer') }}</th><th>{{ __('Product') }}</th><th>{{ __('Amount') }}</th>
+                            <th>{{ __('Status') }}</th><th>{{ __('Bonuses delivered') }}</th><th></th>
+                        </tr></thead>
+                        <tbody>
+                        @foreach($orders as $o)
+                            @php $oBonuses = \Fickrr\Support\LandingDelivery::deliveredTitles($o); @endphp
+                            <tr>
+                                <td style="white-space:nowrap">{{ \Carbon\Carbon::parse($o->completed_at ?: $o->created_at)->format('M d, Y H:i') }}</td>
+                                <td>{{ $o->customer_email }}</td>
+                                <td>{{ $o->lp_title ?: '#' . $o->lp_id }}<br><small class="text-muted">{{ $o->order_token }} · {{ $o->payment_method }}</small></td>
+                                <td style="white-space:nowrap">{{ number_format((float) $o->amount, 2) }} {{ $o->currency }}</td>
+                                <td><span class="badge {{ $o->payment_status === 'completed' ? 'badge-success' : ($o->payment_status === 'rejected' ? 'badge-danger' : 'badge-secondary') }}">{{ $o->payment_status }}</span></td>
+                                <td>
+                                    @if($oBonuses)
+                                        @foreach($oBonuses as $bt)<div class="small"><i class="fa fa-gift text-warning"></i> {{ $bt }}</div>@endforeach
+                                    @else<span class="text-muted">—</span>@endif
+                                </td>
+                                <td style="white-space:nowrap">
+                                    @if($o->payment_status === 'completed')
+                                    <form action="{{ route('admin.landing-orders.resend', $o->id) }}" method="post" class="d-inline" onsubmit="return confirm('{{ __('Resend the purchase email with the product and bonus links?') }}')">
+                                        {{ csrf_field() }}
+                                        <button class="btn btn-outline-primary btn-sm"><i class="fa fa-envelope"></i> {{ __('Resend') }}</button>
+                                    </form>
+                                    <a href="{{ url('/landing/success/' . $o->order_token) }}" target="_blank" class="btn btn-light btn-sm" title="{{ __('Download page') }}"><i class="fa fa-link"></i></a>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                    </table>
+                    </div>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
 

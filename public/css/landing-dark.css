@@ -457,3 +457,68 @@ body.lp-body .lp-feature-card p { grid-column: 2; margin-top: .3rem; font-size: 
     color: #fff; font-size: .72rem; font-weight: 800; line-height: 1;
     vertical-align: -3px; margin-inline-end: .2rem;
 }
+
+/* ------------------------------------------------------------- bonuses */
+body.lp-body .lp-bonus-pill {
+    display: inline-flex; align-items: center; gap: .45rem;
+    margin: .2rem 0 .6rem; padding: .45rem .9rem; border-radius: 999px;
+    background: rgba(var(--lp-accent-rgb), .16); border: 1px solid rgba(var(--lp-accent-rgb), .45);
+    color: #fff; font-weight: 700; font-size: .9rem; text-decoration: none;
+    transition: background .2s;
+}
+body.lp-body .lp-bonus-pill i { color: var(--lp-accent); }
+body.lp-body .lp-bonus-pill:hover { background: rgba(var(--lp-accent-rgb), .28); color: #fff; }
+
+body.lp-body .lp-bonus-section { background: linear-gradient(180deg, #fff 0%, var(--dl-soft) 100%); scroll-margin-top: 80px; }
+body.lp-body .lp-bonus-head { margin-bottom: 1.6rem; }
+body.lp-body .lp-bonus-kicker {
+    display: inline-flex; align-items: center; gap: .45rem; padding: .35rem .85rem; border-radius: 999px;
+    background: rgba(var(--lp-accent-rgb), .12); color: var(--lp-accent-dark);
+    font-size: .8rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+}
+body.lp-body .lp-bonus-title { color: var(--lp-accent); margin-top: .7rem; }
+body.lp-body .lp-bonus-banner { display: block; max-width: 960px; margin: 0 auto 2rem; }
+body.lp-body .lp-bonus-banner img { display: block; width: 100%; height: auto; border-radius: var(--dl-radius); box-shadow: var(--dl-shadow-lg); }
+body.lp-body .lp-bonus-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 1.4rem; }
+body.lp-body .lp-bonus-card {
+    flex: 0 1 calc((100% - 2.8rem) / 3); max-width: 360px;
+    background: #fff; border: 1px solid #e8ecf3; border-radius: var(--dl-radius);
+    box-shadow: var(--dl-shadow); overflow: hidden; display: flex; flex-direction: column;
+}
+body.lp-body .lp-bonus-cover { position: relative; padding: 14px 14px 0; }
+body.lp-body .lp-bonus-cover img {
+    display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover;
+    border-radius: 14px; box-shadow: 0 12px 28px rgba(15, 23, 42, .14); background: var(--dl-soft);
+}
+body.lp-body .lp-bonus-badge {
+    position: absolute; top: 24px; inset-inline-start: 24px;
+    padding: .3rem .7rem; border-radius: 999px; background: var(--dl-btn); color: #fff;
+    font-size: .75rem; font-weight: 800; letter-spacing: .04em; box-shadow: 0 6px 16px rgba(var(--lp-accent-rgb), .4);
+}
+body.lp-body .lp-bonus-body { padding: 1rem 1.2rem 1.3rem; display: flex; flex-direction: column; gap: .45rem; flex: 1; }
+body.lp-body .lp-bonus-body h3 { margin: 0; font-size: 1.1rem; font-weight: 800; line-height: 1.3; color: var(--dl-ink); }
+body.lp-body .lp-bonus-body p { margin: 0; color: #475569; font-size: .93rem; line-height: 1.55; }
+body.lp-body .lp-bonus-value {
+    align-self: flex-start; margin-top: auto; padding: .25rem .65rem; border-radius: 8px;
+    background: #ecfdf5; color: #047857; font-size: .82rem; font-weight: 700;
+}
+body.lp-body .lp-bonus-closing { margin: 1.8rem 0 0; text-align: center; font-weight: 700; color: var(--dl-ink); font-size: 1.05rem; }
+body.lp-body .lp-bonus-closing i { color: #16a34a; }
+body.lp-body .lp-bonus-lines { margin-top: .9rem; }
+body.lp-body .lp-bonus-lines i { color: var(--lp-accent); }
+@media (max-width: 1023.98px) {
+    body.lp-body .lp-bonus-card { flex-basis: calc((100% - 1.4rem) / 2); }
+}
+@media (max-width: 599.98px) {
+    /* stacked full-width cards; cover beside the text so each bonus stays compact */
+    body.lp-body .lp-bonus-grid { gap: .9rem; }
+    body.lp-body .lp-bonus-card { flex-basis: 100%; max-width: none; flex-direction: row; align-items: stretch; }
+    body.lp-body .lp-bonus-cover { flex: 0 0 40%; padding: 10px 0 10px 10px; }
+    html[dir="rtl"] body.lp-body .lp-bonus-cover { padding: 10px 10px 10px 0; }
+    body.lp-body .lp-bonus-cover img { border-radius: 10px; }
+    body.lp-body .lp-bonus-badge { top: 16px; inset-inline-start: 16px; font-size: .66rem; padding: .22rem .5rem; }
+    body.lp-body .lp-bonus-body { padding: .8rem .9rem; gap: .35rem; }
+    body.lp-body .lp-bonus-body h3 { font-size: 1rem; }
+    body.lp-body .lp-bonus-body p { font-size: .86rem; }
+    body.lp-body .lp-bonus-closing { font-size: .95rem; }
+}

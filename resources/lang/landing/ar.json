@@ -317,5 +317,13 @@
     "Send the equivalent of this amount in :asset.": "أرسل ما يعادل هذا المبلغ بعملة :asset.",
     "Wisetag": "معرّف Wise",
     "Pay from your Wise account": "ادفع من حسابك في Wise",
-    "Name on the account you paid from (optional)": "اسم الحساب الذي دفعت منه (اختياري)"
+    "Name on the account you paid from (optional)": "اسم الحساب الذي دفعت منه (اختياري)",
+    "FREE Bonus: :title": "هدية مجانية: :title",
+    "+ 1 FREE bonus included": "+ هدية مجانية واحدة مضمّنة",
+    "+ :count FREE bonuses included": "+ :count هدايا مجانية مضمّنة",
+    "FREE Bonuses Included": "هدايا مجانية مضمّنة",
+    "All included for :price – instant download": "كل هذا مقابل :price – تحميل فوري",
+    "Your FREE bonuses": "هداياك المجانية",
+    "Open": "فتح",
+    "Download": "تحميل"
 }

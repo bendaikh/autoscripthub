@@ -107,6 +107,9 @@ class LandingPageController extends Controller
         if ($slugError !== null) {
             return redirect()->back()->withErrors(['lp_slug' => $slugError])->withInput();
         }
+        if ($bonusErrors = $this->bonusErrors($request, null)) {
+            return redirect()->back()->withErrors($bonusErrors)->withInput();
+        }
 
         $contentLanguage = $this->resolveContentLanguage($request);
 
@@ -237,6 +240,8 @@ class LandingPageController extends Controller
         // Get the last inserted ID
         $landing_page_id = \DB::getPdo()->lastInsertId();
 
+        $this->saveBonuses($request, (int) $landing_page_id);
+
         // Handle gallery images
         if ($request->hasFile('gallery_images')) {
             $order = 0;
@@ -329,6 +334,9 @@ class LandingPageController extends Controller
         $slugError = $this->validateLandingSlug($request->input('lp_slug'));
         if ($slugError !== null) {
             return redirect()->back()->withErrors(['lp_slug' => $slugError])->withInput();
+        }
+        if ($bonusErrors = $this->bonusErrors($request, (int) $request->lp_id)) {
+            return redirect()->back()->withErrors($bonusErrors)->withInput();
         }
 
         $contentLanguage = $this->resolveContentLanguage($request);
@@ -507,6 +515,8 @@ class LandingPageController extends Controller
 
         LandingPage::updateLandingPage($request->lp_id, $data);
 
+        $this->saveBonuses($request, (int) $request->lp_id);
+
         // Handle new gallery images
         if ($request->hasFile('gallery_images')) {
             $existing_images = LandingPage::getGalleryImages($request->lp_id);
@@ -642,6 +652,9 @@ class LandingPageController extends Controller
         // Get the last inserted ID
         $new_landing_page_id = \DB::getPdo()->lastInsertId();
 
+        // bonus section and items, with their own copies of the files
+        \Fickrr\Models\LandingBonus::duplicate($landing_page, (int) $new_landing_page_id);
+
         // Copy gallery images
         $gallery_images = LandingPage::getGalleryImages($id);
         $order = 0;
@@ -736,9 +749,216 @@ class LandingPageController extends Controller
             }
         }
 
+        \Fickrr\Models\LandingBonus::deleteForPage($landing_page);
+
         LandingPage::deleteLandingPage($id);
 
         return true;
+    }
+
+    /* ------------------------------------------------------------ bonuses */
+
+    /**
+     * Bonus items posted by the form, in the order shown (drag & drop).
+     *
+     * @return array<int, array{key:string, data:array, cover:?\Illuminate\Http\UploadedFile, file:?\Illuminate\Http\UploadedFile}>
+     */
+    protected function bonusItems(Request $request): array
+    {
+        $posted = (array) $request->input('bonuses', []);
+        $order = array_values(array_filter((array) $request->input('bonus_order', []), fn ($k) => isset($posted[$k])));
+        foreach (array_keys($posted) as $k) {
+            if (!in_array($k, $order, true)) {
+                $order[] = $k;
+            }
+        }
+        $items = [];
+        foreach ($order as $key) {
+            if (!preg_match('/^[A-Za-z0-9_]{1,20}$/', (string) $key) || !is_array($posted[$key])) {
+                continue;
+            }
+            $cover = $request->file("bonuses.$key.cover");
+            $file = $request->file("bonuses.$key.file");
+            $items[] = [
+                'key' => (string) $key,
+                'data' => $posted[$key],
+                'cover' => $cover instanceof \Illuminate\Http\UploadedFile ? $cover : null,
+                'file' => $file instanceof \Illuminate\Http\UploadedFile ? $file : null,
+            ];
+        }
+        return $items;
+    }
+
+    /** Checks an upload's real type (content) and name, and its size. */
+    protected function bonusUploadError($file, array $types, int $maxKb, string $what): ?string
+    {
+        if (!$file) {
+            return null;
+        }
+        if (!$file->isValid()) {
+            return $what . ' could not be uploaded (it may be larger than the server allows).';
+        }
+        $ext = strtolower($file->getClientOriginalExtension());
+        $real = strtolower((string) $file->guessExtension());
+        $real = $real === 'jpeg' ? 'jpg' : $real;
+        if (!in_array($ext, $types, true) || !in_array($real, $types, true)) {
+            return $what . ' must be one of: ' . implode(', ', array_unique(array_map(fn ($t) => $t === 'jpeg' ? 'jpg' : $t, $types))) . '.';
+        }
+        if ($file->getSize() > $maxKb * 1024) {
+            return $what . ' must be ' . ($maxKb >= 1024 ? round($maxKb / 1024) . ' MB' : $maxKb . ' KB') . ' or smaller.';
+        }
+        return null;
+    }
+
+    /** Field errors for the Bonuses card (empty when everything is valid). */
+    protected function bonusErrors(Request $request, ?int $lpId): array
+    {
+        if (!\Fickrr\Models\LandingBonus::ready()) {
+            return [];
+        }
+        $B = \Fickrr\Models\LandingBonus::class;
+        $errors = [];
+        if (mb_strlen((string) $request->input('bonus_section_title')) > 80) {
+            $errors['bonus_section_title'] = 'The section title can be 80 characters at most.';
+        }
+        if ($e = $this->bonusUploadError($request->file('bonus_banner_image'), $B::IMAGE_TYPES, $B::IMAGE_MAX_KB, 'The bonus banner image')) {
+            $errors['bonus_banner_image'] = $e;
+        }
+        $existing = $lpId ? $B::forPage($lpId)->keyBy('id') : collect();
+        $kept = array_values(array_filter($this->bonusItems($request), fn ($it) => ($it['data']['remove'] ?? '0') !== '1'));
+        if (count($kept) > $B::MAX_ITEMS) {
+            $errors['bonuses'] = 'A landing page can have ' . $B::MAX_ITEMS . ' bonuses at most.';
+        }
+        foreach ($kept as $pos => $it) {
+            $k = 'bonuses.' . $it['key'] . '.';
+            $d = $it['data'];
+            $n = 'Bonus #' . ($pos + 1);
+            $row = isset($d['id']) ? $existing->get((int) $d['id']) : null;
+            $active = ($d['active'] ?? '1') === '1';
+            $title = trim(strip_tags((string) ($d['title'] ?? '')));
+            $desc = trim(strip_tags((string) ($d['description'] ?? '')));
+            if ($title === '') {
+                $errors[$k . 'title'] = $n . ': the title is required.';
+            } elseif (mb_strlen($title) > 80) {
+                $errors[$k . 'title'] = $n . ': the title can be 80 characters at most.';
+            }
+            if ($desc === '') {
+                $errors[$k . 'description'] = $n . ': the short description is required.';
+            } elseif (mb_strlen($desc) > 300) {
+                $errors[$k . 'description'] = $n . ': the short description can be 300 characters at most.';
+            }
+            if ($e = $this->bonusUploadError($it['cover'], $B::IMAGE_TYPES, $B::IMAGE_MAX_KB, $n . ': the cover image')) {
+                $errors[$k . 'cover'] = $e;
+            } elseif ($active && !$it['cover'] && !($row && $B::imageUrl($row->image_path))) {
+                $errors[$k . 'cover'] = $n . ': a cover image is required.';
+            }
+            $delivery = ($d['delivery'] ?? 'upload') === 'link' ? 'link' : 'upload';
+            if ($delivery === 'upload') {
+                $hasFile = $row && $row->delivery_method === 'upload' && !empty($row->file_path);
+                if ($e = $this->bonusUploadError($it['file'], $B::FILE_TYPES, $B::FILE_MAX_KB, $n . ': the bonus file')) {
+                    $errors[$k . 'file'] = $e;
+                } elseif ($active && !$it['file'] && !$hasFile) {
+                    $errors[$k . 'file'] = $n . ': upload the bonus file (or choose External link).';
+                }
+            } else {
+                $link = trim((string) ($d['link'] ?? ''));
+                if ($link === '' && $active) {
+                    $errors[$k . 'link'] = $n . ': enter the external link (or choose Upload file).';
+                } elseif ($link !== '' && (!filter_var($link, FILTER_VALIDATE_URL) || !preg_match('#^https?://#i', $link) || mb_strlen($link) > 500)) {
+                    $errors[$k . 'link'] = $n . ': enter a full link starting with https://';
+                }
+            }
+            if (mb_strlen((string) ($d['value_label'] ?? '')) > 40) {
+                $errors[$k . 'value_label'] = $n . ': the value label can be 40 characters at most.';
+            }
+            if (mb_strlen((string) ($d['badge_text'] ?? '')) > 30) {
+                $errors[$k . 'badge_text'] = $n . ': the badge text can be 30 characters at most.';
+            }
+        }
+        return $errors;
+    }
+
+    /** Saves the Bonuses card. Removed items and replaced files are deleted only now, after a valid save. */
+    protected function saveBonuses(Request $request, int $lpId): void
+    {
+        if (!\Fickrr\Models\LandingBonus::ready() || $lpId < 1 || !$request->has('bonus_section_present')) {
+            return;
+        }
+        $B = \Fickrr\Models\LandingBonus::class;
+        $page = LandingPage::getById($lpId);
+        if (!$page) {
+            return;
+        }
+        $title = trim(strip_tags((string) $request->input('bonus_section_title')));
+        $pageData = [
+            'bonus_section_enabled' => $request->input('bonus_section_enabled') === '1' ? 1 : 0,
+            'bonus_section_title' => $title !== '' ? mb_substr($title, 0, 80) : null,
+        ];
+        $banner = $request->file('bonus_banner_image');
+        if ($banner && $banner->isValid()) {
+            $pageData['bonus_banner_image'] = $B::storeImage($banner, 'banner');
+            $B::deleteImage($page->bonus_banner_image ?? null);
+        } elseif ($request->input('remove_bonus_banner') === '1') {
+            $pageData['bonus_banner_image'] = null;
+            $B::deleteImage($page->bonus_banner_image ?? null);
+        }
+        \DB::table('landing_pages')->where('lp_id', $lpId)->update($pageData);
+
+        $existing = $B::forPage($lpId)->keyBy('id');
+        $pos = 0;
+        foreach ($this->bonusItems($request) as $it) {
+            $d = $it['data'];
+            $row = isset($d['id']) ? $existing->get((int) $d['id']) : null;
+            if (($d['remove'] ?? '0') === '1') {
+                if ($row) {
+                    $B::deleteImage($row->image_path);
+                    $B::deleteFile($row->file_path);
+                    \DB::table('landing_page_bonuses')->where('id', $row->id)->delete();
+                }
+                continue;
+            }
+            if ($pos >= $B::MAX_ITEMS) {
+                break;
+            }
+            $delivery = ($d['delivery'] ?? 'upload') === 'link' ? 'link' : 'upload';
+            $value = trim(strip_tags((string) ($d['value_label'] ?? '')));
+            $badge = trim(strip_tags((string) ($d['badge_text'] ?? '')));
+            $data = [
+                'title' => mb_substr(trim(strip_tags((string) ($d['title'] ?? ''))), 0, 80),
+                'description' => mb_substr(trim(strip_tags((string) ($d['description'] ?? ''))), 0, 300),
+                'delivery_method' => $delivery,
+                'external_link' => $delivery === 'link' ? mb_substr(trim((string) ($d['link'] ?? '')), 0, 500) : null,
+                'value_label' => $value !== '' ? mb_substr($value, 0, 40) : null,
+                'badge_text' => $badge !== '' ? mb_substr($badge, 0, 30) : null,
+                'sort_order' => $pos++,
+                'is_active' => ($d['active'] ?? '1') === '1' ? 1 : 0,
+                'updated_at' => now(),
+            ];
+            if ($it['cover'] && $it['cover']->isValid()) {
+                $data['image_path'] = $B::storeImage($it['cover']);
+                if ($row) {
+                    $B::deleteImage($row->image_path);
+                }
+            }
+            if ($delivery === 'upload' && $it['file'] && $it['file']->isValid()) {
+                [$data['file_path'], $data['file_original_name'], $data['file_size']] = $B::storeFile($it['file']);
+                if ($row) {
+                    $B::deleteFile($row->file_path);
+                }
+            } elseif ($delivery === 'link' && $row && !empty($row->file_path)) {
+                $B::deleteFile($row->file_path);
+                $data['file_path'] = null;
+                $data['file_original_name'] = null;
+                $data['file_size'] = null;
+            }
+            if ($row) {
+                \DB::table('landing_page_bonuses')->where('id', $row->id)->update($data);
+            } else {
+                $data['landing_page_id'] = $lpId;
+                $data['created_at'] = now();
+                \DB::table('landing_page_bonuses')->insert($data);
+            }
+        }
     }
 
     /**
