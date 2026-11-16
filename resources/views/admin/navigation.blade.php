@@ -168,6 +168,11 @@
                             @if($cpNavWaiting > 0)<span class="badge badge-danger ml-1">{{ $cpNavWaiting }}</span>@endif
                         </a>
                     </li>
+                    <li>
+                        <a href="{{ url('/admin/analytics-exclusions') }}">
+                            <i class="menu-icon fa fa-user-secret"></i>{{ __('Analytics Exclusions') }}
+                        </a>
+                    </li>
                     @if(in_array('settings',$avilable))
                     <li>
                         <a href="{{ url('/admin/promo-banner') }}">

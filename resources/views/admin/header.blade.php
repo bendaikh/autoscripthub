@@ -278,6 +278,28 @@
 </script>
 <script>
 (function () {
+  if (window.__axDone) return;
+  window.__axDone = 1;
+  try { document.cookie = 'ash_noanalytics=1; path=/; max-age=34560000; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : ''); } catch (e) {}
+  if (!window.fetch) return;
+  var ids = [];
+  try {
+    ['hv_vid', 'lp_visitor_id_v1'].forEach(function (k) { var v = localStorage.getItem(k); if (v) ids.push(v); });
+  } catch (e) {}
+  var sent = '';
+  try { sent = localStorage.getItem('ash_ax_sent') || ''; } catch (e) {}
+  var key = ids.join('|');
+  if (!ids.length || sent === key) return;
+  var body = new URLSearchParams();
+  ids.forEach(function (v) { body.append('ids[]', v); });
+  body.append('_token', @json(csrf_token()));
+  fetch(@json(url('/admin/analytics-exclusions/device')), { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, body: body.toString() })
+    .then(function (r) { if (r.ok) { try { localStorage.setItem('ash_ax_sent', key); } catch (e) {} } })
+    .catch(function () {});
+})();
+</script>
+<script>
+(function () {
   if (!window.fetch || window.__cpHead) return;
   window.__cpHead = 1;
   var btn = document.getElementById('cph-btn');

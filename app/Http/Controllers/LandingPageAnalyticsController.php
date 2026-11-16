@@ -28,6 +28,17 @@ class LandingPageAnalyticsController extends Controller
             return response()->json(['success' => false, 'message' => 'Invalid payload'], 422);
         }
 
+        // the site owner (admin, owner's devices, excluded IPs) is not counted
+        $flatHeaders = [];
+        foreach (array_change_key_case($request->headers->all(), CASE_LOWER) as $hName => $hValues) {
+            $flatHeaders[$hName] = is_array($hValues) ? (string) ($hValues[0] ?? '') : (string) $hValues;
+        }
+        $clientIp = \Fickrr\Support\Visits\ClientAddress::ip($flatHeaders, (string) $request->ip());
+        if (\Fickrr\Support\Visits\AnalyticsExclusion::isExcluded($request, $visitorId, $clientIp)
+            || ($clientIp !== (string) $request->ip() && \Fickrr\Support\Visits\AnalyticsExclusion::isExcluded($request, null, (string) $request->ip()))) {
+            return response()->json(['success' => true, 'excluded' => true]);
+        }
+
         // Ensure landing page exists
         $landingPage = DB::table('landing_pages')->where('lp_id', $lpId)->first();
         if (!$landingPage) {

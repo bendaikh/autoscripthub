@@ -14,6 +14,7 @@ class EncryptCookies extends Middleware
     protected $except = [
         'translate',
 		'referral',
-		'multicurrency'
+		'multicurrency',
+		'ash_noanalytics', // set by JavaScript on the owner's devices (analytics exclusion)
     ];
 }
