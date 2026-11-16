@@ -22,6 +22,7 @@ class AnalyticsExclusionController extends Controller
             'setting' => $setting,
             'ready' => AnalyticsExclusion::ready(),
             'ips' => $rows->where('type', 'ip')->values(),
+            'autoIps' => $rows->where('type', 'autoip')->filter(fn ($r) => !empty($r->last_seen_at) && strtotime((string) $r->last_seen_at) >= time() - AnalyticsExclusion::AUTO_IP_DAYS * 86400)->values(),
             'deviceCount' => $rows->where('type', 'device')->count(),
             'myIp' => $this->clientIp($request),
         ]);
@@ -32,7 +33,13 @@ class AnalyticsExclusionController extends Controller
     {
         $ids = array_slice(array_filter((array) $request->input('ids', []), 'is_string'), 0, 5);
         $label = substr((string) $request->userAgent(), 0, 100);
-        $removed = AnalyticsExclusion::excludeDevice($ids, $label);
+        $removed = $ids ? AnalyticsExclusion::excludeDevice($ids, $label) : 0;
+        // the IP the owner is on now (also covers incognito windows on this connection)
+        $ip = $this->clientIp($request);
+        AnalyticsExclusion::learnIp($ip);
+        if ($ip !== (string) $request->ip()) {
+            AnalyticsExclusion::learnIp((string) $request->ip());
+        }
         return response()->json(['ok' => true, 'removed' => $removed]);
     }
 

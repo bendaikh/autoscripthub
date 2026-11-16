@@ -16,11 +16,14 @@ use Illuminate\Support\Facades\Schema;
  *  - the browser has the "ash_noanalytics" cookie (set on every device that
  *    opens the admin panel), or
  *  - its visitor id belongs to an excluded device, or
- *  - it comes from an excluded IP address.
+ *  - it comes from an excluded IP address, or from an IP the owner used the
+ *    admin panel from in the last AUTO_IP_DAYS days (covers private /
+ *    incognito windows and other browsers on the same connection).
  */
 class AnalyticsExclusion
 {
     public const COOKIE = 'ash_noanalytics';
+    public const AUTO_IP_DAYS = 3;
 
     public static function ready(): bool
     {
@@ -66,9 +69,12 @@ class AnalyticsExclusion
             return ['ip' => [], 'device' => []];
         }
         return Cache::remember('analytics.exclusions.v1', 60, function () {
-            $rows = DB::table('analytics_exclusions')->get(['type', 'value']);
+            $hasSeen = Schema::hasColumn('analytics_exclusions', 'last_seen_at');
+            $rows = DB::table('analytics_exclusions')->get($hasSeen ? ['type', 'value', 'last_seen_at'] : ['type', 'value']);
+            $cut = time() - self::AUTO_IP_DAYS * 86400;
+            $auto = $hasSeen ? $rows->where('type', 'autoip')->filter(fn ($r) => $r->last_seen_at && strtotime((string) $r->last_seen_at) >= $cut)->pluck('value')->all() : [];
             return [
-                'ip' => $rows->where('type', 'ip')->pluck('value')->values()->all(),
+                'ip' => array_values(array_unique(array_merge($rows->where('type', 'ip')->pluck('value')->all(), $auto))),
                 'device' => $rows->where('type', 'device')->pluck('value')->values()->all(),
             ];
         });
@@ -128,6 +134,25 @@ class AnalyticsExclusion
         return true;
     }
 
+    /**
+     * Remembers the IP the owner is using the admin panel from (excluded for
+     * AUTO_IP_DAYS days after the last admin visit) and removes that IP's
+     * visits from the last AUTO_IP_DAYS days.
+     */
+    public static function learnIp(string $ip): void
+    {
+        $ip = trim($ip);
+        if (!self::ready() || !filter_var($ip, FILTER_VALIDATE_IP) || !Schema::hasColumn('analytics_exclusions', 'last_seen_at')) {
+            return;
+        }
+        DB::table('analytics_exclusions')->updateOrInsert(
+            ['type' => 'autoip', 'value' => $ip],
+            ['label' => 'Learned from admin panel', 'last_seen_at' => now(), 'created_at' => now()]
+        );
+        self::forget();
+        self::purgeIp($ip, now()->subDays(self::AUTO_IP_DAYS));
+    }
+
     public static function remove(int $id): void
     {
         if (self::ready()) {
@@ -157,15 +182,27 @@ class AnalyticsExclusion
         return $removed;
     }
 
-    /** Deletes past landing page visits from this IP (the site visits table keeps no IPs). */
-    public static function purgeIp(string $ip): int
+    /** Deletes past visits from this IP (optionally only since $since). */
+    public static function purgeIp(string $ip, $since = null): int
     {
         try {
-            if (!Schema::hasTable('landing_page_visits')) {
-                return 0;
-            }
             $hash = self::ipHash($ip);
-            $visits = DB::table('landing_page_visits')->where('lpv_ip_hash', $hash)->pluck('lpv_id', 'lpv_visitor_id');
+            $removed = 0;
+            if (Schema::hasTable('site_visits') && Schema::hasColumn('site_visits', 'ip_hash')) {
+                $q = DB::table('site_visits')->where('ip_hash', $hash);
+                if ($since) {
+                    $q->where('visited_at', '>=', $since);
+                }
+                $removed += $q->delete();
+            }
+            if (!Schema::hasTable('landing_page_visits')) {
+                return $removed;
+            }
+            $vq = DB::table('landing_page_visits')->where('lpv_ip_hash', $hash);
+            if ($since) {
+                $vq->where('lpv_last_seen_at', '>=', $since);
+            }
+            $visits = $vq->pluck('lpv_id', 'lpv_visitor_id');
             if ($visits->isEmpty()) {
                 return 0;
             }
@@ -176,7 +213,7 @@ class AnalyticsExclusion
             if (Schema::hasTable('landing_page_events')) {
                 DB::table('landing_page_events')->whereIn('lpv_id', $visits->values()->all())->delete();
             }
-            return DB::table('landing_page_visits')->where('lpv_ip_hash', $hash)->delete();
+            return $removed + DB::table('landing_page_visits')->whereIn('lpv_id', $visits->values()->all())->delete();
         } catch (\Throwable $e) {
             report($e);
             return 0;
