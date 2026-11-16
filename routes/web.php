@@ -586,6 +586,7 @@ Route::post('/profile-settings', ['as' => 'profile-settings','uses'=>'ProfileCon
 /* sitemap */
 Route::get('/sitemap.xml', 'SitemapController@index');
 Route::get('/sitemap.xml/items', 'SitemapController@items');
+Route::get('/sitemap.xml/landing', 'SitemapController@landing');
 Route::get('/sitemap.xml/category', 'SitemapController@category');
 Route::get('/sitemap.xml/subcategory', 'SitemapController@subcategory');
 Route::get('/sitemap.xml/pages', 'SitemapController@pages');

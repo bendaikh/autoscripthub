@@ -27,6 +27,8 @@
     RewriteRule ^public/storage/.*\.(?i:php[0-9]?|phtml|phar)$ - [F,L]
 
     # Block sensitive paths
+    # Internal notes (*.md / *.sql in the site root) are not public pages
+    RewriteRule ^[^/]+\.(?i:md|sql)$ - [F,L]
     RewriteRule ^(?:\.git|vendor|bootstrap|storage|node_modules|tests|database|config|resources|routes|private)(/|$) - [F,L]
     RewriteRule ^(?:artisan|server\.php|composer\.(json|lock)|package(-lock)?\.json|webpack\.mix\.js|phpunit\.xml|\.env)(/|$) - [F,L]
     RewriteRule ^(?:setup_dodopayments|fix_dodo_columns|finalize_dodo_setup|check_dodo_columns|use_config_instead_of_db|final_dodo_migration_fix|monarx-analyzer)\.php$ - [F,L]

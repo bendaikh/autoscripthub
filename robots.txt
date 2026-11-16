@@ -18,6 +18,18 @@ Disallow: /messages
 Disallow: /favourites
 Disallow: /withdrawal
 Disallow: /deposit
+Disallow: /landing/success/
+Disallow: /landing/download/
+Disallow: /landing/crypto/
+Disallow: /landing/bonus/
+Disallow: /landing/checkout-embed/
+Disallow: /shop-crypto/
+Disallow: /add-to-cart/
+Disallow: /landing/*/add-to-cart
+Disallow: /landing/*/buy-now
+Disallow: /live-chat/
+Disallow: /*?search=
+Disallow: /*&search=
 Allow: /
 
 Sitemap: https://auto-script-hub.com/sitemap.xml
