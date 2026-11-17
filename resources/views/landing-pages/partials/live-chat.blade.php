@@ -224,6 +224,7 @@
     }
   }
   launcher.addEventListener('click', function () { toggle(); });
+  window.lcOpenChat = function () { toggle(true); };
   document.getElementById('lc-close').addEventListener('click', function () { toggle(false); });
   input.addEventListener('input', function () {
     input.style.height = 'auto';

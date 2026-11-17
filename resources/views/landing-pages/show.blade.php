@@ -179,6 +179,8 @@
         'whatYouGetHtml' => $landing_page->lp_what_you_get,
         'whatYouGetItems' => $content['whatYouGetItems'],
         'bonusLines' => $lpBonusLines,
+        // "Chat with us before you buy" buttons, only while the live chat is switched on
+        'chatEnabled' => \Fickrr\Models\LiveChat::ready() && \Fickrr\Models\LiveChat::enabled(),
         'included' => array_values($included),
         'heroBenefits' => $content['heroBenefits'],
         'featuresHeading' => $content['featuresHeading'],
@@ -226,6 +228,7 @@
             'problemLead' => $lpT('Before'),
             'solutionLead' => $lpT('After'),
             'aboutHeading' => $lpT('About this product'),
+            'chatBeforeBuy' => $lpT('Questions? Chat with us before you buy'),
             'aboutEyebrow' => $lpT('Product overview'),
             'readMore' => $lpT('Read more'),
             'showLess' => $lpT('Show less'),
@@ -342,6 +345,9 @@
                 <p class="lp-hero-payment">@{{ page.i18n.paymentNote }}</p>
                 <p class="lp-hero-payment lp-mobile-hide">@{{ page.i18n.hostingText }}</p>
 
+                <button v-if="page.chatEnabled" type="button" class="lp-chat-cta" @click="openChat">
+                    <span class="lp-chat-dot" aria-hidden="true"></span><i class="fas fa-comments"></i> @{{ page.i18n.chatBeforeBuy }}
+                </button>
                 <div class="lp-hero-actions">
                     <button type="button" class="lp-btn lp-btn-lg" @click="openBuy">
                         <i class="fas fa-bolt"></i> @{{ page.cta }}
@@ -622,6 +628,9 @@
                     </li>
                 </ul>
 
+                <button v-if="page.chatEnabled" type="button" class="lp-chat-cta lp-chat-cta-light lp-chat-cta-center" @click="openChat">
+                    <span class="lp-chat-dot" aria-hidden="true"></span><i class="fas fa-comments"></i> @{{ page.i18n.chatBeforeBuy }}
+                </button>
                 <button type="button" class="lp-btn lp-btn-lg lp-btn-block" @click="openBuy">
                     <i class="fas fa-bolt"></i> @{{ page.cta }}
                 </button>
@@ -826,6 +835,9 @@
         <div class="lp-container lp-final-inner">
             <h2>@{{ page.i18n.finalHeading }}</h2>
             <p>@{{ page.tagline }}</p>
+            <button v-if="page.chatEnabled" type="button" class="lp-chat-cta lp-chat-cta-center" @click="openChat">
+                <span class="lp-chat-dot" aria-hidden="true"></span><i class="fas fa-comments"></i> @{{ page.i18n.chatBeforeBuy }}
+            </button>
             <button type="button" class="lp-btn lp-btn-lg lp-btn-light" @click="openBuy">
                 <i class="fas fa-bolt"></i> @{{ page.cta }} — @{{ page.price.symbol }}@{{ formatMoney(page.price.amount) }}@{{ page.price.suffix }}
             </button>

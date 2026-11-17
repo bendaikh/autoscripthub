@@ -176,6 +176,12 @@
 
         Array.prototype.forEach.call(nodes, function (node) { observer.observe(node); });
       },
+      openChat: function () {
+        if (typeof window.lpTrack === 'function') window.lpTrack('chat_prebuy_click');
+        if (typeof window.lcOpenChat === 'function') { window.lcOpenChat(); return; }
+        var contact = document.getElementById('contact');
+        if (contact) contact.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      },
       openBuy: function () {
         if (typeof window.trackBuyNowClick === 'function') window.trackBuyNowClick();
         if (typeof window.showPaymentModal === 'function') window.showPaymentModal();
