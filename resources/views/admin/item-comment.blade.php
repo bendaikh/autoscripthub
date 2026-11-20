@@ -68,7 +68,7 @@
                                     @foreach($commentData as $data)
                                         <tr>
                                             <td>{{ $no }}</td>
-                                            <td>{{ $data->name }} </td>
+                                            <td>{{ $data->name ?: ($data->import_name ?? null) ?: $data->username ?: __('Deleted user') }}@if(!empty($data->import_name)) <small class="text-muted">({{ __('imported') }}@if(!empty($data->import_source)) · {{ $data->import_source }}@endif)</small>@endif</td>
                                             
                                             <td>{{ $data->comm_text }}</td>
                                             
