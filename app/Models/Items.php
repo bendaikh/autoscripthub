@@ -2104,7 +2104,8 @@ class Items extends Model
   
   public static function getreviewItems($item_id)
   {
-    $value = DB::table('item_ratings')->join('users','users.id','item_ratings.or_user_id')->join('items','items.item_id','item_ratings.or_item_id')->where('item_ratings.or_item_id','=', $item_id)->orderBy('item_ratings.rating_date', 'desc')->get();
+    // leftJoin: imported reviews (Admin > Items > Import reviews) have no user account
+    $value = DB::table('item_ratings')->leftJoin('users','users.id','item_ratings.or_user_id')->join('items','items.item_id','item_ratings.or_item_id')->where('item_ratings.or_item_id','=', $item_id)->orderBy('item_ratings.rating_date', 'desc')->get();
 	return $value;
   }
   
