@@ -398,7 +398,8 @@ class Items extends Model
   public static function getcommentData($token)
   {
 
-    $value=DB::table('item_comments')->join('users','users.id','item_comments.comm_user_id')->where('item_comments.comm_item_id','=',$token)->orderBy('item_comments.comm_id', 'desc')->get(); 
+    // leftJoin: also list comments whose author was deleted or that were imported (no user account)
+    $value=DB::table('item_comments')->leftJoin('users','users.id','item_comments.comm_user_id')->where('item_comments.comm_item_id','=',$token)->select('item_comments.*','users.name','users.username')->orderBy('item_comments.comm_id', 'desc')->get(); 
     return $value;
 	
   }	
