@@ -166,14 +166,14 @@ $(document).ready(function(){
     $(document).ready(function() {
 	'use strict';
       $(this).cPager({
-            pageSize: {{ $allsettings->site_post_per_page }}, 
+            pageSize: {{ (int) ($allsettings->site_post_per_page ?? 0) > 0 ? (int) $allsettings->site_post_per_page : 10 }}, 
             pageid: "post-pager", 
             itemClass: "li-item",
 			pageIndex: 1
  
         });
 	$(this).cPager({
-            pageSize: {{ $allsettings->site_comment_per_page }}, 
+            pageSize: {{ (int) ($allsettings->site_comment_per_page ?? 0) > 0 ? (int) $allsettings->site_comment_per_page : 10 }}, 
             pageid: "commpager", 
             itemClass: "commli-item",
 			pageIndex: 1
@@ -181,7 +181,7 @@ $(document).ready(function(){
         });	
 		
 	$(this).cPager({
-            pageSize: {{ $allsettings->site_review_per_page }}, 
+            pageSize: {{ (int) ($allsettings->site_review_per_page ?? 0) > 0 ? (int) $allsettings->site_review_per_page : 10 }}, 
             pageid: "reviewpager", 
             itemClass: "review-item",
 			pageIndex: 1
@@ -189,7 +189,7 @@ $(document).ready(function(){
         });	
 		
 	$(this).cPager({
-            pageSize: {{ $allsettings->site_item_per_page }}, 
+            pageSize: {{ (int) ($allsettings->site_item_per_page ?? 0) > 0 ? (int) $allsettings->site_item_per_page : 10 }}, 
             pageid: "itempager", 
             itemClass: "prod-item",
 			pageIndex: 1
