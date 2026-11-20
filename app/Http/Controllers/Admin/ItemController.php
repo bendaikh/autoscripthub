@@ -1744,6 +1744,8 @@ class ItemController extends Controller
 				    $button .= '<a href="'.e($data->source_url).'" target="_blank" rel="noopener noreferrer" class="btn btn-info btn-sm" title="Open source link"><i class="fa fa-external-link"></i></a> ';
 				}
 				
+				$button .= '<a href="'.url('/').'/admin/item-reviews/'.$data->item_token.'" class="btn btn-warning btn-sm" title="Import reviews &amp; comments" data-toggle="tooltip"><i class="fa fa-star"></i></a> ';
+
 				// Add Installation Video button
 				$installVideoUrl = isset($data->installation_video_url) ? $data->installation_video_url : '';
 				$button .= '<button type="button" class="btn btn-info btn-sm" onclick="openInstallVideoModal(\''.$data->item_token.'\', \''.addslashes($data->item_name).'\', \''.$installVideoUrl.'\')" title="'.$this->translation('Installation Video',$translate,'Installation Video').'" data-toggle="tooltip"><i class="fa fa-youtube-play"></i></button> ';

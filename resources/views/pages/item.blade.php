@@ -44,8 +44,10 @@ $extend_item_price = 0;
           'priceValidUntil' => date('Y-m-d', strtotime('+1 year')),
       ],
   ];
-  $reviewCount = (int) ($getreview ?? 0);
-  $ratingValue = (int) ($count_rating ?? 0);
+  // structured data for Google uses only reviews written on this site (not imported ones)
+  $ownReviews = collect($getreviewdata['view'] ?? [])->filter(fn ($r) => empty($r->import_name))->values();
+  $reviewCount = $ownReviews->count();
+  $ratingValue = $reviewCount ? (int) round($ownReviews->avg('rating')) : 0;
   if ($reviewCount > 0 && $ratingValue > 0) {
       $productLd['aggregateRating'] = [
           '@type' => 'AggregateRating',
@@ -54,7 +56,7 @@ $extend_item_price = 0;
           'bestRating' => 5,
       ];
       $productLd['review'] = [];
-      foreach (($getreviewdata['view'] ?? []) as $schemaReview) {
+      foreach ($ownReviews as $schemaReview) {
           $productLd['review'][] = [
               '@type' => 'Review',
               'reviewRating' => [
@@ -349,12 +351,12 @@ $extend_item_price = 0;
                 <div class="d-flex mb-3">
                   <div class="media media-ie-fix align-items-center mr-4 pr-2">
                   @if($rating->user_photo!='')
-                  <img class="lazy rounded-circle" width="50" height="50" src="{{ url('/') }}/public/storage/users/{{ $rating->user_photo }}"  alt="{{ $rating->username }}"/>
+                  <img class="lazy rounded-circle" width="50" height="50" src="{{ url('/') }}/public/storage/users/{{ $rating->user_photo }}"  alt="{{ $rating->import_name ?: $rating->username }}"/>
                   @else
-                  <img class="lazy rounded-circle" width="50" height="50" src="{{ url('/') }}/public/img/no-user.png"  alt="{{ $rating->username }}"/>
+                  <img class="lazy rounded-circle" width="50" height="50" src="{{ url('/') }}/public/img/no-user.png"  alt="{{ $rating->import_name ?: $rating->username }}"/>
                   @endif
                     <div class="media-body pl-3">
-                      <h6 class="font-size-sm mb-0">{{ $rating->username }}</h6><span class="font-size-ms text-muted">{{ date('d F Y H:i:s', strtotime($rating->rating_date)) }}</span></div>
+                      <h6 class="font-size-sm mb-0">{{ $rating->import_name ?: $rating->username }}@if(!empty($rating->import_source)) <small class="text-muted font-weight-normal">· {{ __('via') }} {{ $rating->import_source }}</small>@endif</h6><span class="font-size-ms text-muted">{{ date('d F Y H:i:s', strtotime($rating->rating_date)) }}</span></div>
                   </div>
                   <div>
                     <div class="star-rating">
@@ -427,14 +429,14 @@ $extend_item_price = 0;
                                             <div class="media">
                                                 <div class="media-left">
                                                     @if($parent->user_photo!='')
-                                                    <img  class="lazy rounded-circle" width="50" height="50" src="{{ url('/') }}/public/storage/users/{{ $parent->user_photo }}"  alt="{{ $parent->username }}">                                                    @else
-                                                    <img class="lazy rounded-circle" width="50" height="50" src="{{ url('/') }}/public/img/no-user.png"  alt="{{ $parent->username }}">
+                                                    <img  class="lazy rounded-circle" width="50" height="50" src="{{ url('/') }}/public/storage/users/{{ $parent->user_photo }}"  alt="{{ $parent->import_name ?: $parent->username }}">                                                    @else
+                                                    <img class="lazy rounded-circle" width="50" height="50" src="{{ url('/') }}/public/img/no-user.png"  alt="{{ $parent->import_name ?: $parent->username }}">
                                                     @endif
                                                 </div>
                                                 <div class="media-body">
                                                     <div>
                                                         <div class="media-heading">
-                                                            <h6 class="font-size-md mb-0">{{ $parent->username }}</h6>
+                                                            <h6 class="font-size-md mb-0">{{ $parent->import_name ?: $parent->username }}@if(!empty($parent->import_source)) <small class="text-muted font-weight-normal">· {{ __('via') }} {{ $parent->import_source }}</small>@endif</h6>
                                                         </div>
                                                         @if($parent->id == $item['item']->user_id)
                                                         <span class="comment-tag buyer">{{ __('Author') }}</span>

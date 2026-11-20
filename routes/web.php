@@ -245,6 +245,11 @@ Route::group(['middleware' => ['is_admin', 'HtmlMinifier', 'cache', 'XSS']], fun
 	Route::post('/admin/items', ['as' => 'admin.items','uses'=>'Admin\ItemController@search_items']);
 	Route::post('/admin/trashs', ['as' => 'admin.trashs','uses'=>'Admin\ItemController@trash_items']);
 	Route::get('/admin/items-data', 'Admin\ItemController@getItems')->name('admin.items-data');
+	/* import reviews & comments for one item */
+	Route::get('/admin/item-reviews/{token}', 'Admin\ItemReviewImportController@show');
+	Route::post('/admin/item-reviews/{token}/import', 'Admin\ItemReviewImportController@import');
+	Route::post('/admin/item-reviews/{token}/delete-all', 'Admin\ItemReviewImportController@deleteAll');
+	Route::post('/admin/item-reviews/{token}/delete/{type}/{id}', 'Admin\ItemReviewImportController@delete')->where('id', '[0-9]+');
 	Route::get('/admin/upload-item/{itemtype}', 'Admin\ItemController@upload_item');
 	Route::post('/admin/upload-item', ['as' => 'admin.upload-item','uses'=>'Admin\ItemController@save_items']);
 	Route::get('/admin/edit-item/{token}', 'Admin\ItemController@edit_item')->middleware('cacheable:5');
