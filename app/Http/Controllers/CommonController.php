@@ -83,6 +83,34 @@ class CommonController extends Controller
 	  
 	}
 	
+	/**
+	 * ash_conv: welcome email for accounts created at checkout (email-only checkout).
+	 * Sends the login link and, when we generated it, the password.
+	 */
+	private function sendGuestAccountMail($email, $plainPassword, $generated)
+	{
+		try {
+			$setting = Settings::editGeneral(1);
+			$from_name = $setting->sender_name;
+			$from_email = $setting->sender_email;
+			$ru = \Fickrr\Support\LocaleUrl::current() === 'ru';
+			$record = array(
+				'email' => $email,
+				'password' => $generated ? $plainPassword : '',
+				'login_url' => URL::to('/login'),
+				'purchases_url' => URL::to('/purchases'),
+				'ru' => $ru,
+			);
+			$subject = $ru ? 'Ваш аккаунт AutoScriptHub' : 'Your AutoScriptHub account';
+			Mail::send('guest_account_mail', $record, function($message) use ($from_name, $from_email, $email, $subject) {
+				$message->to($email)->subject($subject);
+				$message->from($from_email, $from_name);
+			});
+		} catch (\Throwable $e) {
+			\Log::warning('guest account mail failed: '.$e->getMessage());
+		}
+	}
+
 	public function generate_license($suffix = null) 
 	{
     // Default tokens contain no "ambiguous" characters: 1,i,0,o
@@ -287,8 +315,14 @@ class CommonController extends Controller
 					  $additional['setting'] = Settings::editAdditional();
 					  $getmember['views'] = Members::singlevendorData($item_user_id);
 					  $user_exclusive_type = $getmember['views']->exclusive_author;
-					  // Prefer extended price when regular is 0 (script products)
-					  if($item['view']->regular_price != 0)
+					  // Operating System Licenses have one regular price. Scripts keep extended when regular is 0.
+					  if(\Fickrr\Support\OsLicense::isItem($item['view']))
+					  {
+						  $item_price = $this->price_info($item['view']->item_flash,$item['view']->regular_price);
+						  $license = 'regular';
+						  $license_duration = $additional['setting']->regular_license;
+					  }
+					  else if($item['view']->regular_price != 0)
 					  {
 						  $item_price = $this->price_info($item['view']->item_flash,$item['view']->regular_price);
 						  $license = 'regular';
@@ -393,8 +427,14 @@ class CommonController extends Controller
 					  $additional['setting'] = Settings::editAdditional();
 					  $getmember['views'] = Members::singlevendorData($item_user_id);
 					  $user_exclusive_type = $getmember['views']->exclusive_author;
-					  // Prefer extended price when regular is 0 (script products)
-					  if($item['view']->regular_price != 0)
+					  // Operating System Licenses have one regular price. Scripts keep extended when regular is 0.
+					  if(\Fickrr\Support\OsLicense::isItem($item['view']))
+					  {
+						  $item_price = $this->price_info($item['view']->item_flash,$item['view']->regular_price);
+						  $license = 'regular';
+						  $license_duration = $additional['setting']->regular_license;
+					  }
+					  else if($item['view']->regular_price != 0)
 					  {
 						  $item_price = $this->price_info($item['view']->item_flash,$item['view']->regular_price);
 						  $license = 'regular';
@@ -564,6 +604,11 @@ class CommonController extends Controller
 	   $coupon_key = "";
 	   $coupon_id = "";
 	   $coupon_code = "";
+	  }
+	  if(\Fickrr\Support\OsLicense::isItem($item['view']))
+	  {
+		  $baseRegular = $this->price_info($item['view']->item_flash, $item['view']->regular_price);
+		  $item_price = base64_encode($baseRegular).'_regular';
 	  }
 	  $split = explode("_", $item_price);
        $itemprice = base64_decode($split[0]);  
@@ -941,10 +986,19 @@ class CommonController extends Controller
 		}	 
 	   if(Auth::guest())
 	    {
-			 $email = $request->input('email');
-			 $password = bcrypt($request->input('password'));
-			 $user_auth_token = base64_encode($request->input('password'));
-			 $pass = trim($request->input('password'));
+			 $email = trim((string) $request->input('email'));
+			 // ash_conv: email-only checkout. The password is optional; when it is left
+			 // empty we generate one and email it to the buyer with the login link.
+			 $generated_password = false;
+			 $rawPassword = trim((string) $request->input('password'));
+			 if ($rawPassword === '') {
+				 $rawPassword = \Illuminate\Support\Str::random(10);
+				 $generated_password = true;
+			 }
+			 $request->merge(['password' => $rawPassword]);
+			 $password = bcrypt($rawPassword);
+			 $user_auth_token = base64_encode($rawPassword);
+			 $pass = $rawPassword;
 			 $request->validate([
 								
 								'email' => 'required|email',
@@ -969,10 +1023,11 @@ class CommonController extends Controller
 			{
 			 //$failedRules = $validator->failed();
 			 //return back()->withErrors($validator);
+			 $existsMsg = __('This email already has an account. Please sign in to complete your purchase (use "Forgot password" if needed).');
 			 if ($request->ajax() || $request->wantsJson() || $request->boolean('inline_embed')) {
-			     return response()->json(['success' => false, 'message' => 'Email address already exists'], 422);
+			     return response()->json(['success' => false, 'message' => $existsMsg], 422);
 			 }
-			 return redirect()->back()->with('error', 'Email address already exists');
+			 return redirect()->to(url('/login'))->with('error', $existsMsg);
 			 
 			} 
 			else
@@ -993,6 +1048,7 @@ class CommonController extends Controller
 				Session::setId($session_id);
 				$updata = array('user_id' => auth()->user()->id); 
 				Items::changeOrder($session_id,$updata);
+				$this->sendGuestAccountMail($email, $rawPassword, $generated_password);
 				$user_id = auth()->user()->id;
 				$userdata = Members::logindataUser($user_id);
 				$spliter = $this->split_name($userdata->name);
@@ -1294,7 +1350,7 @@ class CommonController extends Controller
 			   $dodopayments_success = $website_url.'/checkout-dodopayments/'.$encrypter->encrypt($purchase_token);
 			   /* dodopayments */
 				
-			   $get_payment = explode(',', $setting['setting']->payment_option);
+			   $get_payment = \Fickrr\Models\CryptoPay::withMethods(explode(',', $setting['setting']->payment_option));
 	           
 		  }
 		  else
@@ -1509,6 +1565,7 @@ class CommonController extends Controller
 				   /* nowpayments */
 					
 				   $get_payment = explode(',', $vendor_details->user_payment_option);
+				   if ((int) $item_user_id === 1 || ($vendor_details->user_type ?? '') === 'admin') { $get_payment = \Fickrr\Models\CryptoPay::withMethods($get_payment); } /* site owner's items: crypto too */
 			 }
 			 else
 			 {
@@ -1718,7 +1775,7 @@ class CommonController extends Controller
 				    $nowpayments_success = $website_url.'/nowpayments/'.$encrypter->encrypt($purchase_token);
 				    /* nowpayments */
 					
-				   $get_payment = explode(',', $setting['setting']->payment_option);
+				   $get_payment = \Fickrr\Models\CryptoPay::withMethods(explode(',', $setting['setting']->payment_option));
 			 }
 		  }
 	  }
@@ -1734,6 +1791,7 @@ class CommonController extends Controller
 	    $country_percent = $additional['setting']->default_vat_price;
 	  } 
 	   /* VAT */
+	  $country_percent = 0; // ash_conv: no VAT, the product price is the final total
 	  $totaldata = array('cart' => $cart, 'cart_count' => $cart_count, 'get_payment' => $get_payment, 'mobile' => $mobile, 'stripe_type' => $stripe_type, 'country_percent' => $country_percent);
 	  /* subscription code */ 
 	   
@@ -1867,80 +1925,27 @@ class CommonController extends Controller
 		  }
 		  else if($payment_method == 'nowpayments')
 		  {
-			     // Specify the accepted cryptocurrencies
-					// Validate the form input
-				$validator = Validator::make($request->all(), [
-					/*'amount' => 'required|numeric',
-					'currency' => 'required|in:BTC,ETH,LTC', */
-				]);
-		
-				if ($validator->fails()) {
-					return redirect()->back()->withErrors($validator)->withInput();
+			try {
+				$np = \Fickrr\Services\NowPaymentsService::fromSettings($nowpayments_api_key, $nowpayments_ipn_secret, $nowpayments_mode);
+				if ($np->isBelowMinimum($final_amount, $site_currency)) {
+					return redirect()->back()->with('unsuccess', $np->belowMinimumMessage($site_currency));
 				}
-		
-				// Prepare data for the payment request
-				if($nowpayments_mode == 0)
-				{
-				   $nowpayments_payment_url = 'https://api-sandbox.nowpayments.io/v1/payment/';
-				   $nowpayments_invoice_url = 'https://api-sandbox.nowpayments.io/v1/invoice';
-				   $nowpayment_redirect = 'https://sandbox.nowpayments.io/payment?iid=';
-				}
-				else
-				{
-				   $nowpayments_payment_url = 'https://api.nowpayments.io/v1/payment/';
-				   $nowpayments_invoice_url = 'https://api.nowpayments.io/v1/invoice';
-				   $nowpayment_redirect = 'https://nowpayments.io/payment?iid=';
-				}
-		        
-				// Make a request to NowPayments API using GuzzleHTTP // https://api-sandbox.nowpayments.io/v1 //https://api.nowpayments.io/v1/payment
-				$client = new Client();
-				$response = $client->post($nowpayments_payment_url, [
-					'json' => [
-						'price_amount' => $final_amount,
-						'price_currency' => $site_currency,
-						'pay_currency' => "BTC", 
-						//'ipn_callback_url' => "https://nowpayments.io",
-  						'order_id'=> $purchase_token,
-  					    'order_description' => $item_names_data,
-						// Add other parameters as needed
-					],
-					'headers' => [
-						'x-api-key' => $nowpayments_api_key,
-					],
+				$invoice = $np->createInvoice([
+					'price_amount' => $final_amount,
+					'price_currency' => $site_currency,
+					'order_id' => $purchase_token,
+					'order_description' => $item_names_data,
+					'success_url' => $nowpayments_success,
+					'cancel_url' => $cancel_url,
 				]);
-		
-				$responseBody = json_decode($response->getBody(), true);
-				 //dd($responseBody);
-				 
-				 $response2 = $client->post($nowpayments_invoice_url, [
-					'json' => [
-						
-						'price_amount' => $responseBody['price_amount'],
-						'price_currency' => $site_currency, 
-						'order_id' => $responseBody['order_id'],
-	                    'order_description' => $item_names_data,
-						'ipn_callback_url' => "https://nowpayments.io",
-  						'success_url'=> $nowpayments_success,
-                        'cancel_url' => $cancel_url,
-						// Add other parameters as needed
-					],
-					'headers' => [
-						'x-api-key' => $nowpayments_api_key,
-					],
-				]);
-		
-				$responseBody2 = json_decode($response2->getBody(), true);
-				 
-				//dd($responseBody2);
-				 
-				//$paymentLink = $responseBody['payment_url'];
-				
-				return redirect($nowpayment_redirect.$responseBody2['id'].'&paymentId='.$responseBody['payment_id']);
-		       
-				//return view('payment-success', ['paymentLink' => $paymentLink]);
-						
+				return redirect($np->invoiceRedirectUrl($invoice));
+			} catch (\Fickrr\Services\NowPaymentsMinAmountException $e) {
+				return redirect()->back()->with('unsuccess', $e->getMessage());
+			} catch (\Throwable $e) {
+				return redirect()->back()->with('unsuccess', __('Unable to start crypto checkout. Please try again or use another payment method.'));
+			}
 		  }
-		  else if($payment_method == 'dodopayments')
+else if($payment_method == 'dodopayments')
 		  {
 	      // Dodo Payments Integration
 	      $dodopayments_mode = config('services.dodopayments.mode', 'test');
@@ -3094,7 +3099,7 @@ class CommonController extends Controller
 			   }
 			   $csf_token = csrf_token();
 			   $logo_url = $website_url.'/public/storage/settings/'.$setting['setting']->site_logo;
-			   $script_url = $website_url.'/resources/views/theme/js/vendor.min.js';
+			   $script_url = asset('theme/js/vendor.min.js');
 			   $callback = $website_url.'/razorpay';
 			   $razorpay = '
 			   <script type="text/javascript" src="'.$script_url.'"></script>
@@ -3140,6 +3145,11 @@ class CommonController extends Controller
 				echo $razorpay;
 					
 					
+		  }
+		  else if(in_array($payment_method, \Fickrr\Models\CryptoPay::METHODS, true) && \Fickrr\Models\CryptoPay::shopReady())
+		  {
+		    /* crypto: Binance Pay / KAST / USDT, approved in Admin > Crypto Payments */
+		    return redirect(\Fickrr\Models\CryptoPay::startShopPayment($purchase_token, $payment_method, $final_amount, $site_currency, $order_email));
 		  }
 		  else if($payment_method == 'localbank')
 		  {
@@ -3935,7 +3945,7 @@ class CommonController extends Controller
 					  <input type="hidden" name="reference" value="'.$reference.'">
 					  <input type="hidden" name="callback_url" value="'.$callback.'">
 					  <input type="hidden" name="metadata" value="'.$purchase_token.'">
-					  <input type="hidden" name="key" value="'.$setting['setting']->paystack_secret_key.'">
+<input type="hidden" name="key" value="'.$setting['setting']->paystack_secret_key.'">
 					</form>';
 					$paystack .= '<script>window.stack_form.submit();</script>';
 					echo $paystack;
@@ -3969,7 +3979,7 @@ class CommonController extends Controller
 			   }
 			   $csf_token = csrf_token();
 			   $logo_url = $website_url.'/public/storage/settings/'.$setting['setting']->site_logo;
-			   $script_url = $website_url.'/resources/views/theme/js/vendor.min.js';
+			   $script_url = asset('theme/js/vendor.min.js');
 			   $callback = $website_url.'/razorpay';
 			   $razorpay = '
 			   <script type="text/javascript" src="'.$script_url.'"></script>
@@ -4015,6 +4025,11 @@ class CommonController extends Controller
 				echo $razorpay;
 					
 					
+		  }
+		  else if(in_array($payment_method, \Fickrr\Models\CryptoPay::METHODS, true) && \Fickrr\Models\CryptoPay::shopReady())
+		  {
+		    /* crypto: Binance Pay / KAST / USDT, approved in Admin > Crypto Payments */
+		    return redirect(\Fickrr\Models\CryptoPay::startShopPayment($purchase_token, $payment_method, $final_amount, $site_currency, $order_email));
 		  }
 		  else if($payment_method == 'localbank')
 		  {
@@ -4305,7 +4320,7 @@ class CommonController extends Controller
 		  $vendor_details = Members::singlevendorData($item_user_id);
 		  if($additional['setting']->subscription_mode == 0)
 		  {
-			$get_payment = explode(',', $setting['setting']->payment_option);
+			$get_payment = \Fickrr\Models\CryptoPay::withMethods(explode(',', $setting['setting']->payment_option));
 			 $stripe_type = $setting['setting']->stripe_type;
 			 $stripe_mode = $setting['setting']->stripe_mode;
 			   if($stripe_mode == 0)
@@ -4324,6 +4339,7 @@ class CommonController extends Controller
 			 if($count_mode == 1)
 			 {
 				$get_payment = explode(',', $vendor_details->user_payment_option);
+				   if ((int) $item_user_id === 1 || ($vendor_details->user_type ?? '') === 'admin') { $get_payment = \Fickrr\Models\CryptoPay::withMethods($get_payment); } /* site owner's items: crypto too */
 				   $stripe_type = $vendor_details->user_stripe_type;
 				   $stripe_mode = $vendor_details->user_stripe_mode;
 				   if($stripe_mode == 0)
@@ -4339,7 +4355,7 @@ class CommonController extends Controller
 			 }
 			 else
 			 {
-				$get_payment = explode(',', $setting['setting']->payment_option);
+				$get_payment = \Fickrr\Models\CryptoPay::withMethods(explode(',', $setting['setting']->payment_option));
 				   $stripe_type = $setting['setting']->stripe_type;
 				   $stripe_mode = $setting['setting']->stripe_mode;
 				   if($stripe_mode == 0)
@@ -4357,7 +4373,7 @@ class CommonController extends Controller
 	  }
 	  else
 	  {
-	     $get_payment = explode(',', $setting['setting']->payment_option);
+	     $get_payment = \Fickrr\Models\CryptoPay::withMethods(explode(',', $setting['setting']->payment_option));
 		 $stripe_mode = $setting['setting']->stripe_mode;
 		 $stripe_type = $setting['setting']->stripe_type;
 			   if($stripe_mode == 0)
@@ -4391,6 +4407,7 @@ class CommonController extends Controller
 	      $country_percent = $additional['setting']->default_vat_price;
 	   }	  
 	   /* VAT */
+	  $country_percent = 0; // ash_conv: no VAT, the product price is the final total
 	  $data = array('cart' => $cart, 'cart_count' => $cart_count, 'get_payment' => $get_payment, 'mobile' => $mobile, 'stripe_publish' => $stripe_publish, 'stripe_secret' => $stripe_secret, 'country_percent' => $country_percent, 'stripe_type' => $stripe_type);
 	   
 	   
@@ -4556,7 +4573,8 @@ class CommonController extends Controller
 	
 	public function view_tags($type,$slug,Request $request)
 	{
-	   $nslug = str_replace("-"," ",$slug);
+	   $slug = \Fickrr\Support\TagSlug::decode($slug);
+	   $nslug = $slug;
 	   $sid = 1;
 	   $setting['setting'] = Settings::editGeneral($sid);
 	   $today = date("Y-m-d");
@@ -4727,27 +4745,29 @@ class CommonController extends Controller
 	  $additional['settings'] = Settings::editAdditional();
 	  $sid = 1;
 	  $setting['setting'] = Settings::editGeneral($sid);
+	  $productSearch = trim((string) request()->query('product_item', ''));
+	  $shopPriceAsc = request()->query('sort') === 'price_asc';
 	  
 	  if($additional['settings']->subscription_mode == 1)
 	  {
 	      if($additional['settings']->shop_search_type == 'normal')
 		  {
-			  $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->orderBy('items.item_id', 'asc')->paginate($setting['setting']->site_item_per_page);
+			  $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->when($productSearch !== '', function ($query) use ($productSearch) { \Fickrr\Support\ProductSearch::apply($query, $productSearch); \Fickrr\Support\ProductSearch::orderByRelevance($query, $productSearch); })->when(!empty($shopPriceAsc), function ($q) { $q->where('items.free_download', '!=', 1)->where('items.regular_price', '>', 0)->orderBy('items.regular_price', 'asc')->orderBy('items.item_id', 'asc'); }, function ($q) { $q->orderBy('items.item_id', 'asc'); })->paginate($setting['setting']->site_item_per_page);
 		  }
 		  else
 		  {
-		      $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->orderBy('items.item_id', 'asc')->get();
+		      $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->when($productSearch !== '', function ($query) use ($productSearch) { \Fickrr\Support\ProductSearch::apply($query, $productSearch); \Fickrr\Support\ProductSearch::orderByRelevance($query, $productSearch); })->when(!empty($shopPriceAsc), function ($q) { $q->where('items.free_download', '!=', 1)->where('items.regular_price', '>', 0)->orderBy('items.regular_price', 'asc')->orderBy('items.item_id', 'asc'); }, function ($q) { $q->orderBy('items.item_id', 'asc'); })->paginate((int) config('seo.shop_per_page', 36))->withQueryString();
 		  } 
 	  }
 	  else
 	  {
 	      if($additional['settings']->shop_search_type == 'normal')
 		  {
-			  $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->orderBy('items.item_id', 'asc')->paginate($setting['setting']->site_item_per_page);
+			  $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->when($productSearch !== '', function ($query) use ($productSearch) { \Fickrr\Support\ProductSearch::apply($query, $productSearch); \Fickrr\Support\ProductSearch::orderByRelevance($query, $productSearch); })->when(!empty($shopPriceAsc), function ($q) { $q->where('items.free_download', '!=', 1)->where('items.regular_price', '>', 0)->orderBy('items.regular_price', 'asc')->orderBy('items.item_id', 'asc'); }, function ($q) { $q->orderBy('items.item_id', 'asc'); })->paginate($setting['setting']->site_item_per_page);
 		  }
 		  else
 		  {
-		     $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->orderBy('items.item_id', 'asc')->get();
+		     $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id','items.item_category_parent')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->when($productSearch !== '', function ($query) use ($productSearch) { \Fickrr\Support\ProductSearch::apply($query, $productSearch); \Fickrr\Support\ProductSearch::orderByRelevance($query, $productSearch); })->when(!empty($shopPriceAsc), function ($q) { $q->where('items.free_download', '!=', 1)->where('items.regular_price', '>', 0)->orderBy('items.regular_price', 'asc')->orderBy('items.item_id', 'asc'); }, function ($q) { $q->orderBy('items.item_id', 'asc'); })->paginate((int) config('seo.shop_per_page', 36))->withQueryString();
 		  }	  
 	  }
 	  $catData['item'] = Items::getitemcatData();
@@ -4757,7 +4777,9 @@ class CommonController extends Controller
 	  $maxprice['price'] = Items::maxpriceData();
 	  $seo_keyword = $setting['setting']->site_keywords;
 	  $seo_desc = $setting['setting']->site_desc;
-	  return view('shop',[ 'minprice' => $minprice, 'maxprice' => $maxprice, 'getWell' => $getWell, 'itemData' => $itemData, 'catData' => $catData, 'category' => $category, 'method' => $method, 'seo_keyword' => $seo_keyword, 'seo_desc' => $seo_desc]);
+	  $shopMeta = $this->shopListingMeta(null, $setting['setting'], $seo_desc);
+	  $this->abortIfShopPageOutOfRange($itemData['item'] ?? null);
+	  return view('shop',[ 'minprice' => $minprice, 'maxprice' => $maxprice, 'getWell' => $getWell, 'itemData' => $itemData, 'catData' => $catData, 'category' => $category, 'method' => $method, 'seo_keyword' => $seo_keyword, 'seo_desc' => $shopMeta['seo_desc'], 'shop_heading' => $shopMeta['heading'], 'shop_is_category' => $shopMeta['is_category'], 'canonical_url' => $shopMeta['canonical'], 'seo_noindex' => $shopMeta['noindex'] || $productSearch !== '']);
 	  
 	}
 	
@@ -4859,7 +4881,13 @@ class CommonController extends Controller
 	
 	public function view_preview($item_slug)
 	{
+	   if (Items::singleitemCount($item_slug) == 0) {
+		   abort(404);
+	   }
 	   $item['item'] = Items::singleitemData($item_slug);
+	   if (empty($item['item'])) {
+		   abort(404);
+	   }
 	   $data = array('item' => $item);
 	   return view('preview')->with($data);
 	}
@@ -4873,7 +4901,7 @@ class CommonController extends Controller
 		   if($additional['settings']->subscription_mode == 1)
 		   {
 			
-			$products = Items::with('ratings')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_name', 'LIKE', '%'. $query. '%')->where('items.item_status','=',1)->where('items.drop_status','=','no')->orderBy('items.item_name', 'asc')->get();
+			$products = Items::with('ratings')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where(function ($q) use ($query) { \Fickrr\Support\ProductSearch::apply($q, $query); })->where('items.item_status','=',1)->where('items.drop_status','=','no')->orderBy('items.item_name', 'asc')->get();
 		   }
 		   else
 		   {
@@ -4912,21 +4940,21 @@ class CommonController extends Controller
 	   $total['earning'] = Items::totalearningCount();
 	   if($additional['settings']->subscription_mode == 1)
 	   {
-	   $featured['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.item_featured','=','yes')->where('items.drop_status','=','no')->orderBy('items.item_id', 'desc')->take($setting['setting']->home_featured_items)->get();
-	   $popular['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->orderBy('items.item_liked', 'desc')->take($setting['setting']->home_popular_items)->get();
-	   $flash['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.item_flash','=',1)->orderBy('items.item_id', 'desc')->take($setting['setting']->home_flash_items)->get();
-	   /*$free['items'] = Items::with('ratings')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.free_download','=',1)->orderBy('items.item_id', 'desc')->take($setting['setting']->home_free_items)->get();*/
-	   $newest['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->orderBy('items.item_id', 'desc')->take($setting['setting']->site_newest_files)->get();
+	   $featured['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.item_featured','=','yes')->where('items.drop_status','=','no')->orderBy('items.item_id', 'desc')->take(max(1, (int) $setting['setting']->home_featured_items) * 3)->get();
+	   $popular['items'] = $this->popularHomeItems(true, $today, max((int) $setting['setting']->home_popular_items, 16) * 2);
+	   $flash['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.item_flash','=',1)->orderBy('items.item_id', 'desc')->take(max(1, (int) $setting['setting']->home_flash_items) * 3)->get();
+	   /*$free['items'] = Items::with('ratings')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.free_download','=',1)->orderBy('items.item_id', 'desc')->take(max(1, (int) $setting['setting']->home_free_items) * 3)->get();*/
+	   $newest['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->orderBy('items.item_id', 'desc')->take(max(1, (int) $setting['setting']->site_newest_files) * 3)->get();
 	   }
 	   else
 	   {
-	   $featured['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.item_featured','=','yes')->where('items.drop_status','=','no')->orderBy('items.item_id', 'desc')->take($setting['setting']->home_featured_items)->get();
-	   $popular['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->orderBy('items.item_liked', 'desc')->take($setting['setting']->home_popular_items)->get();
-	   $flash['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.item_flash','=',1)->orderBy('items.item_id', 'desc')->take($setting['setting']->home_flash_items)->get();
+	   $featured['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.item_featured','=','yes')->where('items.drop_status','=','no')->orderBy('items.item_id', 'desc')->take(max(1, (int) $setting['setting']->home_featured_items) * 3)->get();
+	   $popular['items'] = $this->popularHomeItems(false, $today, max((int) $setting['setting']->home_popular_items, 16) * 2);
+	   $flash['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.item_flash','=',1)->orderBy('items.item_id', 'desc')->take(max(1, (int) $setting['setting']->home_flash_items) * 3)->get();
 	   
-	   $newest['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->orderBy('items.item_id', 'desc')->take($setting['setting']->site_newest_files)->get();
+	   $newest['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->orderBy('items.item_id', 'desc')->take(max(1, (int) $setting['setting']->site_newest_files) * 3)->get();
 	   }
-	   $free['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.free_download','=',1)->orderBy('items.item_id', 'desc')->take($setting['setting']->home_free_items)->get();
+	   $free['items'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.free_download','=',1)->orderBy('items.item_id', 'desc')->take(max(1, (int) $setting['setting']->home_free_items) * 3)->get();
 	   $totalearning = 0;
 	   foreach($total['earning'] as $earning)
 	   {
@@ -4934,11 +4962,345 @@ class CommonController extends Controller
 	   } 
 	   
 	   $category['view'] = Category::with('SubCategory')->where('category_status','=','1')->where('drop_status','=','no')->orderBy('menu_order','asc')->get();
+	   $category['top_slides'] = $this->heroTopSlides($additional['settings']->subscription_mode == 1, $today, $category['view']);
+	   $category['showcase'] = $this->heroShowcase($additional['settings']->subscription_mode == 1, $today, $category['view']);
+	   $category['hero_sets'] = $this->heroCategorySets($additional['settings']->subscription_mode == 1, $today, $category['view'], $setting['setting']);
 	   $category['counts'] = DB::table('items')->select('item_category_parent', DB::raw('count(*) as total'))->where('item_status','=',1)->where('drop_status','=','no')->groupBy('item_category_parent')->pluck('total','item_category_parent');
-	   $data = array('blog' => $blog, 'comments' => $comments, 'review' => $review, 'totalmembers' => $totalmembers, 'totalsales' => $totalsales, 'totalfiles' => $totalfiles, 'totalearning' => $totalearning, 'featured' => $featured, 'newest' => $newest, 'free' => $free, 'popular' => $popular, 'flash' => $flash, 'category' => $category);
+	   $category['license_slides'] = \Fickrr\Support\OsLicenseCatalog::homeSlides($category['view'], config('os_licenses', []));
+	   $subSlideIds = [];
+	   foreach ($category['license_slides'] as $licenseSlide) {
+		   if ($licenseSlide['kind'] === 'subcategory') {
+			   $subSlideIds[] = $licenseSlide['id'];
+		   }
+	   }
+	   $subSlideCounts = [];
+	   if ($subSlideIds !== []) {
+		   $subSlideCounts = DB::table('items')
+			   ->select('item_category', DB::raw('count(*) as total'))
+			   ->where('item_status', '=', 1)
+			   ->where('drop_status', '=', 'no')
+			   ->where('item_category_type', '=', 'subcategory')
+			   ->whereIn('item_category', $subSlideIds)
+			   ->groupBy('item_category')
+			   ->pluck('total', 'item_category')
+			   ->all();
+	   }
+	   foreach ($category['license_slides'] as $slideIndex => $licenseSlide) {
+		   $category['license_slides'][$slideIndex]['count'] = $licenseSlide['kind'] === 'category'
+			   ? (int) ($category['counts'][$licenseSlide['id']] ?? 0)
+			   : (int) ($subSlideCounts[$licenseSlide['id']] ?? 0);
+	   }
+	   $category['license_items'] = $this->licenseHomeItems($category['license_slides']);
+	   // Home page shows only products whose image file exists and opens (the
+	   // queries above fetch extra rows so each section still fills up).
+	   $hvLocal = (int) ($setting['setting']->site_s3_storage ?? 0) === 0;
+	   $featured['items'] = $this->withUsableImages($featured['items'], (int) $setting['setting']->home_featured_items, $hvLocal);
+	   try {
+		   $featured['items'] = \Fickrr\Support\HomeFeaturedSlide::pick($featured['items'], (int) ($additional['settings']->subscription_mode ?? 0) === 1, $today, $hvLocal);
+	   } catch (\Throwable $e) {
+		   $featured['items'] = collect($featured['items'])->take(4);
+	   }
+	   $flash['items'] = $this->withUsableImages($flash['items'], (int) $setting['setting']->home_flash_items, $hvLocal);
+	   $newest['items'] = $this->withUsableImages($newest['items'], (int) $setting['setting']->site_newest_files, $hvLocal);
+	   $free['items'] = $this->withUsableImages($free['items'], (int) $setting['setting']->home_free_items, $hvLocal);
+	   $popular['items'] = $this->withUsableImages($popular['items'], max((int) $setting['setting']->home_popular_items, 16), $hvLocal);
+	   if (!empty($category['license_items'])) {
+		   $category['license_items'] = $this->withUsableImages($category['license_items'], -1, $hvLocal);
+	   }
+	   $lowest = ['items' => collect()];
+	   try {
+		   $lowest['items'] = \Fickrr\Support\HomeLowPrices::items((int) ($additional['settings']->subscription_mode ?? 0) === 1, $today, $hvLocal);
+	   } catch (\Throwable $e) {
+		   $lowest['items'] = collect();
+	   }
+	   $data = array('blog' => $blog, 'comments' => $comments, 'review' => $review, 'totalmembers' => $totalmembers, 'totalsales' => $totalsales, 'totalfiles' => $totalfiles, 'totalearning' => $totalearning, 'featured' => $featured, 'newest' => $newest, 'free' => $free, 'popular' => $popular, 'flash' => $flash, 'category' => $category, 'promo' => Settings::activePromoBanner(), 'lowest' => $lowest);
 	  //SitemapGenerator::create(URL::to('/'))->writeToFile('sitemap.xml');
 	  
 	  return view('index')->with($data);
+	}
+
+	/**
+	 * Popular product art for the hero spotlight, grouped by major category.
+	 */
+	private function heroShowcase(bool $subscriptionMode, string $today, $categories): array
+	{
+	   $cats = [];
+	   foreach ($categories as $cat) {
+		   $cats[] = [
+			   'id' => (int) $cat->cat_id,
+			   'name' => (string) $cat->category_name,
+			   'slug' => (string) $cat->category_slug,
+		   ];
+	   }
+	   $types = [];
+	   foreach (Items::gettypeItem() as $type) {
+		   $types[] = [
+			   'name' => (string) $type->item_type_name,
+			   'slug' => (string) $type->item_type_slug,
+		   ];
+	   }
+	   $sig = md5(json_encode($cats).json_encode($types));
+	   $key = 'home.hero.showcase.'.($subscriptionMode ? '1' : '0').'.'.$today.'.'.$sig;
+	   $items = Cache::remember($key, 180, function () use ($subscriptionMode, $today, $cats, $types) {
+		   return $this->heroShowcaseItems($subscriptionMode, $today, $cats, $types);
+	   });
+
+	   return \Fickrr\Support\HeroShowcase::present($cats, $types, $items);
+	}
+
+	/**
+	 * @param  array<int, array{id:int,name:string,slug:string}>  $cats
+	 * @param  array<int, array{name:string,slug:string}>  $types
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function heroShowcaseItems(bool $subscriptionMode, string $today, array $cats, array $types): array
+	{
+	   $parentIds = [];
+	   foreach ($cats as $cat) {
+		   if (\Fickrr\Support\HeroShowcase::groupKey($cat['name']) !== null) {
+			   $parentIds[] = $cat['id'];
+		   }
+	   }
+	   $typeSlugs = [];
+	   foreach ($types as $type) {
+		   if (\Fickrr\Support\HeroShowcase::groupKey($type['name']) !== null) {
+			   $typeSlugs[] = $type['slug'];
+		   }
+	   }
+	   if ($parentIds === [] && $typeSlugs === []) {
+		   return [];
+	   }
+
+	   $query = DB::table('items')
+		   ->select(
+			   'items.item_id','items.item_slug','items.item_name','items.item_preview','items.item_thumbnail',
+			   'items.item_category_parent','items.item_type','items.item_views','items.regular_price',
+			   'items.extended_price','items.item_flash','items.free_download','items.item_category',
+			   'items.item_category_type'
+		   )
+		   ->where('items.item_status', '=', 1)
+		   ->where('items.drop_status', '=', 'no');
+	   if ($subscriptionMode) {
+		   $query->leftJoin('users', 'users.id', '=', 'items.user_id')
+			   ->where('users.user_subscr_date', '>=', $today)
+			   ->where('users.user_subscr_payment_status', '=', 'completed');
+	   }
+
+	   $rows = collect();
+	   foreach ($parentIds as $parentId) {
+		   $rows = $rows->merge((clone $query)->where('items.item_category_parent', '=', $parentId)->orderBy('items.item_views', 'desc')->orderBy('items.item_id', 'desc')->limit(3)->get());
+	   }
+	   foreach ($typeSlugs as $typeSlug) {
+		   $rows = $rows->merge((clone $query)->where('items.item_type', '=', $typeSlug)->orderBy('items.item_views', 'desc')->orderBy('items.item_id', 'desc')->limit(3)->get());
+	   }
+	   $rows = $rows->merge((clone $query)->where(function ($filter) {
+		   $filter->where('items.item_name', 'LIKE', '%chatgpt%')
+			   ->orWhere('items.item_name', 'LIKE', '%gemini%')
+			   ->orWhere('items.item_name', 'LIKE', '%google%');
+	   })->orderBy('items.item_views', 'desc')->orderBy('items.item_id', 'desc')->limit(6)->get());
+
+	   $out = [];
+	   $seen = [];
+	   foreach ($rows as $row) {
+		   $id = (int) $row->item_id;
+		   if ($id <= 0 || isset($seen[$id])) {
+			   continue;
+		   }
+		   $preview = trim((string) ($row->item_preview ?? ''));
+		   $thumb = trim((string) ($row->item_thumbnail ?? ''));
+		   if ($preview === '' && $thumb === '') {
+			   continue;
+		   }
+		   $seen[$id] = true;
+		   $out[] = [
+			   'id' => $id,
+			   'name' => (string) $row->item_name,
+			   'slug' => (string) $row->item_slug,
+			   'preview' => $preview,
+			   'thumb' => $thumb,
+			   'parent' => (int) $row->item_category_parent,
+			   'type' => (string) ($row->item_type ?? ''),
+			   'views' => (int) ($row->item_views ?? 0),
+			   'regular_price' => $row->regular_price,
+			   'extended_price' => $row->extended_price,
+			   'item_flash' => $row->item_flash,
+			   'free_download' => $row->free_download,
+			   'item_category' => $row->item_category,
+			   'item_category_parent' => $row->item_category_parent,
+			   'item_category_type' => $row->item_category_type,
+		   ];
+	   }
+
+	   return $out;
+	}
+
+	/**
+	 * Keep only items whose card image (preview, then thumbnail) exists and
+	 * opens as a browser-displayable image. $limit: how many to keep (0 = none,
+	 * as the admin setting means), or -1 to keep all.
+	 */
+	private function withUsableImages($items, int $limit, bool $localStorage)
+	{
+	   $kept = collect($items)->filter(function ($item) use ($localStorage) {
+		   return \Fickrr\Support\ProductImage::isUsable(\Helper::card_image($item), $localStorage);
+	   })->values();
+	   if ($limit < 0) {
+		   return $kept;
+	   }
+	   return $kept->take($limit)->values();
+	}
+
+	/**
+	 * Hero product rotator: one set per active category with up to three of its
+	 * most viewed products, keeping only products whose image really exists and
+	 * opens. Categories without any such product are left out. Cached briefly.
+	 *
+	 * @return array<int, array{name:string,slug:string,count:int,items:array}>
+	 */
+	private function heroCategorySets(bool $subscriptionMode, string $today, $categories, $settings): array
+	{
+	   // ash_fix12: the three hero tiles show the cheapest published, buyable
+	   // products (same query as the Lowest prices row), rotating through a
+	   // short pool so the first screen is not the same three cards as that row.
+	   $local = (int) ($settings->site_s3_storage ?? 0) === 0;
+	   $key = 'home.hero.lowprice.sets.v1.'.($subscriptionMode ? '1' : '0').'.'.$today.'.'.($local ? 'l' : 'r');
+
+	   return Cache::remember($key, 180, function () use ($subscriptionMode, $today, $local) {
+		   try {
+			   return \Fickrr\Support\HomeLowPrices::heroSets($subscriptionMode, $today, $local);
+		   } catch (\Throwable $e) {
+			   return [];
+		   }
+	   });
+	}
+
+	/**
+	 * Category and item-type rows for the hero Top Products rotator.
+	 * Counts follow the shop's approved-item rules and are cached briefly.
+	 */
+	private function heroTopSlides(bool $subscriptionMode, string $today, $categories): array
+	{
+	   $cats = [];
+	   foreach ($categories as $cat) {
+		   $cats[] = [
+			   'id' => (int) $cat->cat_id,
+			   'name' => (string) $cat->category_name,
+			   'slug' => (string) $cat->category_slug,
+		   ];
+	   }
+	   $types = [];
+	   foreach (Items::gettypeItem() as $type) {
+		   $types[] = [
+			   'name' => (string) $type->item_type_name,
+			   'slug' => (string) $type->item_type_slug,
+		   ];
+	   }
+	   $key = 'home.hero.counts.'.($subscriptionMode ? '1' : '0').'.'.$today;
+	   $counts = Cache::remember($key, 180, function () use ($subscriptionMode, $today) {
+		   return $this->heroVisibleCounts($subscriptionMode, $today);
+	   });
+
+	   return \Fickrr\Support\HeroTopProducts::slides($cats, $types, $counts['parents'], $counts['types']);
+	}
+
+	/**
+	 * @return array{parents: array<int, int>, types: array<string, int>}
+	 */
+	private function heroVisibleCounts(bool $subscriptionMode, string $today): array
+	{
+	   $query = DB::table('items')
+		   ->where('items.item_status', '=', 1)
+		   ->where('items.drop_status', '=', 'no');
+	   if ($subscriptionMode) {
+		   $query->leftJoin('users', 'users.id', '=', 'items.user_id')
+			   ->where('users.user_subscr_date', '>=', $today)
+			   ->where('users.user_subscr_payment_status', '=', 'completed');
+	   }
+
+	   $parents = [];
+	   foreach ((clone $query)->select('items.item_category_parent as bucket', DB::raw('count(*) as total'))->groupBy('items.item_category_parent')->get() as $row) {
+		   $parents[(int) $row->bucket] = (int) $row->total;
+	   }
+	   $types = [];
+	   foreach ((clone $query)->select('items.item_type as bucket', DB::raw('count(*) as total'))->groupBy('items.item_type')->get() as $row) {
+		   $types[(string) $row->bucket] = (int) $row->total;
+	   }
+
+	   return ['parents' => $parents, 'types' => $types];
+	}
+
+	/**
+	 * Games, AI and Office products for the home Popular carousel.
+	 * Groups are ordered by views, then interleaved so Office does not fill the row.
+	 */
+	private function popularHomeItems(bool $subscriptionMode, string $today, int $limit)
+	{
+	   $parents = \Fickrr\Support\PopularMix::parents();
+	   $query = Items::with('ratings')->select(
+		   'items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_thumbnail',
+		   'items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username',
+		   'users.user_document_verified','items.updated_item','items.item_sold','items.free_download',
+		   'items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id',
+		   'items.file_type','items.item_delimiter','items.item_serials_list',
+		   'items.item_category','items.item_category_parent','items.item_category_type','items.item_views'
+	   )->leftjoin('users', 'users.id', '=', 'items.user_id')
+		   ->where('items.item_status', '=', 1)
+		   ->where('items.drop_status', '=', 'no')
+		   ->where(function ($filter) use ($parents) {
+			   $filter->whereIn('items.item_category_parent', $parents)
+				   ->orWhere('items.item_name', 'LIKE', '%gemini%')
+				   ->orWhere('items.item_name', 'LIKE', '%google%')
+				   ->orWhere('items.item_name', 'LIKE', '%chatgpt%')
+				   ->orWhere('items.item_name', 'LIKE', '%office%');
+		   });
+	   if ($subscriptionMode) {
+		   $query->where('users.user_subscr_date', '>=', $today)
+			   ->where('users.user_subscr_payment_status', '=', 'completed');
+	   }
+	   $rows = $query->orderBy('items.item_views', 'desc')->orderBy('items.item_id', 'desc')->get();
+
+	   return collect(\Fickrr\Support\PopularMix::interleave($rows, $limit));
+	}
+
+	private function licenseHomeItems(array $slides)
+	{
+	   $buckets = \Fickrr\Support\OsLicenseCatalog::slideBuckets($slides);
+	   $parents = $buckets['parents'];
+	   $subs = $buckets['subcategories'];
+	   if ($parents === [] && $subs === []) {
+		   return collect();
+	   }
+
+	   $query = Items::with('ratings')->select(
+		   'items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_thumbnail',
+		   'items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username',
+		   'users.user_document_verified','items.updated_item','items.item_sold','items.free_download',
+		   'items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id',
+		   'items.file_type','items.item_delimiter','items.item_serials_list',
+		   'items.item_category','items.item_category_parent','items.item_category_type'
+	   )->leftjoin('users', 'users.id', '=', 'items.user_id')
+		   ->where('items.item_status', '=', 1)
+		   ->where('items.drop_status', '=', 'no')
+		   ->where(function ($filter) use ($parents, $subs) {
+			   $started = false;
+			   if ($parents !== []) {
+				   $filter->whereIn('items.item_category_parent', $parents)
+					   ->orWhere(function ($nested) use ($parents) {
+						   $nested->where('items.item_category_type', '=', 'category')
+							   ->whereIn('items.item_category', $parents);
+					   });
+				   $started = true;
+			   }
+			   if ($subs !== []) {
+				   $method = $started ? 'orWhere' : 'where';
+				   $filter->{$method}(function ($nested) use ($subs) {
+					   $nested->where('items.item_category_type', '=', 'subcategory')
+						   ->whereIn('items.item_category', $subs);
+				   });
+			   }
+		   });
+
+	   return $query->orderBy('items.item_id', 'desc')->take(16)->get();
 	}
 	
 	public function payment_cancel()
@@ -5466,7 +5828,7 @@ class CommonController extends Controller
 	   /* badges */
 	   $sid = 1;
 	   $badges['setting'] = Settings::editBadges($sid);
-	   $sold['item'] = Items::SoldAmount($user_id);
+$sold['item'] = Items::SoldAmount($user_id);
 	   $sold_amount = 0;
 	   foreach($sold['item'] as $iter)
 	   {
@@ -5776,6 +6138,7 @@ class CommonController extends Controller
 	public function view_category_types($type,$slug)
 	{
 	  $method = "get";
+	  $category_data = null;
 	  $sid = 1;
       $setting['setting'] = Settings::editGeneral($sid);
 	  $today = date("Y-m-d");
@@ -5790,7 +6153,7 @@ class CommonController extends Controller
 				  }
 				  else
 				  {
-				    $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.item_type','=',$slug)->orderBy('items.item_id', 'desc')->get();
+				    $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.item_type','=',$slug)->orderBy('items.item_id', 'desc')->paginate((int) config('seo.shop_per_page', 36))->withQueryString();
 				  }
 				  $seo_keyword = $setting['setting']->site_keywords;
 				  $seo_desc = $setting['setting']->site_desc;
@@ -5810,7 +6173,7 @@ class CommonController extends Controller
 					   }
 					   else
 					   {
-					   $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.item_category_parent','=',$category_id)->orderBy('items.item_id', 'desc')->get();
+					   $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.item_category_parent','=',$category_id)->orderBy('items.item_id', 'desc')->paginate((int) config('seo.shop_per_page', 36))->withQueryString();
 					   }
 					  if($category_data->category_allow_seo == 1)
 					  { 
@@ -5825,7 +6188,7 @@ class CommonController extends Controller
 				   }
 				   else
 				   {
-				     return view('/404');
+				     abort(404);
 				   }
 				}
 				else
@@ -5841,7 +6204,7 @@ class CommonController extends Controller
 					 }
 					 else
 					 {
-					   $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.item_category_type','=',$type)->where('items.item_category','=',$category_id)->orderBy('items.item_id', 'desc')->get();
+					   $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('users.user_subscr_date','>=',$today)->where('users.user_subscr_payment_status','=','completed')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.item_category_type','=',$type)->where('items.item_category','=',$category_id)->orderBy('items.item_id', 'desc')->paginate((int) config('seo.shop_per_page', 36))->withQueryString();
 					 }
 					 if($category_data->subcategory_allow_seo == 1)
 					 {
@@ -5857,7 +6220,7 @@ class CommonController extends Controller
 				  }
 				   else
 				   {
-				     return view('/404');
+				     abort(404);
 				   }
 				}
 				
@@ -5873,7 +6236,7 @@ class CommonController extends Controller
 				  }
 				  else
 				  {
-				     	$itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.item_type','=',$slug)->orderBy('items.item_id', 'desc')->get();
+				     	$itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.item_type','=',$slug)->orderBy('items.item_id', 'desc')->paginate((int) config('seo.shop_per_page', 36))->withQueryString();
 
 				  }
 				  $seo_keyword = $setting['setting']->site_keywords;
@@ -5894,7 +6257,7 @@ class CommonController extends Controller
 					   }
 					   else
 					   {
-					   $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.item_category_parent','=',$category_id)->orderBy('items.item_id', 'desc')->get();
+					   $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.item_category_parent','=',$category_id)->orderBy('items.item_id', 'desc')->paginate((int) config('seo.shop_per_page', 36))->withQueryString();
 					   }
 					  if($category_data->category_allow_seo == 1)
 					  { 
@@ -5909,7 +6272,7 @@ class CommonController extends Controller
 				   }
 				   else
 				   {
-				     return view('/404');
+				     abort(404);
 				   }
 				}
 				else
@@ -5925,7 +6288,7 @@ class CommonController extends Controller
 					 }
 					 else
 					 {
-					   $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.item_category_type','=',$type)->where('items.item_category','=',$category_id)->orderBy('items.item_id', 'desc')->get();
+					   $itemData['item'] = Items::with('ratings')->select('items.item_id','items.item_liked','items.item_slug','items.item_preview','items.item_name','items.item_type','items.item_type_id','users.user_photo','users.username','users.user_document_verified','items.updated_item','items.item_sold','items.free_download','items.item_flash','items.regular_price','items.extended_price','items.item_token','items.user_id','items.file_type','items.item_delimiter','items.item_serials_list','items.item_type_cat_id')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.item_category_type','=',$type)->where('items.item_category','=',$category_id)->orderBy('items.item_id', 'desc')->paginate((int) config('seo.shop_per_page', 36))->withQueryString();
 					 }
 					 if($category_data->subcategory_allow_seo == 1)
 					 {
@@ -5940,7 +6303,7 @@ class CommonController extends Controller
 				  }
 				  else
 				  {
-				     return view('/404');
+				     abort(404);
 				  }
 				}
 				
@@ -5954,7 +6317,9 @@ class CommonController extends Controller
 	  $getWell['type'] = Items::gettypeStatus();
 	  $minprice['price'] = Items::minpriceData();
 	  $maxprice['price'] = Items::maxpriceData();
-	  return view('shop',[ 'minprice' => $minprice, 'maxprice' => $maxprice, 'getWell' => $getWell, 'itemData' => $itemData, 'catData' => $catData, 'category' => $category, 'method' => $method, 'seo_keyword' => $seo_keyword, 'seo_desc' => $seo_desc]);
+	  $shopMeta = $this->shopListingMeta($category_data ?? null, $setting['setting'], $seo_desc);
+	  $this->abortIfShopPageOutOfRange($itemData['item'] ?? null);
+	  return view('shop',[ 'minprice' => $minprice, 'maxprice' => $maxprice, 'getWell' => $getWell, 'itemData' => $itemData, 'catData' => $catData, 'category' => $category, 'method' => $method, 'seo_keyword' => $seo_keyword, 'seo_desc' => $shopMeta['seo_desc'], 'shop_heading' => $shopMeta['heading'], 'shop_is_category' => $shopMeta['is_category'], 'canonical_url' => $shopMeta['canonical'], 'seo_noindex' => $shopMeta['noindex']]);
 	  
 	}
 	
@@ -5972,64 +6337,16 @@ class CommonController extends Controller
 	  $sid = 1;
 	  $setting['setting'] = Settings::editGeneral($sid);
 	  
-	  Cache::put('search_keyword', $product_item, now()->addDays(1));
-	  $search_keyword = Cache::get('search_keyword');
+	  // the visitor's own keyword (was a site-wide cache shared by every visitor)
+	  $search_keyword = trim((string) $product_item);
 	  
-	  if(!empty($request->input('category_names')))
-	   {
-	      
-		  $category_no = "";
-		  $category_ids = "";
-		  
-		  foreach($request->input('category_names') as $category_value)
-		  {
-		     $category_no .= $category_value.',';
-			 if(!empty($category_value))
-			 {
-			 $pieces = explode("_", $category_value);
-			 $category_ids .= $pieces[1].',';
-			 }
-			 else
-			 {
-			 $category_ids .= "";
-			 }
-		  }
-		  $category_names = rtrim($category_no,",");
-		  $category_id = rtrim($category_ids,",");
-		  
-	   }
-	   else
-	   {
-	     $category_names = "";
-		 $category_id = "";
-	   }
-	  
-	  if(!empty($request->input('item_type')))
-	   {
-	      
-		  $itemtype = "";
-		  foreach($request->input('item_type') as $item_type)
-		  {
-		     $itemtype .= $item_type.',';
-		  }
-		  $item_types = rtrim($itemtype,",");
-		  
-	   }
-	   else
-	   {
-	     $item_types = "";
-	   } 
-	  if(!empty($request->input('orderby')))
-	  { 
-	  $orderby = $request->input('orderby');
-	  }
-	  else
-	  {
-	  $orderby = "desc";
-	  }
+	  // Validated filter values only; they reach the query as bound parameters (see ShopFilters).
+	  list($item_types, $item_types_submitted) = \Fickrr\Support\ShopFilters::itemTypes($request->input('item_type'));
+	  $category_filter = \Fickrr\Support\ShopFilters::categories($request->input('category_names'));
+	  $orderby = \Fickrr\Support\ShopFilters::direction($request->input('orderby'));
 	  $min_price = $request->input('min_price');
 	  $max_price = $request->input('max_price'); 
-	  if($search_keyword != "" ||  $orderby != "" || $min_price != "" || $max_price != "" || $item_types != "" || $category_names != "")
+	  if($search_keyword != "" ||  $orderby != "" || $min_price != "" || $max_price != "" || $item_types_submitted || $category_filter['submitted'])
 	  {
 	  
 	  
@@ -6042,31 +6359,15 @@ class CommonController extends Controller
 							  ->where('users.user_subscr_payment_status','=','completed')
 							  ->where('items.item_status','=',1)
 							  ->where('items.drop_status','=','no')
-							  ->where(function ($query) use ($search_keyword,$orderby,$min_price,$max_price,$item_types,$category_names,$category_id) { 
-							  $query->where('items.item_name', 'LIKE', "%$search_keyword%");
+							  ->where(function ($query) use ($search_keyword,$min_price,$max_price,$item_types,$item_types_submitted,$category_filter) { 
+							  \Fickrr\Support\ProductSearch::apply($query, $search_keyword);
 							  if ($min_price != "" || $max_price != "")
 							  {
 							  $query->where('items.regular_price', '>=', $min_price);
 							  $query->where('items.regular_price', '<=', $max_price);
 							  }
-							  if ($item_types != "")
-							  {
-							  $query->whereRaw('FIND_IN_SET(items.item_type,"'.$item_types.'")');
-							  }
-							  if ($category_names != "")
-							  {
-							      $pieces = explode("_", $category_names);
-								  if($pieces[0] == 'category')
-								  {
-							  		$query->whereRaw('FIND_IN_SET(items.item_category_parent,"'.$category_id.'")');
-								  }
-								  else
-								  {
-								    $query->whereRaw('FIND_IN_SET(items.item_type_cat_id,"'.$category_names.'")');
-								  }	
-							  
-							  }
-							  })->orderBy('items.regular_price', $orderby)->get();
+							  \Fickrr\Support\ShopFilters::apply($query, $item_types, $item_types_submitted, $category_filter);
+							  })->when($search_keyword !== '', function ($q) use ($search_keyword) { \Fickrr\Support\ProductSearch::orderByRelevance($q, $search_keyword); })->orderBy('items.regular_price', $orderby)->get();
 			}
 			else
 			{
@@ -6075,31 +6376,15 @@ class CommonController extends Controller
 							  ->leftjoin('users', 'users.id', '=', 'items.user_id')
 							  ->where('items.item_status','=',1)
 							  ->where('items.drop_status','=','no')
-							  ->where(function ($query) use ($search_keyword,$orderby,$min_price,$max_price,$item_types,$category_names,$category_id) { 
-							  $query->where('items.item_name', 'LIKE', "%$search_keyword%");
+							  ->where(function ($query) use ($search_keyword,$min_price,$max_price,$item_types,$item_types_submitted,$category_filter) { 
+							  \Fickrr\Support\ProductSearch::apply($query, $search_keyword);
 							  if ($min_price != "" || $max_price != "")
 							  {
 							  $query->where('items.regular_price', '>=', $min_price);
 							  $query->where('items.regular_price', '<=', $max_price);
 							  }
-							  if ($item_types != "")
-							  {
-							  $query->whereRaw('FIND_IN_SET(items.item_type,"'.$item_types.'")');
-							  }
-							  if ($category_names != "")
-							  {
-							      $pieces = explode("_", $category_names);
-								  if($pieces[0] == 'category')
-								  {
-							  		$query->whereRaw('FIND_IN_SET(items.item_category_parent,"'.$category_id.'")');
-								  }
-								  else
-								  {
-								    $query->whereRaw('FIND_IN_SET(items.item_type_cat_id,"'.$category_names.'")');
-								  }	
-							  
-							  }
-							  })->orderBy('items.regular_price', $orderby)->get();
+							  \Fickrr\Support\ShopFilters::apply($query, $item_types, $item_types_submitted, $category_filter);
+							  })->when($search_keyword !== '', function ($q) use ($search_keyword) { \Fickrr\Support\ProductSearch::orderByRelevance($q, $search_keyword); })->orderBy('items.regular_price', $orderby)->get();
 			}				  
 							  
 						  
@@ -6128,7 +6413,9 @@ class CommonController extends Controller
 	$maxprice['price'] = Items::maxpriceData();
 	$seo_keyword = $setting['setting']->site_keywords;
 	$seo_desc = $setting['setting']->site_desc;
-	return view('shop',[ 'minprice' => $minprice, 'maxprice' => $maxprice, 'getWell' => $getWell, 'itemData' => $itemData, 'category' => $category, 'type' => $type, 'meta_keyword' => $meta_keyword, 'meta_desc' => $meta_desc, 'method' => $method, 'seo_keyword' => $seo_keyword, 'seo_desc' => $seo_desc]);
+	$shopMeta = $this->shopListingMeta(null, $setting['setting'], $seo_desc);
+	$this->abortIfShopPageOutOfRange($itemData['item'] ?? null);
+	return view('shop',[ 'minprice' => $minprice, 'maxprice' => $maxprice, 'getWell' => $getWell, 'itemData' => $itemData, 'category' => $category, 'type' => $type, 'meta_keyword' => $meta_keyword, 'meta_desc' => $meta_desc, 'method' => $method, 'seo_keyword' => $seo_keyword, 'seo_desc' => $shopMeta['seo_desc'], 'shop_heading' => __('Shop'), 'shop_is_category' => false, 'canonical_url' => \Fickrr\Support\SiteUrl::to('/shop'), 'seo_noindex' => true]);
 	}
 	
 	
@@ -6180,9 +6467,63 @@ class CommonController extends Controller
 	/* item */
 	
 	
+	/**
+	 * Same subcategory first, then the parent category. Other categories stay out.
+	 */
+	private function relatedItemsFor($current, $itemId)
+	{
+		$limit = \Fickrr\Support\RelatedItems::LIMIT;
+		$base = Items::with('ratings')
+			->leftjoin('users', 'users.id', '=', 'items.user_id')
+			->where('items.item_status', '=', 1)
+			->where('items.drop_status', '=', 'no')
+			->where('items.item_id', '!=', $itemId);
+
+		$sameCategory = (clone $base)
+			->where('items.item_category', '=', $current->item_category)
+			->where('items.item_category_type', '=', $current->item_category_type)
+			->orderBy('items.item_id', 'desc')
+			->take($limit)
+			->get();
+
+		$candidates = $sameCategory;
+		$parentId = $current->item_category_parent;
+		if ($sameCategory->count() < $limit && $parentId !== null && $parentId !== '' && (string) $parentId !== '0') {
+			$exclude = $sameCategory->pluck('item_id')->all();
+			$exclude[] = $itemId;
+			$parentFill = (clone $base)
+				->where('items.item_category_parent', '=', $parentId)
+				->whereNotIn('items.item_id', $exclude)
+				->orderBy('items.item_id', 'desc')
+				->take($limit - $sameCategory->count())
+				->get();
+			$candidates = $sameCategory->concat($parentFill);
+		}
+
+		return collect(\Fickrr\Support\RelatedItems::choose($current, $candidates, $limit));
+	}
+
+	private function retiredItemDestination($item): string
+	{
+	   $parentId = \Fickrr\Support\HiddenItemRedirect::parentId($item);
+	   $category = null;
+	   if ($parentId > 0) {
+		   $category = DB::table('category')
+			   ->where('cat_id', '=', $parentId)
+			   ->where('drop_status', '=', 'no')
+			   ->first();
+	   }
+
+	   return \Fickrr\Support\HiddenItemRedirect::path($category);
+	}
+
 	public function view_single_item($item_slug)
 	{
-	  
+	  $legacySlug = \Fickrr\Support\LegacyItemSlugs::target($item_slug);
+	  if ($legacySlug !== null) {
+		  return redirect('/item/'.$legacySlug, 301);
+	  }
+
 	  $sid = 1;
 	  $badges['setting'] = Settings::editBadges($sid);
 	  $check_item_available = Items::singleitemCount($item_slug);
@@ -6221,15 +6562,21 @@ class CommonController extends Controller
 		  
 		  
 		  
+		  $category_slug = '';
+		  $category_kind = '';
 		  if($item_cat_type == 'category')
 		  {
 			 $category['name'] = Category::getsinglecatData($item_cat_id);
 			 $category_name = $category['name']->category_name;
+			 $category_slug = $category['name']->category_slug ?? '';
+			 $category_kind = 'category';
 		  }
 		  else if($item_cat_type == 'subcategory')
 		  {
 			$category['name'] = SubCategory::getsinglesubcatData($item_cat_id);
 			$category_name = $category['name']->subcategory_name;
+			$category_slug = $category['name']->subcategory_slug ?? '';
+			$category_kind = 'subcategory';
 		  }
 		  else
 		  {
@@ -6238,9 +6585,13 @@ class CommonController extends Controller
 		  
 		  $item_tags = explode(',',$item['item']->item_tags);
 		  
-		  $getcount  = Items::getimagesCount($token);
 		  $item_image['item'] = Items::getsingleimagesData($token);
 		  $item_allimage = Items::getimagesData($token);
+		  $galleryStorage = (int) (Settings::editAdditional()->site_s3_storage ?? 0);
+		  if (!in_array($galleryStorage, [1, 2, 3, 4], true)) {
+			  $item_allimage = \Fickrr\Support\ProductImage::keepExisting($item_allimage, [\Fickrr\Support\ProductImage::class, 'storedFileExists']);
+		  }
+		  $getcount = count($item_allimage);
 		  $itemData['item'] = Items::with('ratings')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.user_id','=',$item_user_id)->where('items.item_id','!=',$item_id)->orderBy('items.item_id', 'asc')->take(3)->get();
 		  
 		  if (Auth::check()) 
@@ -6301,7 +6652,7 @@ class CommonController extends Controller
 		  $page_slug = $setting['setting']->item_support_link;
 		  $page['view'] = Pages::editpageData($page_slug);
 		  
-		  $related['items'] = Items::with('ratings')->leftjoin('users', 'users.id', '=', 'items.user_id')->where('items.item_status','=',1)->where('items.drop_status','=','no')->where('items.user_id','=',$item_user_id)->where('items.item_id','!=',$item_id)->orderBy('items.item_id', 'desc')->inRandomOrder()->take(4)->get();
+		  $related['items'] = $this->relatedItemsFor($item['item'], $item_id);
 		  if($this->custom_settings('author_key') == Helper::Key_Owner())
 		  {
 		  $other_market_link = Blog::selectedmarketData($item['item']->item_token);
@@ -6321,7 +6672,7 @@ class CommonController extends Controller
 		      }
 		  }
 		  
-		  $data = array('item' => $item, 'getcount' => $getcount, 'item_image' => $item_image, 'item_allimage' => $item_allimage, 'category_name' => $category_name, 'item_tags' => $item_tags, 'itemData' => $itemData, 'checkif_purchased' => $checkif_purchased, 'getreview' => $getreview, 'count_rating' => $count_rating, 'getreviewdata' => $getreviewdata, 'comment' => $comment, 'comment_count' => $comment_count, 'badges' => $badges, 'country' => $country, 'trends' => $trends, 'year' => $year, 'sold_amount' => $sold_amount, 'collect_amount' => $collect_amount, 'referral_count' => $referral_count, 'viewattribute' => $viewattribute, 'item_slug' => $item_slug, 'page' => $page, 'related' => $related, 'check_if_item' => $check_if_item, 'other_market_link' => $other_market_link, 'versionLinks' => $versionLinks);
+		  $data = array('item' => $item, 'getcount' => $getcount, 'item_image' => $item_image, 'item_allimage' => $item_allimage, 'category_name' => $category_name, 'category_slug' => $category_slug, 'category_kind' => $category_kind, 'item_tags' => $item_tags, 'itemData' => $itemData, 'checkif_purchased' => $checkif_purchased, 'getreview' => $getreview, 'count_rating' => $count_rating, 'getreviewdata' => $getreviewdata, 'comment' => $comment, 'comment_count' => $comment_count, 'badges' => $badges, 'country' => $country, 'trends' => $trends, 'year' => $year, 'sold_amount' => $sold_amount, 'collect_amount' => $collect_amount, 'referral_count' => $referral_count, 'viewattribute' => $viewattribute, 'item_slug' => $item_slug, 'page' => $page, 'related' => $related, 'check_if_item' => $check_if_item, 'other_market_link' => $other_market_link, 'versionLinks' => $versionLinks);
 		 }
 		 else
 		 {
@@ -6331,6 +6682,10 @@ class CommonController extends Controller
 		 }
 		 else
 		 {
+		 $hiddenItem = DB::table('items')->where('item_slug', '=', $item_slug)->first();
+		 if ($hiddenItem && \Fickrr\Support\HiddenItemRedirect::isHidden($hiddenItem)) {
+			 return redirect($this->retiredItemDestination($hiddenItem), 301);
+		 }
 		 abort(404);
 		 }
 	}
@@ -6346,8 +6701,8 @@ class CommonController extends Controller
 	
 	  $from_name = $request->input('from_name');
 	  $from_email = $request->input('from_email');
-	  $from_phone = $request->input('from_phone');
-	  $subject = $request->input('subject');
+	  $from_phone = (string) $request->input('from_phone', ''); // ash_conv: phone is optional
+	  $subject = (string) $request->input('subject', '');
 	  $message_text = $request->input('message_text');
 	  $sid = 1;
 	  $setting['setting'] = Settings::editGeneral($sid);
@@ -6355,8 +6710,10 @@ class CommonController extends Controller
 	  $admin_email = $setting['setting']->sender_email;
 	  $additional['settings'] = Settings::editAdditional();
 	  $record = array('from_name' => $from_name, 'from_email' => $from_email, 'from_phone' => $from_phone, 'subject' => $subject, 'message_text' => $message_text, 'contact_date' => date('Y-m-d'));
-	  $contact_count = Items::getcontactCount($from_email);
-	  if($contact_count == 0)
+	  // ash_conv: allow returning customers to write again (max 3 messages per email per day)
+	  $contact_count = 0;
+	  try { $contact_count = (int) \DB::table('contact')->where('from_email', (string) $from_email)->where('contact_date', date('Y-m-d'))->count(); } catch (\Throwable $e) { $contact_count = 0; }
+	  if($contact_count < 3)
 	  {
 	     if($additional['settings']->site_google_recaptcha == 1)
 		 {
@@ -6418,14 +6775,14 @@ class CommonController extends Controller
 				// 				->subject($template_subject);
 				// 		$message->from($from_email,$from_name);
 				// 	});
-			  return redirect()->back()->with('success','Your message has been sent successfully');
+			  return redirect()->back()->with('success', __('Your message has been sent successfully'));
 			  
 		}	  
 			  
 	  }
 	  else
 	  {
-	  return redirect()->back()->with('error','Sorry! Your message already sent');
+	  return redirect()->back()->with('error', __('Sorry! Your message already sent'));
 	  }
 	  
 	  
@@ -6651,6 +7008,55 @@ class CommonController extends Controller
 			'success' => true,
 			'notifications' => $notifications
 		]);
+	}
+
+	protected function abortIfShopPageOutOfRange($items): void
+	{
+		$page = (int) request()->query('page', 1);
+		if ($page < 2 || !is_object($items) || !method_exists($items, 'lastPage')) {
+			return;
+		}
+		$last = max(1, (int) $items->lastPage());
+		if ($page > $last) {
+			abort(404);
+		}
+	}
+
+	protected function shopListingMeta($category, $settings, $seoDesc): array
+	{
+		$heading = 'Shop';
+		$isCategory = false;
+		$path = '/shop';
+		$desc = trim(strip_tags((string) $seoDesc));
+		if (is_object($category) && !empty($category->category_name)) {
+			$heading = $category->category_name;
+			$isCategory = true;
+			$path = '/shop/category/'.$category->category_slug;
+			$own = trim(strip_tags((string) ($category->category_seo_desc ?? '')));
+			$desc = $own !== '' ? $own : ('Buy genuine '.$heading.' with instant delivery from '.$settings->site_title.'.');
+		} elseif (is_object($category) && !empty($category->subcategory_name)) {
+			$heading = $category->subcategory_name;
+			$isCategory = true;
+			$path = '/shop/subcategory/'.$category->subcategory_slug;
+			$own = trim(strip_tags((string) ($category->subcategory_seo_desc ?? '')));
+			$desc = $own !== '' ? $own : ('Buy genuine '.$heading.' with instant delivery from '.$settings->site_title.'.');
+		}
+		$page = max(1, (int) request()->query('page', 1));
+		$noindex = request()->isMethod('post');
+		foreach (['orderby', 'min_price', 'max_price', 'product_item', 'item_type', 'category_names'] as $key) {
+			if (request()->filled($key)) {
+				$noindex = true;
+			}
+		}
+		$canonical = \Fickrr\Support\SiteUrl::to($path.((!$noindex && $page > 1) ? '?page='.$page : ''));
+
+		return [
+			'heading' => $heading,
+			'is_category' => $isCategory,
+			'seo_desc' => $desc !== '' ? $desc : (string) ($settings->site_desc ?? $heading),
+			'canonical' => $canonical,
+			'noindex' => $noindex,
+		];
 	}
 	
 }

@@ -17,48 +17,136 @@ else
 $item_price = 0;
 $extend_item_price = 0;
 @endif
-<script type="application/ld+json">
-{
-	  "@context": "http://schema.org",
-	  "@type": "WebSite",
-	  "name": "{{ $allsettings->site_title }}",
-	  "url": "{{ URL::to('/') }}"
-}
-</script>
-<script type="application/ld+json">
-	         {"@context":"http://schema.org","@type":"Product","category":"{{ $category_name }}","url":"{{ URL::to('/item') }}/{{ $item['item']->item_slug }}","description":"{{ $item['item']->item_seo_desc }}","name":"{{ $item['item']->item_seo_desc }}","image":"{{ Helper::Image_Path(($item['item']->item_preview ?? $item['item']->item_thumbnail),'no-image.png') }}","brand":{"@type":"Brand","name":"{{ $item['item']->item_name }}"},"sku":"{{ $item['item']->item_token }}","mpn":"I-{{ $item['item']->item_token }}","offers":{"@type":"Offer","Price":"{{ $item_price }}", "priceCurrency":"{{ $multicurrency }}", "priceValidUntil":"{{ date('Y-m-d H:i:s') }}", "availability":"http://schema.org/InStock", "itemCondition":"http://schema.org/NewCondition" ,"url":"{{ URL::to('/item') }}/{{ $item['item']->item_slug }}"}, "aggregateRating":{"@type":"AggregateRating","ratingValue":"{{ $getreview }}","reviewCount":"{{ $getreview }}"},  "review": [ { "@type": "Review", "reviewRating": { "@type": "Rating", "ratingValue": "{{ $getreview }}" , "bestRating":"{{ $getreview }}"}, "author": { "@type": "Person", "name": "{{ $item['item']->username }}" }}    ]}
-</script>
+@if(!empty($check_if_item))
+@php
+  $schemaItem = $item['item'];
+  $schemaDesc = trim(strip_tags((string) ($schemaItem->item_shortdesc ?: ($schemaItem->item_seo_desc ?: $schemaItem->item_desc ?? ''))));
+  $schemaImage = \Fickrr\Support\SiteUrl::absolute(Helper::Image_Path($schemaItem->item_preview ?: 'no-image.png', 'no-image.png'));
+  $schemaUrl = \Fickrr\Support\SiteUrl::to('/item/'.$schemaItem->item_slug);
+  $schemaUrl = \Fickrr\Support\LocaleUrl::withLang($schemaUrl, \Fickrr\Support\LocaleUrl::current() === 'ru' ? 'ru' : 'en');
+  $schemaPrice = round((float) ($item_price ?? $schemaItem->regular_price), 2);
+  $productLd = [
+      '@context' => 'https://schema.org',
+      '@type' => 'Product',
+      'name' => $schemaItem->item_name,
+      'description' => $schemaDesc,
+      'image' => $schemaImage,
+      'sku' => (string) $schemaItem->item_id,
+      'brand' => [
+          '@type' => 'Brand',
+          'name' => $allsettings->site_title,
+      ],
+      'offers' => [
+          '@type' => 'Offer',
+          'price' => $schemaPrice,
+          'priceCurrency' => $multicurrency ?: 'USD',
+          'availability' => 'https://schema.org/InStock',
+          'url' => $schemaUrl,
+          'priceValidUntil' => date('Y-m-d', strtotime('+1 year')),
+      ],
+  ];
+  // structured data for Google uses only reviews written on this site (not imported ones)
+  $ownReviews = collect($getreviewdata['view'] ?? [])->filter(fn ($r) => empty($r->import_name))->values();
+  $reviewCount = $ownReviews->count();
+  $ratingValue = $reviewCount ? (int) round($ownReviews->avg('rating')) : 0;
+  if ($reviewCount > 0 && $ratingValue > 0) {
+      $productLd['aggregateRating'] = [
+          '@type' => 'AggregateRating',
+          'ratingValue' => $ratingValue,
+          'reviewCount' => $reviewCount,
+          'bestRating' => 5,
+      ];
+      $productLd['review'] = [];
+      foreach ($ownReviews as $schemaReview) {
+          $productLd['review'][] = [
+              '@type' => 'Review',
+              'reviewRating' => [
+                  '@type' => 'Rating',
+                  'ratingValue' => (int) ($schemaReview->rating ?? 0),
+                  'bestRating' => 5,
+              ],
+              'author' => [
+                  '@type' => 'Person',
+                  'name' => $schemaReview->username ?? 'Customer',
+              ],
+              'reviewBody' => trim(strip_tags((string) ($schemaReview->rating_comment ?? ''))),
+          ];
+      }
+  }
+  $crumbs = [
+      ['@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => \Fickrr\Support\SiteUrl::to('/')],
+  ];
+  if (!empty($category_name) && !empty($category_slug) && !empty($category_kind)) {
+      $crumbs[] = [
+          '@type' => 'ListItem',
+          'position' => 2,
+          'name' => $category_name,
+          'item' => \Fickrr\Support\SiteUrl::to('/shop/'.$category_kind.'/'.$category_slug),
+      ];
+  }
+  $crumbs[] = [
+      '@type' => 'ListItem',
+      'position' => count($crumbs) + 1,
+      'name' => $schemaItem->item_name,
+      'item' => $schemaUrl,
+  ];
+  $breadcrumbLd = [
+      '@context' => 'https://schema.org',
+      '@type' => 'BreadcrumbList',
+      'itemListElement' => $crumbs,
+  ];
+@endphp
+<script type="application/ld+json">{!! json_encode($productLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+<script type="application/ld+json">{!! json_encode($breadcrumbLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+@endif
 @if($check_if_item != 0)
-<title>{{ $allsettings->site_title }} - {{ $item['item']->item_name }}</title>
-@if($item_slug != '')
-@if($item['item']->item_allow_seo == 1)
-@if($item['item']->free_download == 0)
-<meta name="description" content="{{ $item['item']->item_seo_desc }}" />
-<meta name="keywords" content="{{ $item['item']->item_seo_keyword }}" />
-<meta name="robots" content="index,follow" />
-<meta property="og:title" content="{{ $item['item']->item_name }}" />
-<meta property="og:type" content="og:product" /> 
-<meta property="og:description" content="{{ $item['item']->item_seo_desc }}" /> 
-<meta property="og:url" content="{{ url()->current() }}" /> 
-<meta property="og:image" content="{{ Helper::Image_Path(($item['item']->item_preview ?? $item['item']->item_thumbnail),'no-image.png') }}" />
+@php
+  // every product gets its own title / description / share tags (not only "Allow SEO" products)
+  $seoItem = $item['item'];
+  $seoPlain = function ($v) { return trim(preg_replace('/\s+/u', ' ', strip_tags(html_entity_decode(strip_tags(html_entity_decode((string) $v)))))); };
+  $seoDesc = $seoPlain($seoItem->item_seo_desc ?? '');
+  if ($seoDesc === '' || \Fickrr\Support\PageMeta::isGeneric($seoDesc, (string) ($allsettings->site_desc ?? ''))) {
+      $seoDesc = $seoPlain($seoItem->item_shortdesc ?? '');
+  }
+  if ($seoDesc === '' || \Fickrr\Support\PageMeta::isGeneric($seoDesc, (string) ($allsettings->site_desc ?? ''))) {
+      $seoDesc = $seoPlain($seoItem->item_desc ?? '');
+  }
+  if ($seoDesc === '' || \Fickrr\Support\PageMeta::isGeneric($seoDesc, (string) ($allsettings->site_desc ?? ''))) {
+      $seoDesc = \Fickrr\Support\PageMeta::itemFallback(
+          (string) $seoItem->item_name,
+          (string) ($category_name ?? ''),
+          $seoPlain($seoItem->item_shortdesc ?? '') ?: $seoPlain($seoItem->item_desc ?? ''),
+          $item_price ?? $schemaItem->regular_price ?? 0
+      );
+  } else {
+      $seoDesc = \Illuminate\Support\Str::limit($seoDesc, 158, '…');
+      $seoDesc = \Fickrr\Support\ItemI18n::descriptionWithPrice($seoDesc, $item_price ?? $schemaItem->regular_price ?? 0);
+  }
+  $seoTitle = \Fickrr\Support\SeoCopy::itemTitle((string) $seoItem->item_name, (string) $allsettings->site_title);
+  $seoKeywords = trim((string) (($seoItem->item_seo_keyword ?? '') ?: ($seoItem->item_tags ?? '')));
+  $seoUrl = $schemaUrl ?? \Fickrr\Support\SiteUrl::to('/item/'.$seoItem->item_slug);
+  $seoImage = $schemaImage ?? \Fickrr\Support\SiteUrl::absolute(Helper::Image_Path($seoItem->item_preview ?: 'no-image.png', 'no-image.png'));
+@endphp
+<title>{{ $seoTitle }}</title>
+<meta name="description" content="{{ $seoDesc }}" />
+@if($seoKeywords !== '')<meta name="keywords" content="{{ $seoKeywords }}" />@endif
+<meta name="robots" content="index,follow,max-image-preview:large" />
+<link rel="canonical" href="{{ $seoUrl }}" />
+<meta property="og:site_name" content="{{ $allsettings->site_title }}" />
+<meta property="og:title" content="{{ $seoItem->item_name }}" />
+<meta property="og:type" content="product" />
+<meta property="og:description" content="{{ $seoDesc }}" />
+<meta property="og:url" content="{{ $seoUrl }}" />
+<meta property="og:image" content="{{ $seoImage }}" />
+<meta property="product:price:amount" content="{{ $schemaPrice ?? $item_price }}" />
+<meta property="product:price:currency" content="{{ $multicurrency ?: 'USD' }}" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:site" content="{{ $allsettings->site_title }}" />
-<meta name="twitter:title" content="{{ $item['item']->item_name }}" />
-<meta name="twitter:description" content="{{ $item['item']->item_seo_desc }}" />
-<meta name="twitter:image" content="{{ Helper::Image_Path(($item['item']->item_preview ?? $item['item']->item_thumbnail),'no-image.png') }}" />
-<link rel="canonical" href="{{ url()->current() }}" />
-<meta name="twitter:image:src" content="{{ Helper::Image_Path(($item['item']->item_preview ?? $item['item']->item_thumbnail),'no-image.png') }}">
-<meta name="twitter:image:width" content= "280" />
-<meta name="twitter:image:height" content= "480" />
-@else
-@include('meta')
-@endif
-@else
-@include('meta')
-@endif
+<meta name="twitter:title" content="{{ $seoItem->item_name }}" />
+<meta name="twitter:description" content="{{ $seoDesc }}" />
+<meta name="twitter:image" content="{{ $seoImage }}" />
 @else
 <title>{{ __('404 Not Found') }} - {{ $allsettings->site_title }}</title>
-@endif
+<meta name="robots" content="noindex,follow" />
 @endif
 @include('style')
 </head>
@@ -93,6 +181,20 @@ $extend_item_price = 0;
           	  </div>
          	  @endif
               <!-- Product gallery-->
+              @php
+              $heroCandidates = [];
+              if (!empty($item['item']->item_preview)) {
+                  $heroCandidates[] = $item['item']->item_preview;
+              }
+              if (!empty($item_allimage)) {
+                  foreach ($item_allimage as $galleryImage) {
+                      if (!empty($galleryImage->item_image)) {
+                          $heroCandidates[] = $galleryImage->item_image;
+                      }
+                  }
+              }
+              $heroImage = !empty($item['item']->item_preview) ? $item['item']->item_preview : Helper::best_product_image($heroCandidates);
+              @endphp
               <div class="cz-gallery">
                       @if($item['item']->video_preview_type!='')
                       @if($item['item']->video_preview_type == 'youtube')
@@ -104,27 +206,27 @@ $extend_item_price = 0;
                       @endphp
                       <iframe width="100%" height="430" src="https://www.youtube.com/embed/{{ $video_id }}?rel=0&version=3&loop=1&playlist={{ $video_id }}" frameborder="3" class="frame-border" allow="autoplay" scrolling="no"></iframe> 
                       @else
-                      <img class="lazy single-thumbnail" width="762" height="430" src="{{ url('/') }}/resources/views/assets/no-video.png"  alt="{{ $item['item']->item_name }}">
+                      <img class="lazy single-thumbnail" width="762" height="430" src="{{ asset('assets/no-video.png') }}"  alt="{{ $item['item']->item_name }}">
                       @endif
                       @endif
                       @if($item['item']->video_preview_type == 'mp4')
                       @if($item['item']->video_file != '')
 					  <video width="100%" height="auto" src="{{ Helper::Image_Path($item['item']->video_file,'no-video.png') }}" controls>{{ __('Your browser does not support the video tag.') }}</video>	  
                       @else
-                      <img class="lazy single-thumbnail" width="762" height="430" src="{{ url('/') }}/resources/views/assets/no-video.png"  alt="{{ $item['item']->item_name }}">
+                      <img class="lazy single-thumbnail" width="762" height="430" src="{{ asset('assets/no-video.png') }}"  alt="{{ $item['item']->item_name }}">
                       @endif
                       @endif
                       @if($item['item']->video_preview_type == 'mp3')
                       @if($item['item']->audio_file != '')
 					  <audio controls="controls"><source src="{{ Helper::Image_Path($item['item']->audio_file,'no-audio.png') }}" type="audio/mpeg" /></audio>	  
                       @else
-                      <img class="lazy single-thumbnail" width="762" height="430" src="{{ url('/') }}/resources/views/assets/no-audio.png"  alt="{{ $item['item']->item_name }}">
+                      <img class="lazy single-thumbnail" width="762" height="430" src="{{ asset('assets/no-audio.png') }}"  alt="{{ $item['item']->item_name }}">
                       @endif
                       @endif
                       @else  
-                      @if($item['item']->item_preview!='')
-                      <a class="gallery-item rounded-lg mb-grid-gutter" href="{{ Helper::Image_Path($item['item']->item_preview,'no-image.png') }}" data-sub-html="{{ $item['item']->item_name }}">
-                      <img class="lazy single-thumbnail" width="762" height="430" src="{{ Helper::Image_Path($item['item']->item_preview,'no-image.png') }}"  alt="{{ $item['item']->item_name }}">
+                      @if(!empty($heroImage))
+                      <a class="gallery-item rounded-lg mb-grid-gutter" href="{{ Helper::Image_Path($heroImage,'no-image.png') }}" data-sub-html="{{ $item['item']->item_name }}">
+                      <img class="lazy single-thumbnail product-photo" src="{{ Helper::Image_Path($heroImage,'no-image.png') }}"  alt="{{ $item['item']->item_name }}">
                       <span class="gallery-item-caption">{{ $item['item']->item_name }}</span>
                       </a>
                       @else
@@ -132,9 +234,19 @@ $extend_item_price = 0;
                       @endif
                       @endif
               @if($getcount != 0)
-                <div class="row">
+                {{-- Extra screenshots: small thumbnails. On phones they are one row you swipe sideways
+                     (col-sm-2 alone made each screenshot full width, stacked down the page). --}}
+                <style>
+                @media (max-width:575.98px){
+                  .item-thumbs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;margin-left:-6px;margin-right:-6px;padding-bottom:6px}
+                  .item-thumbs>.item-thumb{flex:0 0 30%;max-width:30%;padding-left:6px;padding-right:6px;scroll-snap-align:start}
+                  .item-thumbs .gallery-item{display:block;margin-bottom:0!important;aspect-ratio:4/3;overflow:hidden;border:1px solid #e3e9ef}
+                  .item-thumbs .gallery-item img{width:100%;height:100%;object-fit:cover;object-position:top center}
+                }
+                </style>
+                <div class="row item-thumbs">
                   @foreach($item_allimage as $image)
-                  <div class="col-sm-2"><a class="gallery-item rounded-lg mb-grid-gutter thumber" href="{{ Helper::Image_Path($image->item_image,'no-image.png') }}" data-sub-html="{{ $item['item']->item_name }}"><img class="lazy" width="762" height="430" src="{{ Helper::Image_Path($image->item_image,'no-image.png') }}"  alt="{{ $image->item_image }}"/><span class="gallery-item-caption">{{ $item['item']->item_name }}</span></a></div>
+                  <div class="col-sm-2 item-thumb"><a class="gallery-item rounded-lg mb-grid-gutter thumber" href="{{ Helper::Image_Path($image->item_image,'no-image.png') }}" data-sub-html="{{ $item['item']->item_name }}"><img class="lazy product-photo" src="{{ Helper::Image_Path($image->item_image,'no-image.png') }}"  alt="{{ $image->item_image }}"/><span class="gallery-item-caption">{{ $item['item']->item_name }}</span></a></div>
                   @endforeach 
                 </div>
                 @endif
@@ -186,10 +298,34 @@ $extend_item_price = 0;
         <div class="tab-pane fade" id="suppport" role="tabpanel">
            <div class="row">
             <div class="col-lg-12">
-               <h4>{{ __('Contact the Author') }}</h4>
+               <h4>{{ __('Contact the Seller') }}</h4>
                @if(Auth::guest())
-                    <p>{{ __('Please') }}
-                    <a href="{{ URL::to('/login') }}" class="theme-color">{{ __('Sign In') }}</a> {{ __('to contact this author.') }}</p>
+                    <p class="font-size-sm text-muted">{{ __('Ask us anything about this product. No account needed, we reply by email.') }} <a href="https://t.me/autoscript_hub" target="_blank" rel="noopener" class="theme-color">{{ __('Or message us on Telegram') }} @autoscript_hub</a></p>
+                    <form action="{{ route('support') }}" class="support_form media-body needs-validation" id="support_form_guest" method="post">
+                      {{ csrf_field() }}
+                      <div class="row">
+                        <div class="col-sm-6 form-group">
+                          <label for="g_from_name">{{ __('Your name') }}</label>
+                          <input type="text" id="g_from_name" name="from_name" class="form-control" maxlength="80">
+                        </div>
+                        <div class="col-sm-6 form-group">
+                          <label for="g_from_address">{{ __('Email Address') }} <span class="text-danger">*</span></label>
+                          <input type="email" id="g_from_address" name="from_address" class="form-control" required maxlength="190" data-bvalidator="required,email">
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label for="g_support_subject">{{ __('Subject') }}</label>
+                        <input type="text" id="g_support_subject" name="support_subject" class="form-control" maxlength="150" value="{{ $item['item']->item_name }}">
+                      </div>
+                      <div class="form-group">
+                        <label for="g_support_msg">{{ __('Message') }} <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="g_support_msg" name="support_msg" rows="5" required maxlength="3000" data-bvalidator="required"></textarea>
+                      </div>
+                      <div style="position:absolute;left:-9999px" aria-hidden="true"><input type="text" name="website_hp" tabindex="-1" autocomplete="off"></div>
+                      <input type="hidden" name="to_id" value="{{ $item['item']->user_id }}">
+                      <input type="hidden" name="item_url" value="{{ URL::to('/item') }}/{{ $item['item']->item_slug }}">
+                      <button type="submit" class="btn btn-primary btn-sm">{{ __('Send message') }}</button>
+                    </form>
                     @endif
                     @if (Auth::check())
                     <form action="{{ route('support') }}" class="support_form media-body needs-validation" id="support_form" method="post" enctype="multipart/form-data">
@@ -220,10 +356,10 @@ $extend_item_price = 0;
               @if($addition_settings->show_moneyback == 1)
               @if($item['item']->seller_money_back == 1)
               @if(!empty($item['item']->seller_money_back_days))
-              <h1>{{ $item['item']->seller_money_back_days }} {{ __('DAYS MONEY BACK GUARANTEE') }}</h1>
+              <p class="h1 ash-mb-banner">{{ $item['item']->seller_money_back_days }} {{ __('DAYS MONEY BACK GUARANTEE') }}</p>
               @endif
               @else
-              <h1>{{ __('THIS PRODUCT DO NOT OFFER MONEY BACK GUARANTEE') }}</h1>
+              <p class="h1 ash-mb-banner">{{ __('THIS PRODUCT DO NOT OFFER MONEY BACK GUARANTEE') }}</p>
               @endif
               <br/>
               @endif
@@ -253,12 +389,12 @@ $extend_item_price = 0;
                 <div class="d-flex mb-3">
                   <div class="media media-ie-fix align-items-center mr-4 pr-2">
                   @if($rating->user_photo!='')
-                  <img class="lazy rounded-circle" width="50" height="50" src="{{ url('/') }}/public/storage/users/{{ $rating->user_photo }}"  alt="{{ $rating->username }}"/>
+                  <img class="lazy rounded-circle" width="50" height="50" src="{{ url('/') }}/public/storage/users/{{ $rating->user_photo }}"  alt="{{ $rating->import_name ?: $rating->username }}"/>
                   @else
-                  <img class="lazy rounded-circle" width="50" height="50" src="{{ url('/') }}/public/img/no-user.png"  alt="{{ $rating->username }}"/>
+                  <img class="lazy rounded-circle" width="50" height="50" src="{{ url('/') }}/public/img/no-user.png"  alt="{{ $rating->import_name ?: $rating->username }}"/>
                   @endif
                     <div class="media-body pl-3">
-                      <h6 class="font-size-sm mb-0">{{ $rating->username }}</h6><span class="font-size-ms text-muted">{{ date('d F Y H:i:s', strtotime($rating->rating_date)) }}</span></div>
+                      <h6 class="font-size-sm mb-0">{{ $rating->import_name ?: $rating->username }}@if(!empty($rating->import_source)) <small class="text-muted font-weight-normal">· {{ __('via') }} {{ $rating->import_source }}</small>@endif</h6><span class="font-size-ms text-muted">{{ date('d F Y H:i:s', strtotime($rating->rating_date)) }}</span></div>
                   </div>
                   <div>
                     <div class="star-rating">
@@ -331,14 +467,14 @@ $extend_item_price = 0;
                                             <div class="media">
                                                 <div class="media-left">
                                                     @if($parent->user_photo!='')
-                                                    <img  class="lazy rounded-circle" width="50" height="50" src="{{ url('/') }}/public/storage/users/{{ $parent->user_photo }}"  alt="{{ $parent->username }}">                                                    @else
-                                                    <img class="lazy rounded-circle" width="50" height="50" src="{{ url('/') }}/public/img/no-user.png"  alt="{{ $parent->username }}">
+                                                    <img  class="lazy rounded-circle" width="50" height="50" src="{{ url('/') }}/public/storage/users/{{ $parent->user_photo }}"  alt="{{ $parent->import_name ?: $parent->username }}">                                                    @else
+                                                    <img class="lazy rounded-circle" width="50" height="50" src="{{ url('/') }}/public/img/no-user.png"  alt="{{ $parent->import_name ?: $parent->username }}">
                                                     @endif
                                                 </div>
                                                 <div class="media-body">
                                                     <div>
                                                         <div class="media-heading">
-                                                            <h6 class="font-size-md mb-0">{{ $parent->username }}</h6>
+                                                            <h6 class="font-size-md mb-0">{{ $parent->import_name ?: $parent->username }}@if(!empty($parent->import_source)) <small class="text-muted font-weight-normal">· {{ __('via') }} {{ $parent->import_source }}</small>@endif</h6>
                                                         </div>
                                                         @if($parent->id == $item['item']->user_id)
                                                         <span class="comment-tag buyer">{{ __('Author') }}</span>
@@ -543,6 +679,16 @@ $extend_item_price = 0;
                 $extend_item_price = $item['item']->extended_price; 
                 } 
                 @endphp
+              @php $singlePriceItem = Helper::is_single_price_item($item['item']); @endphp
+              @if($singlePriceItem)
+              <div class="d-flex justify-content-between align-items-center py-3 border-0">
+                <span class="font-weight-medium text-dark">{{ __('Price') }}</span>
+                <h5 class="mb-0 text-accent font-weight-normal">
+                  @if($item['item']->item_flash == 1)<del class="price-old fontsize17">{{ Helper::price_format($allsettings->site_currency_position,$item['item']->regular_price,$currency_symbol,$multicurrency,true) }}</del>@endif <span class="bg-faded-accent rounded-sm py-1 px-2 fontsize17">{{ Helper::price_format($allsettings->site_currency_position,$item_price,$currency_symbol,$multicurrency,true) }}</span>
+                </h5>
+              </div>
+              <input type="hidden" name="item_price" value="{{ base64_encode($item_price) }}_regular">
+              @else
               <div class="accordion" id="licenses">
                 @if($item['item']->regular_price != 0)
                 <div class="card border-top-0 border-left-0 border-right-0">
@@ -608,6 +754,7 @@ $extend_item_price = 0;
                 @endif
               </div>
               @endif
+              @endif
               @if($item['item']->file_type == 'serial')
               @php
               if($item['item']->item_delimiter == 'comma')
@@ -631,7 +778,7 @@ $extend_item_price = 0;
               @else
               <input class="qty" type="hidden"  name="qty" id="qty" value="1" min="1">
               @endif 
-              @if($allsettings->item_support_link !='')
+              @if($allsettings->item_support_link !='' && !Helper::is_single_price_item($item['item']))
               @if($item['item']->free_download == 1)
               @else
               <p class="mt-2 mb-3"><a href="javascript:void(0)" data-toggle="modal" data-target="#myModal" class="font-size-xs">{{ $page['view']->page_title }}</a></p>
@@ -651,7 +798,13 @@ $extend_item_price = 0;
                   </div>
                 @endif
                 
-                @if($item['item']->file_type == 'link' && !empty($versionLinks) && count($versionLinks) > 0)
+                @php
+                  $ashShowVersionPicker = ($item['item']->file_type == 'link' && !empty($versionLinks) && count($versionLinks) > 0 && (Helper::is_scripts_item($item['item']) || Helper::version_links_have_distinct_prices($versionLinks)));
+                  $ashDefaultVersion = ($item['item']->file_type == 'link' && !empty($versionLinks) && count($versionLinks) > 0 && !$ashShowVersionPicker);
+                @endphp
+                @if($ashDefaultVersion)
+                <input type="hidden" name="selected_version" id="selected_version" value="0">
+                @elseif($ashShowVersionPicker)
                 <!-- Version Selector -->
                 <div class="card border-0 mb-3" style="background-color: #f8f9fa;">
                   <div class="card-body py-3">
@@ -670,7 +823,7 @@ $extend_item_price = 0;
                       </option>
                       @endforeach
                     </select>
-                    <small class="form-text text-muted">{{ count($versionLinks) }} {{ __('version(s) available') }}</small>
+                    <small class="form-text text-muted">{{ __('Versions available') }}: {{ count($versionLinks) }}</small>
                   </div>
                 </div>
                 @endif
@@ -730,6 +883,9 @@ $extend_item_price = 0;
                 @endif
                 <!--- Guest Checkout OFF -->
                 @endif
+                @if($item['item']->free_download != 1)
+                @include('partials.buy-trust', ['bt_item' => $item['item']])
+                @endif
                 @if($custom_settings->author_key == Helper::Key_Owner())
                 @if(count($other_market_link) != 0)
                 <div class="mt-3" align="center">
@@ -737,7 +893,7 @@ $extend_item_price = 0;
                 <ul class="list-unstyled font-size-sm">
                 @foreach($other_market_link as $market)
                 @if(!empty($market->iom_market_link))
-                <li class="d-flex justify-content-between mb-3 pb-3 border-bottom"><span class="text-dark font-weight-medium"><img src="{{ url('/') }}/public/storage/settings/{{ Helper::id_get_image_market($market->im_id) }}" alt="" width="120" height="40"></span><span class="text-muted"><a href="{{ $market->iom_market_link }}" target="_blank" style="font-weight:bold;">DOWNLOAD</a></span></li>
+                <li class="d-flex justify-content-between mb-3 pb-3 border-bottom"><span class="text-dark font-weight-medium"><img src="{{ url('/') }}/public/storage/settings/{{ Helper::id_get_image_market($market->im_id) }}" alt="{{ $allsettings->site_title }}" width="120" height="40"></span><span class="text-muted"><a href="{{ $market->iom_market_link }}" target="_blank" style="font-weight:bold;">DOWNLOAD</a></span></li>
                 @endif
                 @endforeach
                 </ul>
@@ -1024,17 +1180,27 @@ $extend_item_price = 0;
                 <li class="d-flex justify-content-between mb-3 pb-3 border-bottom"><span class="text-dark font-weight-medium">{{ __('Released') }}</span><span class="text-muted">{{ date("d F Y", strtotime($item['item']->created_item)) }}</span></li>
                 <li class="d-flex justify-content-between mb-3 pb-3 border-bottom"><span class="text-dark font-weight-medium">{{ __('Updated') }}</span><span class="text-muted">{{ date("d F Y", strtotime($item['item']->updated_item)) }}</span></li>
                 <li class="d-flex justify-content-between mb-3 pb-3 border-bottom"><span class="text-dark font-weight-medium">{{ __('Category') }}</span><span class="text-muted">{{ $category_name }}</span></li>
-                <li class="d-flex justify-content-between mb-3 pb-3 border-bottom"><span class="text-dark font-weight-medium">{{ __('Item Type') }}</span><span class="text-muted">{{ Helper::ItemTypeIdGetData($item['item']->item_type_id) }}</span></li>
+                @php $ashItemTypeLabel = Helper::ItemTypeIdGetData($item['item']->item_type_id); @endphp
+                @if($ashItemTypeLabel !== '' && strcasecmp((string)$ashItemTypeLabel, 'Serials') !== 0)
+                <li class="d-flex justify-content-between mb-3 pb-3 border-bottom"><span class="text-dark font-weight-medium">{{ __('Item Type') }}</span><span class="text-muted">{{ $ashItemTypeLabel }}</span></li>
+                @endif
                 @if(count($viewattribute['details']) != 0)
                 @foreach($viewattribute['details'] as $view_attribute)
+                @php
+                  $ashAttrLabel = trim((string) $view_attribute->item_attribute_label);
+                  $ashAttrVals = trim((string) $view_attribute->item_attribute_values);
+                  $ashHideGamesSim = (strcasecmp($ashAttrLabel, 'Games') === 0 && preg_match('/^simulation$/i', $ashAttrVals));
+                @endphp
+                @if(!$ashHideGamesSim)
                 <li class="d-flex justify-content-between mb-3 pb-3 border-bottom"><span class="text-dark font-weight-medium">{{ $view_attribute->item_attribute_label }}</span><span class="text-muted">@php echo str_replace(',', ',<br />', $view_attribute->item_attribute_values); @endphp </span></li>
+                @endif
                 @endforeach
                 @endif
                 @if($item['item']->item_tags != '')
                  <li class="justify-content-between pb-3 border-bottom"><span class="text-dark font-weight-medium">{{ __('Tags') }}</span><br/>
                  @php $item_tags = explode(',',$item['item']->item_tags); @endphp
                  @foreach($item_tags as $tags)
-                 <span class="text-right"><a href="{{ url('/tag') }}/item/{{ strtolower(str_replace(' ','-',$tags)) }}" class="link-color">{{ $tags.',' }}</a></span>
+                 <span class="text-right"><a href="{{ url('/tag/item/'.\Fickrr\Support\TagSlug::encode($tags)) }}" class="link-color">{{ $tags.',' }}</a></span>
                  @endforeach
                  </li>
                  @endif
@@ -1054,7 +1220,7 @@ $extend_item_price = 0;
     <section class="container mb-5 pb-lg-3">
       @if(count($related['items']) != 0)
       <div class="d-flex flex-wrap justify-content-between align-items-center border-bottom pb-4 mb-4">
-        <h2 class="h3 mb-0 pt-2">{{ __('More Related Items') }} {{ __('by') }} {{ $item['item']->username }}</h2>
+        <h2 class="h3 mb-0 pt-2">{{ __('More Related Items') }}</h2>
       </div>
       @endif
       <div class="row pt-2 mx-n2 flash-sale">
@@ -1062,7 +1228,8 @@ $extend_item_price = 0;
         @php $no = 1; @endphp
         @foreach($related['items'] as $featured)
         @php
-        $price = Helper::price_info($featured->item_flash,$featured->extended_price);
+        $price = Helper::catalog_price($featured);
+        $price_exact = Helper::is_single_price_item($featured);
         $count_rating = Helper::count_rating($featured->ratings);
         @endphp
         <div class="col-lg-3 col-md-4 col-sm-6 px-2 mb-grid-gutter prod-item">
@@ -1129,10 +1296,11 @@ $extend_item_price = 0;
                <!--- Guest Checkout OFF -->
               @endif  
               </div><a class="product-thumb-overlay" href="{{ URL::to('/item') }}/{{ $featured->item_slug }}"></a>
-                            @if($featured->item_preview!='')
-                            <img class="lazy" width="300" height="200" src="{{ Helper::Image_Path($featured->item_preview,'no-image.png') }}"  alt="{{ $featured->item_name }}">
+                            @php $cardImage = Helper::card_image($featured); @endphp
+                            @if($cardImage)
+                            <img class="lazy product-photo" src="{{ Helper::Image_Path($cardImage,'no-image.png') }}" alt="{{ $featured->item_name }}">
                             @else
-                            <img class="lazy" width="300" height="200" src="{{ url('/') }}/public/img/no-image.png"  alt="{{ $featured->item_name }}">
+                            <img class="lazy product-photo" src="{{ url('/') }}/public/img/no-image.png" alt="{{ $featured->item_name }}">
                             @endif
             </div>
             <div class="card-body">
@@ -1215,7 +1383,7 @@ $extend_item_price = 0;
                 </div>
                 <div>
                 @if($featured->free_download == 0)
-                @if($featured->item_flash == 1)<del class="price-old">{{ Helper::price_format($allsettings->site_currency_position,$featured->extended_price,$currency_symbol,$multicurrency) }}</del>@endif <span class="bg-faded-accent text-accent rounded-sm py-1 px-2">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency) }}</span>
+                @if($featured->item_flash == 1)<del class="price-old">{{ Helper::price_format($allsettings->site_currency_position,($price_exact ? $featured->regular_price : $featured->extended_price),$currency_symbol,$multicurrency,$price_exact) }}</del>@endif <span class="bg-faded-accent text-accent rounded-sm py-1 px-2">{{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency,$price_exact) }}</span>
                 @else
                 <span class="price-badge rounded-sm py-1 px-2">{{ __('Free') }}</span> 
                 @endif

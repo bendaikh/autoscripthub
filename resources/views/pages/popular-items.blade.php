@@ -1,11 +1,16 @@
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
-<title>{{ $allsettings->site_title }} - {{ __('Popular Items') }}</title>
+@php
+  $pm = \Fickrr\Support\PageMeta::forSlug('popular-items');
+  if ($pm) { $seo_title = $pm['title']; $seo_desc = $pm['desc']; }
+@endphp
+<title>{{ $seo_title ?? ($allsettings->site_title.' - '.__('Popular Items')) }}</title>
 @include('meta')
 @include('style')
+@include('partials.listing-head')
 </head>
-<body>
+<body class="home-vibrant listing-page">
 @include('header')
 <section class="bg-position-center-top" style="background-image: url('{{ url('/') }}/public/storage/settings/{{ $allsettings->site_banner }}');">
       <div class="py-4">
@@ -36,7 +41,7 @@
         @include('featured-data')
        </div>
        <div class="ajax-load text-center" style="display:none">
-	   <p><img class="lazy" width="24" height="24" src="{{ url('/') }}/resources/views/theme/img/loader.gif"> {{ __('Loading More Items') }}</p>
+	   <p><img class="lazy" width="24" height="24" src="{{ asset('theme/img/loader.gif') }}"> {{ __('Loading More Items') }}</p>
       </div>
       @if(in_array('popular-items',$bottom_ads))
        <div class="row">
@@ -48,6 +53,7 @@
     </div>
 @include('footer')
 @include('script')
+@include('partials.listing-script')
 <script type="text/javascript">
 	var page = 1;
 	$(window).scroll(function() {

@@ -1,12 +1,69 @@
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
-<title>{{ $addition_settings->site_home_title }} - {{ $allsettings->site_title }}</title>
+@php
+  $hvSiteTitle = trim((string) ($allsettings->site_title ?? ''));
+  $hvHomeTitle = trim((string) ($addition_settings->site_home_title ?? ''));
+  if ($hvHomeTitle === '') {
+      $hvHomeTitle = $hvSiteTitle !== '' ? $hvSiteTitle : 'Auto Script Hub';
+  }
+  $hvHomeDesc = trim(strip_tags((string) ($allsettings->site_desc ?? '')));
+  if ($hvHomeDesc === '') {
+      $hvHomeDesc = $hvHomeTitle.' — digital products, scripts and license keys.';
+  }
+  $hvOrgName = $hvSiteTitle !== '' ? $hvSiteTitle : $hvHomeTitle;
+  $skip_default_description = true;
+  if (\Fickrr\Support\LocaleUrl::current() === 'ru') {
+      $hvHomeTitle = __('AutoScriptHub — digital tools, templates and scripts');
+      $hvHomeDesc = __('Buy premium digital tools, templates, scripts and licenses. Fast delivery, Russian-language support and payment options for customers in Russia and the CIS.');
+  }
+  // SEO2: keyword-targeted home title / description / H1 (storage/app/seo/copy.json)
+  $hvSeoCopy = \Fickrr\Support\SeoCopy::get('home');
+  $hvFullTitle = $hvHomeTitle.($hvSiteTitle !== '' && $hvHomeTitle !== $hvSiteTitle ? ' - '.$hvSiteTitle : '');
+  if ($hvSeoCopy) {
+      $hvFullTitle = $hvSeoCopy['title'] ?? $hvFullTitle;
+      $hvHomeDesc = $hvSeoCopy['desc'] ?? $hvHomeDesc;
+  }
+  $homeLd = [
+      '@context' => 'https://schema.org',
+      '@graph' => [
+          [
+              '@type' => 'Organization',
+              'name' => $hvOrgName,
+              'url' => \Fickrr\Support\SiteUrl::to('/'),
+          ],
+          [
+              '@type' => 'WebSite',
+              'name' => $hvOrgName,
+              'url' => \Fickrr\Support\SiteUrl::to('/'),
+              'description' => $hvHomeDesc,
+              'potentialAction' => [
+                  '@type' => 'SearchAction',
+                  'target' => \Fickrr\Support\SiteUrl::to('/shop?product_item={search_term_string}'),
+                  'query-input' => 'required name=search_term_string',
+              ],
+          ],
+      ],
+  ];
+@endphp
+<title>{{ $hvFullTitle }}</title>
+<meta name="description" content="{{ $hvHomeDesc }}" />
+<script type="application/ld+json">{!! json_encode($homeLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 @include('meta')
 @include('style')
+@if(!empty($category['license_slides']) || count($popular['items'] ?? []) != 0)
+<link rel="stylesheet" href="{{ asset('assets/css/owl.carousel.css') }}">
+@endif
+@php $hvxCss = base_path('public/assets/home-vibrant.css'); @endphp
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ asset('assets/home-vibrant.css') }}?v={{ is_file($hvxCss) ? filemtime($hvxCss) : 1 }}">
+@php $pbCss = base_path('public/assets/payment-badges.css'); @endphp
+<link rel="stylesheet" href="{{ asset('assets/payment-badges.css') }}?v={{ is_file($pbCss) ? filemtime($pbCss) : 1 }}">
 </head>
-<body class="home-v2">
+<body class="home-v2 home-vibrant">
 @include('header')
+
+@include('partials.black-friday-banner')
 
 @php
   // Palette + icon used by the "Browse Categories" tiles, cycled by position.
@@ -33,6 +90,9 @@
   // Headline with a gradient accent. Wrap words in [[ ]] inside the banner
   // heading setting to choose the accent; otherwise the last two words are used.
   $hvHeading = trim($allsettings->site_banner_heading);
+  if (!empty($hvSeoCopy['h1'])) {
+      $hvHeading = $hvSeoCopy['h1'];
+  }
   if (preg_match('/^(.*?)\[\[(.+?)\]\](.*)$/s', $hvHeading, $hvParts)) {
       $hvHeadingHtml = e($hvParts[1]).'<span class="hv-grad-text">'.e($hvParts[2]).'</span>'.e($hvParts[3]);
   } else {
@@ -47,125 +107,150 @@
 @endphp
 
 <!-- ============================ Hero ============================ -->
-<section class="hv-hero">
-  <div class="container">
-    <div class="row align-items-center">
+@php
+  // Real products for the tilted card stack, shown three at a time and rotated:
+  // featured first, then popular, then newest (up to 9).
+  $hvxPool = collect();
+  foreach ([$featured['items'] ?? [], $popular['items'] ?? [], $newest['items'] ?? []] as $hvxList) {
+      foreach ($hvxList as $hvxItem) {
+          if ($hvxPool->count() >= 9) break 2;
+          if (!$hvxPool->contains('item_id', $hvxItem->item_id)) $hvxPool->push($hvxItem);
+      }
+  }
+  $hvxCards = $hvxPool->map(function ($it) use ($allsettings, $currency_symbol, $multicurrency) {
+      $exact = Helper::is_single_price_item($it);
+      $img = Helper::card_image($it);
+      return [
+          'name' => $it->item_name,
+          'url' => URL::to('/item').'/'.$it->item_slug,
+          'img' => $img ? Helper::Image_Path($img, 'no-image.png') : url('/').'/public/img/no-image.png',
+          'price' => ((int) $it->free_download === 1) ? __('Free') : Helper::price_format($allsettings->site_currency_position, Helper::catalog_price($it), $currency_symbol, $multicurrency ?? '', $exact),
+      ];
+  })->values();
+  // Fill the last set of three by wrapping round to the first products.
+  if ($hvxCards->count() > 3 && $hvxCards->count() % 3 !== 0) {
+      $hvxCards = $hvxCards->concat($hvxCards->take(3 - $hvxCards->count() % 3))->values();
+  }
+  $hvxSets = $hvxCards->chunk(3)->values()->map(function ($set) {
+      return ['label' => null, 'url' => null, 'count' => null, 'cards' => $set->values()];
+  });
 
-      <div class="col-lg-6">
-        <span class="hv-hero-badge"><i class="fa fa-bolt"></i>{{ __('Trusted Digital Marketplace') }}</span>
+  // Preferred: one set per category, only products whose image file exists and opens.
+  if (!empty($category['hero_sets'])) {
+      $hvxSets = collect($category['hero_sets'])->map(function ($set) use ($allsettings, $currency_symbol, $multicurrency, $hvCatCounts) {
+          $cards = collect($set['items'])->map(function ($it) use ($allsettings, $currency_symbol, $multicurrency) {
+              $obj = (object) $it;
+              $exact = Helper::is_single_price_item($obj);
+              return [
+                  'name' => $it['name'],
+                  'url' => URL::to('/item').'/'.$it['slug'],
+                  'img' => Helper::Image_Path($it['image'], 'no-image.png'),
+                  'price' => ((int) $it['free_download'] === 1) ? __('Free') : Helper::price_format($allsettings->site_currency_position, Helper::catalog_price($obj), $currency_symbol, $multicurrency ?? '', $exact),
+                  'badge' => !empty($it['badge']) ? __($it['badge']) : null,
+              ];
+          })->values();
+          if (!empty($set['url'])) {
+              $urlParts = explode('?', $set['url'], 2);
+              $setUrl = URL::to($urlParts[0]).(isset($urlParts[1]) ? '?'.$urlParts[1] : '');
+          } else {
+              $setUrl = URL::to('/shop/category/').'/'.$set['slug'];
+          }
+          return [
+              'label' => !empty($set['trending']) ? '🔥 '.__($set['name']) : __($set['name']),
+              'url' => $setUrl,
+              'count' => (int) ($hvCatCounts[$set['id']] ?? 0),
+              'cards' => $cards,
+          ];
+      })->values();
+  }
+  $hvxPromo = $promo ?? null;
+@endphp
+<section class="hvx-hero">
+  <span class="hvx-blob hvx-blob--a" aria-hidden="true"></span>
+  <span class="hvx-blob hvx-blob--b" aria-hidden="true"></span>
+  <div class="container hvx-hero-in">
+    <div class="hvx-copy">
+      @if($hvxPromo && !empty($hvxPromo->badge))
+      <span class="hvx-badge"><i class="fa fa-bolt"></i>{{ $hvxPromo->badge }}@if(!empty($hvxPromo->discount_text)) · {{ $hvxPromo->discount_text }}@endif</span>
+      @else
+      <span class="hvx-badge"><i class="fa fa-bolt"></i>{{ __('Trusted Digital Marketplace') }}</span>
+      @endif
 
-        <h1>{!! $hvHeadingHtml !!}</h1>
+      <h1>{!! $hvHeadingHtml !!}</h1>
 
-        <p class="hv-hero-sub">{{ $allsettings->site_banner_subheading }}</p>
+      @if(trim((string) $allsettings->site_banner_subheading) !== '')
+      <p class="hvx-lead">{{ $allsettings->site_banner_subheading }}</p>
+      @endif
 
-        <ul class="hv-pills">
-          <li class="hv-pill"><i class="fa fa-download"></i>{{ __('Instant Download') }}</li>
-          <li class="hv-pill"><i class="fa fa-refresh"></i>{{ __('Regular Updates') }}</li>
-          <li class="hv-pill"><i class="fa fa-certificate"></i>{{ __('Commercial License') }}</li>
-          <li class="hv-pill"><i class="fa fa-shield"></i>{{ __('30-Day Money Back') }}</li>
-        </ul>
-
-        <form action="{{ route('shop') }}" id="search_form" method="post" class="form-noborder searchbox" enctype="multipart/form-data">
-          {{ csrf_field() }}
-          <div class="hv-search">
-            <div class="hv-search-field">
-              <i class="dwg-search"></i>
-              <input class="form-control" type="text" id="product_item" name="product_item" placeholder="{{ __('Search for products, scripts, tools...') }}">
-            </div>
-            @if(count($category['view']) != 0)
-            <select name="category_names[]" id="product_cat" class="custom-select">
-              <option value="">{{ __('All categories') }}</option>
-              @foreach($category['view'] as $cat)
-              <option value="{{ 'category_'.$cat->cat_id }}">{{ $cat->category_name }}</option>
-              @foreach($cat->subcategory as $sub_category)
-              <option value="{{ 'subcategory_'.$sub_category->subcat_id }}"> - {{ $sub_category->subcategory_name }}</option>
-              @endforeach
-              @endforeach
-            </select>
-            @endif
-            <button class="hv-search-btn" type="submit">{{ __('Search') }}</button>
-          </div>
-        </form>
-
+      <form action="{{ route('shop') }}" id="search_form" method="post" class="hvx-search" enctype="multipart/form-data">
+        {{ csrf_field() }}
+        <i class="dwg-search" aria-hidden="true"></i>
+        <input type="text" id="product_item" name="product_item" placeholder="{{ __('Search for products, scripts, tools...') }}" aria-label="{{ __('Search') }}">
         @if(count($category['view']) != 0)
-        <div class="hv-popular">
-          <span>{{ __('Popular Searches') }}:</span>
-          @foreach($category['view']->take(5) as $cat)
-          <a href="{{ URL::to('/shop/category/') }}/{{ $cat->category_slug }}">{{ $cat->category_name }}</a>
+        <select name="category_names[]" id="product_cat" aria-label="{{ __('All categories') }}">
+          <option value="">{{ __('All categories') }}</option>
+          @foreach($category['view'] as $cat)
+          <option value="{{ 'category_'.$cat->cat_id }}">{{ $cat->category_name }}</option>
+          @foreach($cat->subcategory as $sub_category)
+          <option value="{{ 'subcategory_'.$sub_category->subcat_id }}"> - {{ $sub_category->subcategory_name }}</option>
           @endforeach
-        </div>
+          @endforeach
+        </select>
         @endif
+        <button type="submit">{{ __('Search') }}</button>
+      </form>
+
+      @if(count($category['view']) != 0)
+      <div class="hvx-chips">
+        <span>{{ __('Popular') }}:</span>
+        @foreach($category['view']->take(4) as $cat)
+        <a href="{{ URL::to('/shop/category/') }}/{{ $cat->category_slug }}">{{ $cat->category_name }}</a>
+        @endforeach
+      </div>
+      @endif
+
+      <div class="hvx-actions">
+        <a class="hvx-btn hvx-btn--main" href="{{ URL::to('/popular-items') }}"><i class="dwg-cart"></i>{{ __('Shop best sellers') }}</a>
+        <a class="hvx-btn hvx-btn--ghost" href="{{ URL::to('/free-items') }}"><i class="dwg-download"></i>{{ __('Free items') }}</a>
       </div>
 
-      <div class="col-lg-6">
-        <div class="hv-visual">
-          <div class="hv-dash">
-            <div class="hv-dash-bar">
-              <span class="hv-dash-dot"></span><span class="hv-dash-dot"></span><span class="hv-dash-dot"></span>
-              <span class="hv-dash-title">{{ __('Dashboard') }}</span>
-            </div>
-
-            <div class="hv-dash-stats">
-              <div class="hv-dash-stat">
-                <span>{{ __('Revenue') }}</span><strong>$24,850</strong><em>+12.5%</em>
-              </div>
-              <div class="hv-dash-stat">
-                <span>{{ __('Orders') }}</span><strong>1,250</strong><em>+8.2%</em>
-              </div>
-              <div class="hv-dash-stat">
-                <span>{{ __('Users') }}</span><strong>3,246</strong><em>+5.4%</em>
-              </div>
-            </div>
-
-            <div class="row no-gutters">
-              <div class="col-7 pr-1">
-                <div class="hv-dash-panel">
-                  <h6>{{ __('Revenue Overview') }}</h6>
-                  <svg class="hv-dash-chart" viewBox="0 0 260 88" preserveAspectRatio="none" aria-hidden="true">
-                    <defs>
-                      <linearGradient id="hvArea" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#a855f7" stop-opacity=".55"/>
-                        <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
-                      </linearGradient>
-                    </defs>
-                    <path d="M0,70 C25,66 40,44 62,46 C86,48 96,24 120,30 C146,36 156,58 180,52 C206,46 220,16 260,10 L260,88 L0,88 Z" fill="url(#hvArea)"/>
-                    <path d="M0,70 C25,66 40,44 62,46 C86,48 96,24 120,30 C146,36 156,58 180,52 C206,46 220,16 260,10" fill="none" stroke="#c084fc" stroke-width="2.5" stroke-linecap="round"/>
-                  </svg>
-                </div>
-              </div>
-              <div class="col-5 pl-1">
-                <div class="hv-dash-panel">
-                  <h6>{{ __('Top Products') }}</h6>
-                  <ul class="hv-dash-list">
-                    <li><span class="hv-dash-chip" style="background:#4f46e5;"><i class="fa fa-code"></i></span>{{ __('Scripts') }}<b>412</b></li>
-                    <li><span class="hv-dash-chip" style="background:#0ea5e9;"><i class="fa fa-paint-brush"></i></span>{{ __('Themes') }}<b>318</b></li>
-                    <li><span class="hv-dash-chip" style="background:#10b981;"><i class="fa fa-th-large"></i></span>{{ __('Apps') }}<b>264</b></li>
-                    <li><span class="hv-dash-chip" style="background:#f59e0b;"><i class="fa fa-picture-o"></i></span>{{ __('Graphics') }}<b>197</b></li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="hv-float hv-float--products">
-            <span class="hv-float-icon" style="background:linear-gradient(135deg,#7c3aed,#a855f7);"><i class="fa fa-cube"></i></span>
-            <span>
-              <strong>{{ $total_files }}+</strong>
-              <span>{{ __('Premium Products') }}</span>
-            </span>
-          </div>
-
-          <div class="hv-float hv-float--customers">
-            <span class="hv-float-icon" style="background:linear-gradient(135deg,#f59e0b,#f97316);"><i class="fa fa-star"></i></span>
-            <span>
-              <strong>{{ Helper::member_count() }}+</strong>
-              <span>{{ __('Happy Customers') }}</span>
-            </span>
-          </div>
-        </div>
+      <div class="hvx-proof">
+        <span class="hvx-faces" aria-hidden="true"><span>A</span><span>M</span><span>S</span><span>K</span></span>
+        <span>
+          <b><span class="hvx-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span> {{ Helper::member_count() }}+ {{ __('Happy Customers') }}</b>
+          <small>{{ $total_files }}+ {{ __('Premium Products') }} · {{ __('Delivered after confirmation') }}</small>
+        </span>
       </div>
-
     </div>
+
+    @if($hvxSets->count() > 0)
+    <div class="hvx-stack" data-hvx-stack aria-label="{{ __('Lowest prices') }}">
+      @foreach($hvxSets as $hvxSetIndex => $hvxSet)
+      <div class="hvx-set hvx-set--{{ min(3, $hvxSet['cards']->count()) }}{{ $hvxSetIndex === 0 ? ' is-active' : '' }}" @if($hvxSetIndex > 0) aria-hidden="true" @endif>
+        @if($hvxSet['label'])
+        <a class="hvx-set-label" href="{{ $hvxSet['url'] }}" @if($hvxSetIndex > 0) tabindex="-1" @endif><span>{{ $hvxSet['label'] }}</span>@if($hvxSet['count'] > 0)<em>{{ $hvxSet['count'] }} {{ trans_choice('Item|Items', $hvxSet['count']) }}</em>@endif<i class="dwg-arrow-right"></i></a>
+        @endif
+        @foreach($hvxSet['cards'] as $hvxIndex => $hvxCard)
+        {{-- the first set loads at once; the others (and the two spare cards per
+             set) get their image only when needed, see the script at the bottom --}}
+        @php $hvxEager = $hvxSetIndex === 0 && $hvxIndex < 3; @endphp
+        <a class="hvx-tile {{ $hvxIndex < 3 ? 'hvx-tile--'.($hvxIndex + 1) : 'hvx-tile--spare' }}" href="{{ $hvxCard['url'] }}" @if($hvxSetIndex > 0 || $hvxIndex >= 3) tabindex="-1" @endif>
+          @if(!empty($hvxCard['badge']))<span class="hvx-tile-badge">🔥 {{ $hvxCard['badge'] }}</span>@endif
+          <span class="hvx-tile-img"><img @if($hvxEager) src="{{ $hvxCard['img'] }}" @else data-src="{{ $hvxCard['img'] }}" @endif alt="{{ $hvxCard['name'] }}" decoding="async"></span>
+          <span class="hvx-tile-meta"><strong>{{ \Illuminate\Support\Str::limit($hvxCard['name'], 34) }}</strong><em>{{ $hvxCard['price'] }}</em></span>
+        </a>
+        @endforeach
+      </div>
+      @endforeach
+      @if($hvxSets->count() > 1)
+      <div class="hvx-dots" role="tablist" aria-label="{{ __('Lowest prices') }}">
+        @foreach($hvxSets as $hvxSetIndex => $hvxSet)
+        <button type="button" class="hvx-dot{{ $hvxSetIndex === 0 ? ' is-active' : '' }}" data-index="{{ $hvxSetIndex }}" aria-label="{{ $hvxSet['label'] ?: __('Slide').' '.($hvxSetIndex + 1) }}" title="{{ $hvxSet['label'] }}"></button>
+        @endforeach
+      </div>
+      @endif
+    </div>
+    @endif
   </div>
 </section>
 
@@ -187,7 +272,7 @@
       </div>
       <div class="hv-trust-item">
         <i class="fa fa-bolt"></i>
-        <span><strong>{{ __('Instant Access') }}</strong><span>{{ __('After purchase') }}</span></span>
+        <span><strong>{{ __('Delivery by message') }}</strong><span>{{ __('After payment confirmation') }}</span></span>
       </div>
       <div class="hv-trust-item">
         <i class="fa fa-lock"></i>
@@ -202,8 +287,15 @@
         <span><strong>{{ __('24/7 Support') }}</strong><span>{{ __('We are here') }}</span></span>
       </div>
     </div>
+    <div class="hv-paybar">
+      @include('partials.payment-badges', ['pbLabel' => __('We accept')])
+    </div>
   </div>
 </div>
+
+@include('partials.home-wholesale-ai')
+
+@include('partials.home-lowest-prices')
 
 @if(in_array('home',$top_ads))
 <section class="container pt-5" data-aos="fade-up" data-aos-delay="200">
@@ -217,7 +309,7 @@
 
 <!-- ============================ Browse categories ============================ -->
 @if(count($category['view']) != 0)
-<section class="hv-section" data-aos="fade-up" data-aos-delay="200">
+<section class="hv-section hv-browse" data-aos="fade-up" data-aos-delay="200">
   <div class="container">
     <div class="hv-head">
       <div>
@@ -236,7 +328,7 @@
         }
         $itemCount = $hvCatCounts[$cat->cat_id] ?? 0;
       @endphp
-      <div class="col-lg-3 col-md-4 col-6 mb-4">
+      <div class="col-lg-2 col-md-3 col-4 mb-2">
         <a class="hv-cat" href="{{ URL::to('/shop/category/') }}/{{ $cat->category_slug }}">
           <span class="hv-cat-icon" style="background:{{ $style['bg'] }};color:{{ $style['fg'] }};"><i class="fa {{ $icon }}"></i></span>
           <h3>{{ $cat->category_name }}</h3>
@@ -249,30 +341,60 @@
 </section>
 @endif
 
-<!-- ============================ Featured ============================ -->
-@if(count($featured['items']) != 0)
-<section class="hv-section hv-section--soft" data-aos="fade-up" data-aos-delay="200">
+<!-- ============================ License categories ============================ -->
+@if(!empty($category['license_slides']))
+<section class="hv-section hv-section--soft hv-license" data-aos="fade-up" data-aos-delay="200">
   <div class="container">
     <div class="hv-head">
       <div>
-        <h2>{{ __('Featured Products') }}</h2>
-        <p>{{ __('Hand-picked tools our team recommends') }}</p>
+        <h2>{{ __('License Keys') }}</h2>
+        <p>{{ __('Operating systems, office, security and more, sold at one price') }}</p>
       </div>
-      <a class="hv-head-link" href="{{ URL::to('/') }}/featured-items">{{ __('View All Products') }}<i class="dwg-arrow-right"></i></a>
     </div>
-    <div class="row mx-n2 flash-sale">
-      @foreach($featured['items'] as $index => $featured)
-      @php
-        $price = Helper::price_info($featured->item_flash,$featured->extended_price);
-        $count_rating = Helper::count_rating($featured->ratings);
-        $hvTag = $hvTagClass = null;
-        if($index === 0)                    { $hvTag = __('Top Seller'); $hvTagClass = 'hv-tag--seller'; }
-        elseif($featured->item_flash == 1)  { $hvTag = __('Trending');   $hvTagClass = 'hv-tag--trending'; }
-        elseif($featured->free_download==1) { $hvTag = __('Free');       $hvTagClass = 'hv-tag--free'; }
-        elseif($index === 1)                { $hvTag = __('Best Value'); $hvTagClass = 'hv-tag--value'; }
-      @endphp
-      @include('partials.product-card')
-      @endforeach
+    <div class="hv-license-row">
+    <div class="hv-license-wrap">
+      <button type="button" class="hv-license-arrow hv-license-prev" aria-label="{{ __('Previous') }}">&#8249;</button>
+      <div class="owl-carousel hv-license-slider">
+        @foreach($category['license_slides'] as $index => $slide)
+        @php
+          $style = $hvCatStyles[$index % count($hvCatStyles)];
+          $icon = $style['icon'];
+          foreach ($hvCatIcons as $needle => $faIcon) {
+            if (stripos($slide['name'], $needle) !== false) { $icon = $faIcon; break; }
+          }
+          $slideImage = $slide['image'] ?? null;
+          $slideImageUrl = null;
+          if (!empty($slideImage)) {
+            if (preg_match('#^https?://#i', $slideImage) || str_starts_with($slideImage, '/')) {
+              $slideImageUrl = $slideImage;
+            } else {
+              foreach (['category', 'settings'] as $folder) {
+                if (is_file(base_path('public/storage/'.$folder.'/'.basename($slideImage)))) {
+                  $slideImageUrl = url('/').'/public/storage/'.$folder.'/'.basename($slideImage);
+                  break;
+                }
+              }
+            }
+          }
+          $slideCount = (int) ($slide['count'] ?? 0);
+          $slideUrl = URL::to('/shop/'.$slide['kind'].'/'.$slide['slug']);
+        @endphp
+        <div class="hv-license-slide">
+          <a class="hv-cat hv-license-card" href="{{ $slideUrl }}">
+            @if($slideImageUrl)
+            <span class="hv-license-photo"><img src="{{ $slideImageUrl }}" alt="{{ $slide['name'] }}"></span>
+            @else
+            <span class="hv-cat-icon" style="background:{{ $style['bg'] }};color:{{ $style['fg'] }};"><i class="fa {{ $icon }}"></i></span>
+            @endif
+            <h3>{{ $slide['name'] }}</h3>
+            <p>{{ $slideCount }} {{ trans_choice('Item|Items', $slideCount) }}</p>
+          </a>
+        </div>
+        @endforeach
+      </div>
+      <button type="button" class="hv-license-arrow hv-license-next" aria-label="{{ __('Next') }}">&#8250;</button>
+    </div>
+    <div class="hv-license-dots" role="tablist" aria-label="{{ __('License Keys') }}"></div>
     </div>
   </div>
 </section>
@@ -280,28 +402,67 @@
 
 <!-- ============================ Popular ============================ -->
 @if(count($popular['items']) != 0)
-<section class="hv-section flash-sale" data-aos="fade-up" data-aos-delay="200">
+<section class="hv-section hv-popular-slider" data-aos="fade-up" data-aos-delay="200">
+  <span class="hv-trend-glow hv-trend-glow--a" aria-hidden="true"></span>
+  <span class="hv-trend-glow hv-trend-glow--b" aria-hidden="true"></span>
   <div class="container">
-    <div class="hv-head">
+    <div class="hv-head hv-trend-head">
       <div>
+        <span class="hv-trend-pill">&#128293; {{ __('Trending now') }}</span>
         <h2>{{ __('Popular Items') }}</h2>
         <p>{{ __('What other customers are buying right now') }}</p>
       </div>
-      <a class="hv-head-link" href="{{ URL::to('/') }}/popular-items">{{ __('View All Products') }}<i class="dwg-arrow-right"></i></a>
+      <a class="hv-trend-all" href="{{ URL::to('/') }}/popular-items">{{ __('View All Products') }}</a>
     </div>
-    <div class="row mx-n2">
-      @foreach($popular['items'] as $featured)
-      @php
-        $price = Helper::price_info($featured->item_flash,$featured->extended_price);
-        $count_rating = Helper::count_rating($featured->ratings);
-        $hvTag = $hvTagClass = null;
-      @endphp
-      @include('partials.product-card')
-      @endforeach
+    <div class="hv-trend-row">
+      <button type="button" class="hv-trend-arrow hv-trend-prev" aria-label="{{ __('Previous') }}">&#8249;</button>
+      <div class="owl-carousel hv-trend-slider">
+        @foreach($popular['items'] as $popularIndex => $popularItem)
+        @include('partials.popular-trend-card', ['featured' => $popularItem, 'trendRank' => $popularIndex + 1])
+        @endforeach
+      </div>
+      <button type="button" class="hv-trend-arrow hv-trend-next" aria-label="{{ __('Next') }}">&#8250;</button>
+      <div class="hv-trend-dots" role="tablist" aria-label="{{ __('Popular Items') }}"></div>
     </div>
   </div>
 </section>
 @endif
+
+@if(!empty($category['license_slides']) && count($category['license_items'] ?? []) != 0)
+<section class="hv-section hv-section--soft hv-license" data-aos="fade-up" data-aos-delay="200">
+  <div class="container">
+    <div class="hv-head">
+      <div>
+        <h2>{{ __('License Products') }}</h2>
+        <p>{{ __('Newest keys from these categories') }}</p>
+      </div>
+    </div>
+    <div class="hv-license-row">
+    <div class="hv-license-wrap">
+      <button type="button" class="hv-license-arrow hv-license-prev" aria-label="{{ __('Previous') }}">&#8249;</button>
+      <div class="owl-carousel hv-license-slider hv-license-products">
+        @foreach($category['license_items'] as $licenseItem)
+        @php
+          $price = Helper::catalog_price($licenseItem);
+          $price_exact = true;
+          $count_rating = Helper::count_rating($licenseItem->ratings);
+          $hvTag = $hvTagClass = null;
+        @endphp
+        <div class="hv-license-product-slide">
+          @include('partials.product-card', ['featured' => $licenseItem])
+        </div>
+        @endforeach
+      </div>
+      <button type="button" class="hv-license-arrow hv-license-next" aria-label="{{ __('Next') }}">&#8250;</button>
+    </div>
+    <div class="hv-license-dots" role="tablist" aria-label="{{ __('License Products') }}"></div>
+    </div>
+  </div>
+</section>
+@endif
+
+<!-- ============================ Featured ============================ -->
+@include('partials.home-featured-slide')
 
 <!-- ============================ Flash sale ============================ -->
 @if(count($flash['items']) != 0)
@@ -317,7 +478,8 @@
     <div class="row mx-n2">
       @foreach($flash['items'] as $featured)
       @php
-        $price = Helper::price_info($featured->item_flash,$featured->extended_price);
+        $price = Helper::catalog_price($featured);
+        $price_exact = Helper::is_single_price_item($featured);
         $count_rating = Helper::count_rating($featured->ratings);
         $hvTag = __('Sale'); $hvTagClass = 'hv-tag--trending';
       @endphp
@@ -342,7 +504,8 @@
     <div class="row mx-n2">
       @foreach($free['items'] as $featured)
       @php
-        $price = Helper::price_info($featured->item_flash,$featured->extended_price);
+        $price = Helper::catalog_price($featured);
+        $price_exact = Helper::is_single_price_item($featured);
         $count_rating = Helper::count_rating($featured->ratings);
         $hvTag = __('Free'); $hvTagClass = 'hv-tag--free';
       @endphp
@@ -366,22 +529,23 @@
     </div>
     <div class="row">
       @foreach($newest['items'] as $featured)
-      @php $price = Helper::price_info($featured->item_flash,$featured->extended_price); @endphp
+      @php $price = Helper::catalog_price($featured);
+        $price_exact = Helper::is_single_price_item($featured); @endphp
       <div class="col-lg-4 col-md-6 mb-3">
         <div class="hv-mini">
           <a href="{{ URL::to('/item') }}/{{ $featured->item_slug }}">
             @if($featured->item_preview!='')
-            <img class="lazy" src="{{ Helper::Image_Path($featured->item_preview,'no-image.png') }}" alt="{{ $featured->item_name }}" width="64" height="48">
+            <img class="lazy" loading="lazy" decoding="async" src="{{ Helper::Image_Path($featured->item_preview,'no-image.png') }}" alt="{{ $featured->item_name }}" width="64" height="48">
             @else
-            <img class="lazy" src="{{ url('/') }}/public/img/no-image.png" alt="{{ $featured->item_name }}" width="64" height="48">
+            <img class="lazy" loading="lazy" decoding="async" src="{{ url('/') }}/public/img/no-image.png" alt="{{ $featured->item_name }}" width="64" height="48">
             @endif
           </a>
           <div class="media-body">
             <h6><a href="{{ URL::to('/item') }}/{{ $featured->item_slug }}">{{ $featured->item_name }}</a></h6>
             <div class="hv-mini-price">
               @if($featured->free_download == 0)
-              {{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency) }}
-              @if($featured->item_flash == 1)<del class="price-old ml-1">{{ Helper::price_format($allsettings->site_currency_position,$featured->extended_price,$currency_symbol,$multicurrency) }}</del>@endif
+              {{ Helper::price_format($allsettings->site_currency_position,$price,$currency_symbol,$multicurrency,$price_exact) }}
+              @if($featured->item_flash == 1)<del class="price-old ml-1">{{ Helper::price_format($allsettings->site_currency_position,($price_exact ? $featured->regular_price : $featured->extended_price),$currency_symbol,$multicurrency,$price_exact) }}</del>@endif
               @else
               {{ __('Free') }}
               @endif
@@ -523,11 +687,11 @@
       <div class="col-lg-4">
         <div class="hv-cta">
           <h3>{{ __('Join Entrepreneurs Already Growing with') }} {{ $allsettings->site_title }}</h3>
-          <p>{{ __('Get instant access to premium scripts, themes and tools built to move your business forward.') }}</p>
+          <p>{{ __('Get license keys, accounts and software, delivered by message after payment confirmation.') }}</p>
           <div>
             <a class="hv-btn hv-btn--light" href="{{ Auth::guest() ? URL::to('/register') : URL::to('/shop') }}">{{ __('Start Shopping Now') }}<i class="dwg-arrow-right"></i></a>
           </div>
-          <small><i class="fa fa-shield"></i>{{ __('30-Day Money Back Guarantee') }}</small>
+          <small><i class="fa fa-shield"></i>{{ __('15-Day Money Back Guarantee') }}</small>
         </div>
       </div>
     </div>
@@ -618,7 +782,7 @@
     <div class="container-fluid p-0">
       <div class="row no-gutters">
         <div class="col-md-12 textboxrow" style="background-image: url('{{ url('/') }}/public/storage/settings/{{ $custom_settings->promotion_bg_image }}'); background-size:cover;">
-          <h1>{{ $custom_settings->pr_promo_title_one }}</h1>
+          <p class="h1">{{ $custom_settings->pr_promo_title_one }}</p>
           <h5>{{ $custom_settings->pr_promo_title_two }}</h5>
           <p class="saledate">{{ __('Sales end') }} {{ date('M d, Y', strtotime($custom_settings->pr_promo_date)) }}</p>
           <a class="btn btn-outline-accent" href="{{ $custom_settings->pr_promo_button_link }}">{{ __('Download Now') }}</a>
@@ -631,5 +795,439 @@
 
 @include('footer')
 @include('script')
+@if(!empty($category['license_slides']) || count($popular['items'] ?? []) != 0)
+<script src="{{ asset('assets/js/vendor/owl.carousel.min.js') }}"></script>
+<script>
+jQuery(function ($) {
+  // This Owl build calls jQuery's .andSelf(), removed in jQuery 3 (the theme
+  // loads 3.4.1). The call throws after Owl adds .owl-loading { opacity: 0 },
+  // so the cards stay in the HTML but the slider is an empty block.
+  if (!$.fn.andSelf && $.fn.addBack) {
+    $.fn.andSelf = $.fn.addBack;
+  }
+  $('.hv-license-row').each(function () {
+    var $row = $(this);
+    var $slider = $row.find('.hv-license-slider');
+    var $dots = $row.find('.hv-license-dots');
+    if (!$slider.length || typeof $.fn.owlCarousel !== 'function') {
+      $slider.addClass('is-static');
+      return;
+    }
+    var count = $slider.children().length;
+    $slider.owlCarousel({
+      items: 1,
+      margin: 16,
+      loop: count > 1,
+      autoplay: count > 1,
+      autoplayTimeout: 4200,
+      autoplayHoverPause: true,
+      smartSpeed: 450,
+      mouseDrag: true,
+      touchDrag: true,
+      nav: false,
+      dots: false,
+      responsive: {
+        0: { items: 1 },
+        576: { items: 2 },
+        768: { items: 3 },
+        1100: { items: Math.min(4, count) }
+      }
+    });
+    $slider.trigger('refresh.owl.carousel');
+    if (count < 2) {
+      $row.find('.hv-license-arrow, .hv-license-dots').hide();
+      return;
+    }
+    for (var i = 0; i < count; i++) {
+      $dots.append('<button type="button" class="hv-license-dot' + (i === 0 ? ' is-active' : '') + '" data-index="' + i + '" aria-label="' + (i + 1) + '"></button>');
+    }
+    function realIndex(event) {
+      var clones = event.relatedTarget && event.relatedTarget._clones ? event.relatedTarget._clones.length / 2 : 0;
+      var index = event.item.index - clones;
+      index = ((index % count) + count) % count;
+      return index;
+    }
+    $slider.on('changed.owl.carousel', function (event) {
+      if (!event.namespace) return;
+      var index = realIndex(event);
+      $dots.children().removeClass('is-active').eq(index).addClass('is-active');
+    });
+    $dots.on('click', '.hv-license-dot', function () {
+      $slider.trigger('to.owl.carousel', [$(this).data('index'), 400, true]);
+    });
+    $row.find('.hv-license-next').on('click', function () { $slider.trigger('next.owl.carousel'); });
+    $row.find('.hv-license-prev').on('click', function () { $slider.trigger('prev.owl.carousel'); });
+  });
+
+  $('.hv-popular-slider').each(function () {
+    var $row = $(this);
+    var $slider = $row.find('.hv-trend-slider');
+    var $dots = $row.find('.hv-trend-dots');
+    if (!$slider.length || typeof $.fn.owlCarousel !== 'function') {
+      $slider.addClass('is-static');
+      return;
+    }
+    var count = $slider.children().length;
+    $slider.owlCarousel({
+      items: 2,
+      margin: 12,
+      loop: count > 1,
+      autoplay: count > 1,
+      autoplayTimeout: 4200,
+      autoplayHoverPause: true,
+      smartSpeed: 450,
+      mouseDrag: true,
+      touchDrag: true,
+      nav: false,
+      dots: false,
+      responsive: {
+        0: { items: 2 },
+        768: { items: 3 },
+        1100: { items: Math.min(4, count) },
+        1280: { items: Math.min(5, count) }
+      }
+    });
+    $slider.trigger('refresh.owl.carousel');
+    if (count < 2) {
+      $row.find('.hv-trend-arrow, .hv-trend-dots').hide();
+      return;
+    }
+    for (var i = 0; i < count; i++) {
+      $dots.append('<button type="button" class="hv-trend-dot' + (i === 0 ? ' is-active' : '') + '" data-index="' + i + '" aria-label="' + (i + 1) + '"></button>');
+    }
+    function realIndex(event) {
+      var clones = event.relatedTarget && event.relatedTarget._clones ? event.relatedTarget._clones.length / 2 : 0;
+      var index = event.item.index - clones;
+      index = ((index % count) + count) % count;
+      return index;
+    }
+    $slider.on('changed.owl.carousel', function (event) {
+      if (!event.namespace) return;
+      var index = realIndex(event);
+      $dots.children().removeClass('is-active').eq(index).addClass('is-active');
+    });
+    $dots.on('click', '.hv-trend-dot', function () {
+      $slider.trigger('to.owl.carousel', [$(this).data('index'), 400, true]);
+    });
+    $row.find('.hv-trend-next').on('click', function () { $slider.trigger('next.owl.carousel'); });
+    $row.find('.hv-trend-prev').on('click', function () { $slider.trigger('prev.owl.carousel'); });
+  });
+});
+</script>
+<script>
+(function () {
+  // AOS measures offsets before Owl builds the license sliders, so every
+  // fade-up section below them never receives .aos-animate. Refresh after
+  // the sliders change the page height.
+  function refreshAos() {
+    if (window.AOS && typeof window.AOS.refreshHard === 'function') {
+      window.AOS.refreshHard();
+    }
+  }
+  if (window.jQuery) {
+    jQuery('.hv-license-slider, .hv-trend-slider').on('initialized.owl.carousel refreshed.owl.carousel', function () {
+      window.setTimeout(refreshAos, 50);
+    });
+    jQuery(function () {
+      window.setTimeout(refreshAos, 600);
+      window.setTimeout(refreshAos, 2000);
+    });
+    jQuery(window).on('load', refreshAos);
+  }
+})();
+</script>
+@endif
+<script>
+(function () {
+  var visual = document.querySelector('.hv-visual');
+  if (!visual) return;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var fine = window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  var root = visual.querySelector('[data-hv-top]');
+  var stage = visual.querySelector('[data-hv-stage]');
+  var spots = stage ? stage.querySelectorAll('.hv-spot') : [];
+  var slides = root ? root.querySelectorAll('.hv-top-slide') : [];
+  var dots = root ? root.querySelectorAll('.hv-top-dot') : [];
+  var rows = visual.querySelectorAll('[data-hv-row]');
+  var spotIndex = 0;
+  var slideIndex = 0;
+  var timer = null;
+  var paused = false;
+  var onScreen = true;
+
+  function showSlide(next) {
+    if (!slides.length) return;
+    slideIndex = (next + slides.length) % slides.length;
+    Array.prototype.forEach.call(slides, function (el, i) {
+      el.classList.toggle('is-active', i === slideIndex);
+    });
+    Array.prototype.forEach.call(dots, function (el, i) {
+      el.classList.toggle('is-active', i === slideIndex);
+    });
+  }
+
+  function showSpot(next) {
+    if (!spots.length) return;
+    spotIndex = (next + spots.length) % spots.length;
+    Array.prototype.forEach.call(spots, function (el, i) {
+      el.classList.toggle('is-active', i === spotIndex);
+    });
+    var key = spots[spotIndex].getAttribute('data-hv-group') || '';
+    var match = null;
+    Array.prototype.forEach.call(rows, function (row) {
+      var on = key !== '' && row.getAttribute('data-hv-row') === key;
+      row.classList.toggle('is-spot', on);
+      if (on && !match) match = row;
+    });
+    if (match) {
+      var slide = match.closest('.hv-top-slide');
+      var at = Array.prototype.indexOf.call(slides, slide);
+      if (at >= 0) showSlide(at);
+    }
+  }
+
+  function stop() {
+    if (timer) {
+      window.clearInterval(timer);
+      timer = null;
+    }
+  }
+
+  function canRun() {
+    return !reduce && !paused && onScreen && !document.hidden && (spots.length > 1 || slides.length > 1);
+  }
+
+  function play() {
+    stop();
+    if (!canRun()) return;
+    timer = window.setInterval(function () {
+      if (spots.length > 1) showSpot(spotIndex + 1);
+      else showSlide(slideIndex + 1);
+    }, 3000);
+  }
+
+  if (root) {
+    root.addEventListener('mouseenter', function () { paused = true; visual.classList.add('is-paused'); stop(); });
+    root.addEventListener('mouseleave', function () { paused = false; visual.classList.remove('is-paused'); play(); });
+    Array.prototype.forEach.call(dots, function (dot) {
+      dot.addEventListener('click', function () {
+        showSlide(parseInt(dot.getAttribute('data-index'), 10) || 0);
+        var slide = slides[slideIndex];
+        var row = slide ? slide.querySelector('[data-hv-row]') : null;
+        if (row && spots.length) {
+          var key = row.getAttribute('data-hv-row');
+          Array.prototype.forEach.call(spots, function (spot, i) {
+            if (spot.getAttribute('data-hv-group') === key) spotIndex = i;
+          });
+          showSpot(spotIndex);
+        }
+      });
+    });
+  }
+
+  if (stage) {
+    stage.addEventListener('mouseenter', function () { paused = true; visual.classList.add('is-paused'); stop(); });
+    stage.addEventListener('mouseleave', function () { paused = false; visual.classList.remove('is-paused'); play(); });
+    visual.querySelector('.hv-marquee') && visual.querySelector('.hv-marquee').addEventListener('mouseenter', function () {
+      visual.classList.add('is-paused');
+    });
+    visual.querySelector('.hv-marquee') && visual.querySelector('.hv-marquee').addEventListener('mouseleave', function () {
+      if (!paused) visual.classList.remove('is-paused');
+    });
+    if (fine && !reduce) {
+      stage.addEventListener('mousemove', function (event) {
+        var box = stage.getBoundingClientRect();
+        var px = (event.clientX - box.left) / box.width - 0.5;
+        var py = (event.clientY - box.top) / box.height - 0.5;
+        stage.style.setProperty('--rx', (-py * 8).toFixed(2) + 'deg');
+        stage.style.setProperty('--ry', (px * 10).toFixed(2) + 'deg');
+        stage.style.setProperty('--mx', (px * 14).toFixed(1) + 'px');
+        stage.style.setProperty('--my', (py * 10).toFixed(1) + 'px');
+      });
+      stage.addEventListener('mouseleave', function () {
+        stage.style.setProperty('--rx', '0deg');
+        stage.style.setProperty('--ry', '0deg');
+        stage.style.setProperty('--mx', '0px');
+        stage.style.setProperty('--my', '0px');
+      });
+    }
+  }
+
+  document.addEventListener('visibilitychange', play);
+  if ('IntersectionObserver' in window) {
+    var watcher = new IntersectionObserver(function (entries) {
+      onScreen = entries[0] ? entries[0].isIntersecting : true;
+      play();
+    }, { threshold: 0.15 });
+    watcher.observe(visual);
+  }
+  showSpot(0);
+  play();
+})();
+</script>
+<script>
+(function () {
+  var stack = document.querySelector('[data-hvx-stack]');
+  if (!stack) return;
+  var sets = Array.prototype.slice.call(stack.querySelectorAll('.hvx-set'));
+  var dots = Array.prototype.slice.call(stack.querySelectorAll('.hvx-dot'));
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var index = 0, timer = null, paused = false;
+
+  // --- never leave a broken product image on screen -----------------------
+  // Each set carries up to five products: three shown, two in reserve. When an
+  // image fails to load, its card is dropped and the next one moves up; a set
+  // with no working image is skipped entirely (and its dot hidden).
+  function tiles(set) { return Array.prototype.slice.call(set.querySelectorAll('.hvx-tile')); }
+  function load(img) {
+    if (img && !img.getAttribute('src') && img.getAttribute('data-src')) img.setAttribute('src', img.getAttribute('data-src'));
+  }
+  function usable(set) { return !set.classList.contains('is-empty'); }
+  function relayout(set) {
+    var good = tiles(set).filter(function (t) { return !t.classList.contains('is-broken'); });
+    var shown = good.slice(0, 3);
+    tiles(set).forEach(function (t) {
+      t.classList.remove('hvx-tile--1', 'hvx-tile--2', 'hvx-tile--3');
+      var at = shown.indexOf(t);
+      if (at >= 0) {
+        t.classList.remove('hvx-tile--spare');
+        t.classList.add('hvx-tile--' + (at + 1));
+        if (set.classList.contains('is-active') || set.classList.contains('is-next')) load(t.querySelector('img'));
+      } else {
+        t.classList.add('hvx-tile--spare');
+      }
+    });
+    set.classList.remove('hvx-set--1', 'hvx-set--2', 'hvx-set--3');
+    if (shown.length) set.classList.add('hvx-set--' + shown.length);
+    var empty = shown.length === 0;
+    set.classList.toggle('is-empty', empty);
+    var dot = dots[sets.indexOf(set)];
+    if (dot) dot.style.display = empty ? 'none' : '';
+    if (empty && set.classList.contains('is-active')) show(index + 1);
+    var left = sets.filter(usable).length;
+    stack.classList.toggle('is-single', left < 2);
+    if (left === 0) stack.style.display = 'none';
+  }
+  function watch(set) {
+    tiles(set).forEach(function (t) {
+      var img = t.querySelector('img');
+      if (!img) return;
+      var fail = function () {
+        if (t.classList.contains('is-broken')) return;
+        t.classList.add('is-broken');
+        relayout(set);
+      };
+      img.addEventListener('error', fail);
+      img.addEventListener('load', function () { if (!img.naturalWidth) fail(); });
+      if (img.complete && img.getAttribute('src') && !img.naturalWidth) fail();
+    });
+  }
+  sets.forEach(watch);
+
+  // --- rotation -------------------------------------------------------------
+  function nextUsable(from, step) {
+    for (var n = 1; n <= sets.length; n++) {
+      var i = ((from + step * n) % sets.length + sets.length) % sets.length;
+      if (usable(sets[i])) return i;
+    }
+    return from;
+  }
+  function prepare(set) {
+    tiles(set).forEach(function (t) { if (!t.classList.contains('hvx-tile--spare')) load(t.querySelector('img')); });
+  }
+  function show(next) {
+    if (!usable(sets[(next % sets.length + sets.length) % sets.length])) next = nextUsable(next, 1);
+    index = ((next % sets.length) + sets.length) % sets.length;
+    sets.forEach(function (set, i) {
+      var on = i === index;
+      set.classList.toggle('is-active', on);
+      set.classList.remove('is-next');
+      set.setAttribute('aria-hidden', on ? 'false' : 'true');
+      Array.prototype.forEach.call(set.querySelectorAll('a'), function (a) {
+        a.tabIndex = on && !a.classList.contains('hvx-tile--spare') ? 0 : -1;
+      });
+    });
+    dots.forEach(function (dot, i) { dot.classList.toggle('is-active', i === index); });
+    prepare(sets[index]);
+    var upcoming = nextUsable(index, 1);
+    if (upcoming !== index) { sets[upcoming].classList.add('is-next'); prepare(sets[upcoming]); }
+  }
+  function play() {
+    window.clearInterval(timer);
+    if (reduce || paused || document.hidden || sets.filter(usable).length < 2) return;
+    timer = window.setInterval(function () { show(nextUsable(index, 1)); }, 4500);
+  }
+  stack.addEventListener('mouseenter', function () { paused = true; play(); });
+  stack.addEventListener('mouseleave', function () { paused = false; play(); });
+  stack.addEventListener('focusin', function () { paused = true; play(); });
+  stack.addEventListener('focusout', function () { paused = false; play(); });
+  dots.forEach(function (dot) {
+    dot.addEventListener('click', function () { show(parseInt(dot.getAttribute('data-index'), 10) || 0); play(); });
+  });
+  document.addEventListener('visibilitychange', play);
+  show(0);
+  play();
+})();
+</script>
+<script>
+(function () {
+  // Safety net: the server already leaves out products whose image file is
+  // missing or broken. If an image still fails to load in the browser (or is
+  // the "no image" placeholder), remove that product card from the page.
+  var CARD_IMGS = '.product-card-alt .product-thumb img, .hv-trend-card img.hv-trend-img, .hv-mini img';
+
+  function placeholder(img) { return /\/no-image\.png(\?|$)/.test(img.getAttribute('src') || ''); }
+
+  function dropFromSlider(img) {
+    var owlItem = img.closest('.owl-item');
+    var $ = window.jQuery;
+    if (!owlItem || !$) return false;
+    var $carousel = $(owlItem).closest('.owl-carousel');
+    var owl = $carousel.data('owl.carousel');
+    if (!owl || !owl._items) return false;
+    var link = img.closest('a') || owlItem.querySelector('a[href]');
+    var href = link ? link.getAttribute('href') : null;
+    var at = -1;
+    owl._items.forEach(function ($it, i) {
+      var el = $it[0] || $it;
+      if (el === owlItem || (href && at < 0 && el.querySelector('a[href="' + href + '"]'))) at = at < 0 ? i : at;
+    });
+    if (at < 0) return false;
+    $carousel.trigger('remove.owl.carousel', [at]).trigger('refresh.owl.carousel');
+    var row = $carousel.closest('.hv-license-row, .hv-popular-slider');
+    row.find('.hv-license-dots, .hv-trend-dots').children().last().remove();
+    if (owl._items.length < 2) row.find('.hv-license-arrow, .hv-license-dots, .hv-trend-arrow, .hv-trend-dots').hide();
+    if (owl._items.length === 0) $carousel.closest('section').hide();
+    return true;
+  }
+
+  function dropCard(img) {
+    if (img.dataset.hvGone) return;
+    img.dataset.hvGone = '1';
+    if (dropFromSlider(img)) return;
+    var box = img.closest('.hv-license-product-slide') || img.closest('.hv-trend-card') ||
+              img.closest('[class*="col-lg-"]') || img.closest('.card');
+    if (!box) return;
+    var section = box.closest('section');
+    box.parentNode && box.parentNode.removeChild(box);
+    if (section && !section.querySelector('.product-card-alt, .hv-trend-card, .hv-mini')) section.style.display = 'none';
+  }
+
+  function watch(img) {
+    if (img.dataset.hvWatch) return;
+    img.dataset.hvWatch = '1';
+    if (placeholder(img)) { dropCard(img); return; }
+    img.addEventListener('error', function () { dropCard(img); });
+    img.addEventListener('load', function () { if (!img.naturalWidth || placeholder(img)) dropCard(img); });
+    if (img.complete && img.getAttribute('src') && !img.naturalWidth) dropCard(img);
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll(CARD_IMGS), watch);
+  // Owl clones slides for looping: watch the copies too once sliders are built.
+  window.addEventListener('load', function () {
+    Array.prototype.forEach.call(document.querySelectorAll(CARD_IMGS), watch);
+  });
+})();
+</script>
 </body>
 </html>
