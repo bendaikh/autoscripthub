@@ -1,13 +1,21 @@
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
-<title>{{ $allsettings->site_title }} - {{ $page['page']->page_title }}</title>
-@if($page['page']->page_allow_seo == 1)
-<meta name="Keywords" content="{{ $page['page']->page_seo_keyword }}">
-<meta name="Description" content="{{ $page['page']->page_seo_desc }}">
-@else
-@include('meta')
+@php
+  $pm = \Fickrr\Support\PageMeta::forSlug($page['page']->page_slug ?? '');
+  $pageCustomDesc = trim(strip_tags((string) ($page['page']->page_seo_desc ?? '')));
+  $seo_title = $pm['title'] ?? ($allsettings->site_title.' - '.$page['page']->page_title);
+  if ($pageCustomDesc !== '' && !\Fickrr\Support\PageMeta::isGeneric($pageCustomDesc, $allsettings->site_desc ?? '')) {
+      $seo_desc = $pageCustomDesc;
+  } elseif (!empty($pm['desc'])) {
+      $seo_desc = $pm['desc'];
+  }
+@endphp
+<title>{{ $seo_title }}</title>
+@if($page['page']->page_allow_seo == 1 && !empty($page['page']->page_seo_keyword))
+<meta name="keywords" content="{{ $page['page']->page_seo_keyword }}">
 @endif
+@include('meta')
 @include('style')
 @php
   $infoPages = [
@@ -38,9 +46,9 @@
     'refund-policy' => [
       'icon' => 'fa-undo',
       'badge' => __('Fair & Transparent'),
-      'lead' => __('Because AutoScriptHub sells digital products, purchases are generally final. This page explains when refunds may be considered and how our support team can help before a refund is requested.'),
+      'lead' => __('Every order is covered by our 15-day money-back guarantee. If your key, account or subscription cannot be activated or does not work, we fix it, replace it or refund you.'),
       'cta_title' => __('Need help with an order?'),
-      'cta_text' => __('Contact support first — most issues can be resolved quickly without needing a refund request.'),
+      'cta_text' => __('Message us on Telegram @autoscript_hub or by email. Most issues are solved quickly with a working replacement.'),
       'related' => [
         ['slug' => 'faq', 'title' => __('FAQ')],
         ['slug' => 'terms-and-conditions', 'title' => __('Terms & Conditions')],
@@ -85,7 +93,7 @@
   <p class="legal-hero-lead">{{ $info['lead'] }}</p>
   <div class="legal-meta">
     <span class="legal-meta-pill">{{ __('Effective') }}: {{ __('January 24, 2025') }}</span>
-    <span class="legal-meta-pill">{{ __('Last updated') }}: {{ __('August 29, 2026') }}</span>
+    <span class="legal-meta-pill">{{ __('Last updated') }}: {{ __('November 23, 2026') }}</span>
   </div>
   </div>
 </section>

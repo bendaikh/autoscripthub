@@ -15,6 +15,9 @@ use File;
 use Fickrr\Models\Chat;
 use Fickrr\Models\EmailTemplate;
 use Fickrr\Models\Currencies;
+use Fickrr\Support\OsLicense;
+use Fickrr\Support\OsLicenseCatalog;
+use Fickrr\Support\ProductImage;
 use Auth;
 use League\Flysystem\Filesystem;
 use Illuminate\Support\Facades\Storage;
@@ -118,6 +121,38 @@ class Helper {
 	   return $image_path;
 	   
 	
+	}
+
+	/**
+	 * Prefer the widest local file. Remote files keep the first name in the list.
+	 */
+	public static function best_product_image(array $filenames)
+	{
+		return ProductImage::pickSharpest($filenames, function ($name) {
+			$safe = basename(str_replace('\\', '/', (string) $name));
+			if ($safe === '' || $safe === '.' || $safe === '..') {
+				return null;
+			}
+
+			return ProductImage::localWidth(base_path('public/storage/items/'.$safe));
+		});
+	}
+
+	/**
+	 * Card image: the preview the admin chose, then the thumbnail. Never a different file.
+	 */
+	public static function card_image($item)
+	{
+		$names = [];
+		if (is_object($item)) {
+			foreach (['item_preview', 'item_thumbnail'] as $field) {
+				if (isset($item->{$field}) && $item->{$field} !== '') {
+					$names[] = $item->{$field};
+				}
+			}
+		}
+
+		return $names[0] ?? null;
 	}
 	
 	
@@ -565,7 +600,86 @@ class Helper {
 		return $price_info;
 	}*/
 	
-	public static function price_format($position,$price,$symbol,$multicurrency) 
+	public static function is_single_price_item($item)
+	{
+		return OsLicense::isItem($item);
+	}
+
+	/**
+	 * Scripts item type, or the Scripts category and its subcategories.
+	 */
+	public static function is_scripts_item($item)
+	{
+		if (is_array($item)) {
+			$item = (object) $item;
+		}
+		$type = strtolower(trim((string) ($item->item_type ?? '')));
+		if ($type === 'scripts') {
+			return true;
+		}
+		$typeId = (int) ($item->item_type_id ?? 0);
+		if ($typeId > 0) {
+			$row = Items::typeIDdata($typeId);
+			$slug = strtolower(trim((string) ($row->item_type_slug ?? '')));
+			$name = strtolower(trim((string) ($row->item_type_name ?? '')));
+			if ($slug === 'scripts' || $name === 'scripts') {
+				return true;
+			}
+		}
+		static $scriptsCatId = null;
+		if ($scriptsCatId === null) {
+			$scriptsCatId = (int) (\DB::table('category')->where('category_slug', 'scripts')->where('drop_status', 'no')->value('cat_id') ?? 0);
+		}
+		if ($scriptsCatId <= 0) {
+			return false;
+		}
+		$catId = (int) ($item->item_category ?? 0);
+		$parent = (int) ($item->item_category_parent ?? 0);
+
+		return ($catId === $scriptsCatId || $parent === $scriptsCatId);
+	}
+
+	/**
+	 * True when version-link JSON rows carry actual prices that differ.
+	 * Same price on every row, or no price keys, is not a difference.
+	 */
+	public static function version_links_have_distinct_prices($versionLinks)
+	{
+		if (!is_array($versionLinks) || count($versionLinks) < 2) {
+			return false;
+		}
+		$prices = [];
+		foreach ($versionLinks as $row) {
+			if (!is_array($row)) {
+				continue;
+			}
+			foreach (['price', 'regular_price', 'extended_price', 'amount'] as $key) {
+				if (array_key_exists($key, $row) && $row[$key] !== '' && $row[$key] !== null) {
+					$prices[] = (string) $row[$key];
+					break;
+				}
+			}
+		}
+		if (count($prices) < 2) {
+			return false;
+		}
+		return count(array_unique($prices)) > 1;
+	}
+
+	/**
+	 * Card / list price. Operating System Licenses use the regular price.
+	 * Every other item keeps the extended price used today.
+	 */
+	public static function catalog_price($item)
+	{
+		$source = self::is_single_price_item($item)
+			? ($item->regular_price ?? 0)
+			: ($item->extended_price ?? 0);
+
+		return self::price_info($item->item_flash ?? 0, $source);
+	}
+
+	public static function price_format($position,$price,$symbol,$multicurrency,$exact = false) 
     {
 	    
 		if($multicurrency != "")
@@ -576,21 +690,11 @@ class Helper {
 		else
 		{
 		   $priceval = $price;
-		}	
-			if($position == "left")
-			{
-			//$price_info = $symbol.round($priceval,2);
-			$price_info = $symbol.round($priceval);
-			}
-			else
-			{
-			//$price_info = round($priceval,2).$symbol;
-			$price_info = round($priceval).$symbol;
-			}
-		
-		return $price_info;
+		}
+
+		return OsLicenseCatalog::formatTaggedPrice($position, $symbol, $priceval, (bool) $exact);
 	}
-	public static function price_value($price,$multicurrency)
+	public static function price_value($price,$multicurrency,$exact = false)
 	{
 	
 	    if($multicurrency != "")
@@ -601,31 +705,14 @@ class Helper {
 		else
 		{
 		   $priceval = $price;
-		}	
-			
-		//$price_info = round($priceval,2);
-		$price_info = round($priceval);	
-		
-		return $price_info;
+		}
+
+		return OsLicenseCatalog::roundAmount($priceval, (bool) $exact);
 	
 	}
-	public static function plan_format($position,$price,$symbol) 
+	public static function plan_format($position,$price,$symbol,$exact = false) 
     {
-	    
-		
-		    $priceval = $price;
-		    if($position == "left")
-			{
-			//$price_info = $symbol.round($priceval,2);
-			$price_info = $symbol.round($priceval);
-			}
-			else
-			{
-			//$price_info = round($priceval,2).$symbol;
-			$price_info = round($priceval).$symbol;
-			}
-		
-		return $price_info;
+		return OsLicenseCatalog::formatTaggedPrice($position, $symbol, $price, (bool) $exact);
 	}
 	public static function Item_Type_Count($slug)
 	{
@@ -721,7 +808,7 @@ class Helper {
 		   }
 		   else
 		   {
-		     $img_url = url('/').'/resources/views/theme/img/no-image.jpg';
+		     $img_url = asset('img/no-image.jpg');
 		   }
 		}
 		else if($type == 'update-item' or $type == 'create-item')
@@ -733,12 +820,12 @@ class Helper {
 		   }
 		   else
 		   {
-		     $img_url = url('/').'/resources/views/theme/img/no-image.jpg';
+		     $img_url = asset('img/no-image.jpg');
 		   }
 		}
 		else
 		{
-		   $img_url = url('/').'/resources/views/theme/img/no-image.jpg';
+		   $img_url = asset('img/no-image.jpg');
 		}
 		
 		 return $img_url;

@@ -1,7 +1,17 @@
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
-<title>{{ $allsettings->site_title }} - @if($allsettings->site_blog_display == 1) {{ $slug }} @else {{ __('404 Not Found') }} @endif</title>
+@php
+  $pm = \Fickrr\Support\PageMeta::forSlug('blog');
+  if ($allsettings->site_blog_display == 1) {
+      $seo_title = $pm['title'] ?? ($allsettings->site_title.' - '.$slug);
+      if (!empty($pm['desc'])) { $seo_desc = $pm['desc']; }
+  } else {
+      $seo_title = __('404 Not Found').' - '.$allsettings->site_title;
+      $seo_noindex = true;
+  }
+@endphp
+<title>{{ $seo_title }}</title>
 @include('meta')
 @include('style')
 </head>
